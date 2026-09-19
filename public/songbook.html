@@ -615,6 +615,105 @@ input:focus, textarea:focus { outline: 2px solid var(--green); outline-offset: 1
   * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
 }
 
+/* ---------- Sour Paint Studios oil-drip skin ---------- */
+html[data-skin="drip"] body {
+  background:
+    radial-gradient(ellipse 80% 50% at 18% -10%, rgba(212,255,58,0.22), transparent 55%),
+    radial-gradient(ellipse 70% 45% at 92% 110%, rgba(240,222,0,0.16), transparent 50%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(57,255,208,0.06), transparent 60%),
+    #080A06;
+  color: #F3FFE4;
+}
+html[data-skin="drip"] body::before {
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  opacity: 0.16;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+html[data-skin="drip"] #app { position: relative; z-index: 1; }
+
+html[data-skin="drip"] .topbar,
+html[data-skin="drip"] .player-controls,
+html[data-skin="drip"] .song-card,
+html[data-skin="drip"] .modal-card,
+html[data-skin="drip"] .import-menu,
+html[data-skin="drip"] .reading-picker,
+html[data-skin="drip"] .fader-rail {
+  background:
+    linear-gradient(180deg, rgba(212,255,58,0.08), transparent 40%),
+    #12180C;
+  border-color: rgba(212,255,58,0.42);
+  box-shadow:
+    0 0 18px rgba(212,255,58,0.22),
+    inset 0 1px 0 rgba(255,255,180,0.16);
+}
+
+html[data-skin="drip"] .topbar,
+html[data-skin="drip"] .player-controls { position: relative; overflow: visible; }
+html[data-skin="drip"] .topbar::after,
+html[data-skin="drip"] .player-controls::before {
+  content: "";
+  position: absolute; left: 0; right: 0; height: 22px;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: 100% 22px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 22' preserveAspectRatio='none'%3E%3Cpath fill='%2312180C' d='M0 0h400v5c-14 0-20 16-32 16s-18-16-30-16-16 17-28 17S292 5 278 5s-18 14-32 14S224 5 210 5s-22 17-38 17S148 5 132 5 108 18 90 18 72 5 58 5 36 17 22 17 10 5 0 5z'/%3E%3Ccircle cx='48' cy='18' r='3.2' fill='%23D4FF3A' opacity='.85'/%3E%3Ccircle cx='175' cy='19' r='2.4' fill='%23F0DE00' opacity='.8'/%3E%3Ccircle cx='318' cy='17' r='2.8' fill='%23D4FF3A' opacity='.7'/%3E%3C/svg%3E");
+}
+html[data-skin="drip"] .topbar::after { bottom: -21px; }
+html[data-skin="drip"] .player-controls::before { top: -21px; transform: scaleY(-1); }
+
+html[data-skin="drip"] .btn,
+html[data-skin="drip"] .icon-btn,
+html[data-skin="drip"] .btn-fontsize,
+html[data-skin="drip"] .btn-layout-top,
+html[data-skin="drip"] .btn-ramp,
+html[data-skin="drip"] .btn-tap,
+html[data-skin="drip"] .btn-hold {
+  box-shadow: 0 0 10px rgba(212,255,58,0.28), inset 0 0 10px rgba(212,255,58,0.06);
+  border-color: rgba(212,255,58,0.5);
+}
+html[data-skin="drip"] .btn-primary,
+html[data-skin="drip"] .btn-hold[data-status="ready"] {
+  background: #D4FF3A;
+  color: #080A06;
+  border-color: #F0DE00;
+  box-shadow: 0 0 16px rgba(212,255,58,0.75), 0 0 36px rgba(240,222,0,0.35);
+}
+html[data-skin="drip"] .btn-hold[data-status="scrolling"] {
+  background: #1A220C;
+  color: #D4FF3A;
+  box-shadow: 0 0 14px rgba(212,255,58,0.4);
+}
+html[data-skin="drip"] .btn-tap {
+  border-color: #F0DE00;
+  color: #F0DE00;
+  box-shadow: 0 0 14px rgba(240,222,0,0.4);
+}
+html[data-skin="drip"] .btn-art-mode,
+html[data-skin="drip"] .fader-track {
+  animation: sour-tube 3.4s ease-in-out infinite;
+}
+html[data-skin="drip"] .fader-fill {
+  background: linear-gradient(to top, #6FB92C, #D4FF3A, #F0DE00);
+  box-shadow: 0 0 12px rgba(212,255,58,0.65);
+}
+html[data-skin="drip"] .fader-bpm,
+html[data-skin="drip"] .brand-line2,
+html[data-skin="drip"] .library-heading h1 {
+  color: #D4FF3A;
+  text-shadow: 0 0 12px rgba(212,255,58,0.55);
+}
+html[data-skin="drip"] .chip {
+  border-color: rgba(212,255,58,0.45);
+  background: rgba(212,255,58,0.1);
+}
+html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,255,58,0.45); }
+@keyframes sour-tube {
+  0%, 100% { box-shadow: 0 0 8px rgba(212,255,58,0.3), 0 0 18px rgba(240,222,0,0.12); }
+  50% { box-shadow: 0 0 18px rgba(212,255,58,0.75), 0 0 40px rgba(240,222,0,0.28); }
+}
+
 /* ---------- Small screens ---------- */
 @media (max-width: 380px) {
   .lyrics-body { font-size: 19px; padding-left: 16px; padding-right: 16px; }
@@ -739,6 +838,7 @@ input:focus, textarea:focus { outline: 2px solid var(--green); outline-offset: 1
   // Duplicates by color (not by name) are omitted; new named looks from
   // the studio list are added only when they read as a different scheme.
   var ART_PALETTES = [
+    { id: 'sps-oil',           label: 'Sour Paint Studios', skin: 'drip', dark: '#080A06', light: '#F3FFE4', accent: '#D4FF3A' },
     { id: 'desert-classic',    label: 'Desert Classic',    dark: '#2B1608', light: '#F4D9A8', accent: '#E0742A' },
     { id: 'moody-night',       label: 'Moody Night',       dark: '#0F1730', light: '#CFE0FF', accent: '#3A6FE0' },
     { id: 'golden-hour',       label: 'Golden Hour',       dark: '#3A2308', light: '#FFE7B8', accent: '#FF9A2E' },
@@ -901,18 +1001,28 @@ input:focus, textarea:focus { outline: 2px solid var(--green); outline-offset: 1
 
   function applyArtPalette(id) {
     var root = document.documentElement;
-    if (!id) { root.style.removeProperty('--bg'); root.style.removeProperty('--bg-elevated');
-      root.style.removeProperty('--text'); root.style.removeProperty('--text-dim');
-      root.style.removeProperty('--green-bright'); root.style.removeProperty('--line');
-      return; }
+    function clearVars() {
+      ['--bg','--bg-elevated','--text','--text-dim','--green','--green-bright','--yellow','--line','--shadow']
+        .forEach(function (k) { root.style.removeProperty(k); });
+      root.removeAttribute('data-skin');
+    }
+    if (!id) { clearVars(); return; }
     var p = getArtPalette(id);
     if (!p) return;
     root.style.setProperty('--bg', p.dark);
-    root.style.setProperty('--bg-elevated', p.dark);
+    root.style.setProperty('--bg-elevated', p.skin ? '#12180C' : p.dark);
     root.style.setProperty('--text', p.light);
     root.style.setProperty('--text-dim', p.light + 'a0');
+    root.style.setProperty('--green', p.accent);
     root.style.setProperty('--green-bright', p.accent);
+    root.style.setProperty('--yellow', p.skin ? '#F0DE00' : p.accent);
     root.style.setProperty('--line', p.accent + '55');
+    if (p.skin) {
+      root.setAttribute('data-skin', p.skin);
+      root.style.setProperty('--shadow', '0 0 28px rgba(212,255,58,0.22)');
+    } else {
+      root.removeAttribute('data-skin');
+    }
   }
 
   var READING_MODES = [
