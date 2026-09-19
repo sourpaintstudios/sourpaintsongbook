@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPS / STD chord-layout — reference + working demo</title>
+<style>
+/* ============================================================
+   WHAT THIS FILE IS
+
+   This is the exact code that runs the SPS / STD button in the
+   Sour Paint Studios Songbook app — copied straight out of the
+   working app, not rewritten or simplified. Open this file
+   directly (no server, no HTTPS needed — this part uses nothing
+   but plain DOM code) and you'll see two sample songs: one
+   formatted the way SPS needs, and one formatted the "wrong" way.
+   Tap the button on each and watch the difference.
+
+   THE ONE RULE THAT MATTERS, before any code:
+   SPS only changes anything for a chord line that has NOTHING
+   else on it — no lyric words, nothing but chord tags like
+   [G] [F#]. If a chord and its lyric are typed on the SAME line
+   ("[G] I can't begin to sleep"), SPS has nothing to move, so the
+   button does nothing. That's almost certainly what Grok has
+   wrong — either the lyrics text isn't split onto separate lines
+   the way it needs to be, or the "is this a chord-only line" check
+   itself isn't written the same way as below.
+
+   HOW TO HAND THIS TO GROK: everything between "CSS START/END"
+   and "JS START/END" below is copy-paste, unedited, from the real
+   app. Tell Grok to paste the CSS into their stylesheet and the
+   JS functions into their script, replacing whatever they have
+   for chord-layout right now.
+   ============================================================ */
+
+/* ===================== DEMO-ONLY BASE STYLES =====================
+   Same story as the tuner file — just enough to make this page
+   readable on its own. Skip this block when integrating. */
+:root {
+  --green: #6FB92C; --green-bright: #93D83E;
+  --ink: #121210; --ink-soft: #1c1c19;
+  --line-dark: rgba(255,255,255,0.10);
+  --bg: var(--ink); --bg-elevated: var(--ink-soft);
+  --text: #F3F1E8; --text-dim: rgba(243,241,232,0.62);
+  --line: var(--line-dark);
+}
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 24px 16px 60px;
+}
+.demo-song { max-width: 520px; margin: 0 auto 40px; }
+.demo-song h2 { font-size: 16px; margin: 0 0 4px; }
+.demo-song .demo-note { font-size: 13px; color: var(--text-dim); margin: 0 0 14px; line-height: 1.5; }
+.demo-lyrics-body { font-size: 19px; line-height: 1.7; font-weight: 500; }
+/* ==================== END DEMO-ONLY BASE STYLES ==================== */
+
+/* ===================== CSS START =====================
+   Verbatim from build/app.css. */
+.btn-layout-top {
+  height: 40px; padding: 0 11px; border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg-elevated); color: var(--text);
+  font-weight: 800; font-size: 11.5px; letter-spacing: 0.01em;
+  cursor: pointer; flex-shrink: 0;
+}
+.btn-layout-top:active { transform: scale(0.94); }
+.btn-layout-top-active {
+  border-color: var(--green-bright); color: var(--green-bright);
+  box-shadow: 0 0 0 2px rgba(147,216,62,0.16);
+}
+.lyric-section { margin-bottom: 28px; }
+.lyric-line { display: block; }
+.lyric-line:empty { display: block; height: 0.6em; }
+.chord {
+  color: var(--green); font-weight: 700;
+  font-size: 0.72em;
+  vertical-align: 0.15em;
+  margin-right: 0.05em;
+}
+/* Sour Paint Studios chord layout: a chord-cue line sits to the left
+   of the lyric line it leads into, instead of stacked above it. */
+.lyric-cue-row {
+  display: flex; align-items: baseline; gap: 16px;
+}
+.lyric-cue-chord {
+  flex: 0 0 auto; min-width: 48px; max-width: 38%;
+  text-align: left;
+}
+.lyric-cue-chord .chord {
+  font-size: 0.85em; vertical-align: baseline; margin-right: 0.15em;
+}
+.lyric-cue-line { flex: 1 1 auto; min-width: 0; }
+/* ====================== CSS END ======================= */
+</style>
+</head>
+<body>
+
+<div class="demo-song">
+  <h2>Song A — formatted correctly for SPS</h2>
+  <p class="demo-note">Each chord is on its own line, with nothing else on that line. Tap the button — the chord jumps from stacked-above to sitting-to-the-left of its lyric line.</p>
+  <button class="btn-layout-top" id="toggle-a" data-target="a">STD</button>
+  <div class="demo-lyrics-body" id="lyrics-a"></div>
+</div>
+
+<div class="demo-song">
+  <h2>Song B — chord typed inline with the lyric (the wrong format)</h2>
+  <p class="demo-note">Same button, same code, but the lyrics text has the chord and words on the SAME line ("[G] I can't begin to sleep"). Tap the button — nothing visibly changes, because there's no line that's chord-ONLY to move. This is the exact bug to check for in Grok's version.</p>
+  <button class="btn-layout-top" id="toggle-b" data-target="b">STD</button>
+  <div class="demo-lyrics-body" id="lyrics-b"></div>
+</div>
+
+<script>
+/* ===================== JS START =======================
+   Verbatim from build/app.js — the actual functions that run the
+   SPS / STD toggle in the real app. Nothing here is simplified or
+   rewritten for this demo; only the two sample songs and the
+   render() wiring at the very bottom are demo-specific.
+   =============================================================== */
+
+// A "chord-only" line: strip every [Chord] tag out of it and nothing
+// but whitespace is left, and there was at least one tag to strip (an
+// empty blank line is not a chord line).
+function isChordOnlyLine(line) {
+  var str = String(line || '');
+  if (!/\[([^\[\]]{1,12})\]/.test(str)) return false;
+  return str.replace(/\[([^\[\]]{1,12})\]/g, '').trim() === '';
+}
+
+function formatChordLine(line) {
+  var escaped = String(line || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  // Wrap bracketed chords like [G] or [C9] in a styled tag for legibility.
+  return escaped.replace(/\[([^\[\]]{1,12})\]/g, '<span class="chord">$1</span>');
+}
+
+function renderLyricsBody(lyrics, chordLayout) {
+  var text = String(lyrics || '').trim();
+  if (!text) return '<p class="lyrics-empty">No lyrics yet.</p>';
+  var leftLayout = chordLayout === 'left';
+  var blocks = text.split(/\n\s*\n/);
+  return blocks.map(function (block) {
+    var rawLines = block.split(/\r?\n/);
+    var html = '';
+    for (var i = 0; i < rawLines.length; i++) {
+      var line = rawLines[i];
+      var next = rawLines[i + 1];
+      // Sour Paint Studios layout: a line that's nothing but chord tag(s)
+      // — a cue, not something to sing — sits to the left of the lyric
+      // line it leads into, instead of stacked above it. Only kicks in
+      // when there's an actual lyric line right after it to pair with;
+      // anything else (a lone chord line at a block's end, back-to-back
+      // chord lines, a line with BOTH a chord and lyric words on it,
+      // etc.) falls back to the normal stacked rendering.
+      if (leftLayout && isChordOnlyLine(line) && next != null && next.trim() !== '' && !isChordOnlyLine(next)) {
+        html += '<div class="lyric-cue-row">' +
+          '<span class="lyric-cue-chord">' + formatChordLine(line) + '</span>' +
+          '<span class="lyric-cue-line">' + formatChordLine(next) + '</span>' +
+        '</div>';
+        i++; // consumed the paired lyric line too
+      } else {
+        html += '<span class="lyric-line">' + formatChordLine(line) + '</span>';
+      }
+    }
+    return '<div class="lyric-section">' + html + '</div>';
+  }).join('');
+}
+
+// This is the entire click handler for the button in the real app:
+//   state.settings.chordLayout = (state.settings.chordLayout === 'left') ? 'standard' : 'left';
+//   persist();
+//   refreshLyricsBody();   // re-renders #lyrics-body with the new flag
+//   paintChordLayoutButton(); // relabels the button STD <-> SPS
+//
+// The button itself doesn't know how to draw anything — it only flips
+// one string value and asks the lyrics area to redraw. All the actual
+// "does this line move" logic lives in isChordOnlyLine() above.
+
+/* ====================== JS END ========================= */
+
+// ----- demo-only wiring below: two sample songs, no app state object -----
+var SONG_A = "Verse 1\n[G]\nI can't begin to sleep\n[F#]\nThe secrets that I keep\n[B]\nLittle bit of wine\n[C9]\nLittle bit of weed";
+var SONG_B = "Verse 1\n[G] I can't begin to sleep\n[F#] The secrets that I keep\n[B] Little bit of wine\n[C9] Little bit of weed";
+
+var layoutState = { a: 'standard', b: 'standard' };
+
+function draw(target) {
+  document.getElementById('lyrics-' + target).innerHTML =
+    renderLyricsBody(target === 'a' ? SONG_A : SONG_B, layoutState[target]);
+  var btn = document.getElementById('toggle-' + target);
+  var isLeft = layoutState[target] === 'left';
+  btn.textContent = isLeft ? 'SPS' : 'STD';
+  btn.classList.toggle('btn-layout-top-active', isLeft);
+}
+
+document.getElementById('toggle-a').addEventListener('click', function () {
+  layoutState.a = layoutState.a === 'left' ? 'standard' : 'left';
+  draw('a');
+});
+document.getElementById('toggle-b').addEventListener('click', function () {
+  layoutState.b = layoutState.b === 'left' ? 'standard' : 'left';
+  draw('b');
+});
+draw('a'); draw('b');
+</script>
+</body>
+</html>

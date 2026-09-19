@@ -1,0 +1,56 @@
+Color palettes Templates.
+
+LIst of 12 different color palettes you can copy and paste:
+Desert Classic — warm terracotta, clay reds, golden orange, sand tones, warm earthy palette
+Moody Night — deep navy blues, cool teals, dark purples, dramatic cool tones
+Golden Hour — warm golden yellows, soft oranges, peach tones, glowing warm light
+High Contrast — bold black, burnt orange, cream, strong dramatic contrast
+Vintage Western — faded browns, dusty reds, olive greens, sepia tones
+Psychedelic Desert — vibrant magenta, electric turquoise, deep purple, saturated colors
+Monochrome Drama — black, white, and shades of gray with dramatic lighting
+Sunset Glow — fiery reds, deep magentas, bright oranges, glowing sunset palette
+Cool Minimal — cool grays, soft blues, muted sage greens, clean and calm
+Southwest Jewel — turquoise, coral, deep teal, rich jewel tones
+Dark & Gritty — dark browns, charcoal, muted rust, heavy moody shadows
+Arizona Dawn — soft pinks, lavender, pale gold, gentle morning light
+Cholla Bloom — dusty rose, cactus green, bone white, pale gold, desert flower
+Monsoon Sky — slate blue, storm gray, wet earth, lightning white, heavy rain
+Copper Vein — oxidized copper, rust orange, deep umber, verdigris, mined metal
+Night Saguaro — indigo, moon silver, black-green, faint pink bloom
+Dust Devil — ochre, burnt sienna, pale sand, smoke gray, spinning heat
+Sedona Ember — crimson sandstone, iron oxide, charcoal, warm glow
+Ghost Town — faded cream, weathered gray, rust nail, pale sage, abandoned west
+Turquoise Vein — raw turquoise, mineral blue, sand, dark stone
+Blood Moon — deep crimson, rust, midnight purple, thin gold
+Ironwood — charcoal bark, silver-gray, muted olive, dry earth
+Palo Verde — lime-yellow green, pale gold, dusty olive, white bark
+Canyon Smoke — cool gray-blue, ash white, muted violet, distant haze
+SOUR PAINT STUDIOS — 24 OIL PALETTES
+Reference list — numbers match the 24-up sheet.
+Each palette: left = thick oil, right = dry scumble.
+
+1. CHOLLA BLOOM — dusty rose, sage, warm white, antique gold
+2. PHOENIX SKY — sunset orange, magenta, pale peach, deep violet
+3. COUNTY ROAD 9 — night navy, bone, alien green, asphalt gray
+4. ARIZONA DUST — terracotta, sand, dry clay, burnt sienna
+5. CLOUDED DUST — charcoal, pale ash, warm gray, faint rust
+6. WHITE TANK SUNSET — coral, apricot, lavender, dusk blue
+7. MINGUS MOUNTAIN — pine green, granite, cool mist, bark brown
+8. GRACE — earth-green, raw umber, cream, soft gold
+9. ROSEMARY — rosewood brown, honey, cream, dark walnut
+10. SOUR PAINT — acid yellow-green, black, raw white, rust red
+11. VINTAGE MYSTIC — neon magenta, smoke gray, crescent-gold, midnight
+12. SEDONA SMOKE — red rock, sage, smoke white, copper
+13. IOWA BOYS — corn gold, denim blue, barn red, field green
+14. ANNETOYA — desert pink, turquoise, sand, black
+15. CAROLINA BUTTERFLY — wing orange, cream, soft black, pollen yellow
+16. DESERT HORROR — dried blood, bone, shadow green, dust
+17. BOOK OF DANIEL — ink black, parchment, oxblood, gold leaf
+18. SKY HARBOR — jet gray, contrail white, dusk orange, tarmac
+19. WHISKEY ROW — amber, oak, whiskey gold, night brown
+20. COTTONWOOD — river green, pale bark, sunlight, cool stone
+21. PRESCOTT NIGHT — streetlamp gold, pine black, brick, moon white
+22. BANGERS — pick-ivory, steel, stage black, neon lime
+23. EARTH SYMBOL — globe blue, continent green, cloud white, orbit gold
+24. DLR SIGNATURE — runny wash brown, drip black, canvas cream, signature gold
+
