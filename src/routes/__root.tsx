@@ -12,7 +12,7 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: APP_NAME },
       { name: "theme-color", content: "#121210" },
-      { name: "description", content: "Phone-first lyric and chord player for the stage." },
+      { name: "description", content: "Sour Paint Studios Songbook — lyrics and chords for any phone, computer, or TV browser." },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
