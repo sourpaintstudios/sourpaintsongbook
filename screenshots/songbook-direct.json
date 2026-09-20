@@ -1,11 +1,11 @@
 {
-  "url": "http://127.0.0.1:8080/",
+  "url": "http://127.0.0.1:8080/songbook.html",
   "viewports": {
     "desktop": {
       "width": 1280,
       "height": 800,
       "status": 200,
-      "title": "Sour Paint Studios Songbook",
+      "title": "Sour Paint Studios — Songbook",
       "hasCanvas": false,
       "bodyTextLen": 96,
       "bodyTextHash": "1fce995eb7ac6b1dd80c6e822ed7c8f2dd8f1b6d2b09dfb8fe2f0b7951641b7a",
@@ -13,13 +13,13 @@
       "horizontalOverflow": false,
       "consoleErrors": [],
       "pageErrors": [],
-      "screenshot": "/workspace/screenshots/app-builder-preview.png"
+      "screenshot": "/workspace/screenshots/songbook-direct.png"
     },
     "mobile": {
       "width": 390,
       "height": 844,
       "status": 200,
-      "title": "Sour Paint Studios Songbook",
+      "title": "Sour Paint Studios — Songbook",
       "hasCanvas": false,
       "bodyTextLen": 96,
       "bodyTextHash": "1fce995eb7ac6b1dd80c6e822ed7c8f2dd8f1b6d2b09dfb8fe2f0b7951641b7a",
@@ -27,10 +27,10 @@
       "horizontalOverflow": false,
       "consoleErrors": [],
       "pageErrors": [],
-      "screenshot": "/workspace/screenshots/app-builder-preview-mobile.png"
+      "screenshot": "/workspace/screenshots/songbook-direct-mobile.png"
     }
   },
   "brandWarnings": [],
   "authWarnings": [],
-  "verdictFile": "/workspace/screenshots/app-builder-preview.json"
+  "verdictFile": "/workspace/screenshots/songbook-direct.json"
 }

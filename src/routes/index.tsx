@@ -25,8 +25,9 @@ function Home() {
         return res.text();
       })
       .then((html) => {
-        if (cancelled || window.__spsSongbookBooted) {
-          if (window.__spsSongbookBooted) setReady(true);
+        if (cancelled) return;
+        if (window.__spsSongbookBooted) {
+          setReady(true);
           return;
         }
         window.__spsSongbookBooted = true;
@@ -40,6 +41,7 @@ function Home() {
         });
         parsed.body.childNodes.forEach((node) => {
           if (node.nodeName === "SCRIPT") return;
+          if ((node as HTMLElement).id === "splash") return;
           document.body.appendChild(document.importNode(node, true));
         });
         parsed.querySelectorAll("script").forEach((old) => {
@@ -52,6 +54,7 @@ function Home() {
       .catch((err) => {
         console.error(err);
         window.__spsSongbookBooted = false;
+        setReady(false);
       });
 
     return () => {
