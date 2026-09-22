@@ -15,7 +15,7 @@ export const Route = createRootRoute({
       { name: "description", content: "Sour Paint Studios Songbook — lyrics and chords for any phone, computer, or TV browser." },
     ],
     links: [
-      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "icon", type: "image/jpeg", href: "/sour-paint-logo.jpg" },
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/__grok/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/__grok/icon-180.png" },
