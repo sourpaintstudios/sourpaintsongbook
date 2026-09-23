@@ -23,7 +23,8 @@ function ensureSplash() {
     '<img class="splash-cover" src="/splash-poster.jpg" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;pointer-events:none;background:#0a0a08">' +
     '</div>' +
     '<div class="splash-skip" style="position:absolute;top:max(16px,env(safe-area-inset-top));right:max(16px,env(safe-area-inset-right));color:rgba(243,241,232,.85);font-size:13px;font-weight:700;padding:8px 12px;border:1px solid rgba(243,241,232,.25);border-radius:999px;background:rgba(0,0,0,.35);z-index:2">Tap to skip</div>' +
-    '<div class="splash-version" style="position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:rgba(243,241,232,.7);font-size:12px;letter-spacing:.08em;z-index:2">Version 1.7.11</div>';
+    '<button type="button" class="splash-sound" id="splash-sound" style="position:absolute;left:50%;bottom:max(64px,calc(env(safe-area-inset-bottom) + 52px));transform:translateX(-50%);z-index:3;border:1.5px solid #d6ef6a;background:rgba(26,36,72,.72);color:#d6ef6a;font-weight:800;font-size:15px;border-radius:999px;padding:12px 18px">Tap for sound</button>' +
+    '<div class="splash-version" style="position:absolute;bottom:max(18px,env(safe-area-inset-bottom));left:0;right:0;text-align:center;color:rgba(243,241,232,.7);font-size:12px;letter-spacing:.08em;z-index:2">Version 1.7.22</div>';
   document.body.appendChild(splash);
   const vid = splash.querySelector("video");
   if (vid) {
@@ -43,11 +44,17 @@ function Home() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    ensureSplash();
-    if (window.__spsSongbookBooted) {
+    const existingApp = document.getElementById("app");
+    if (window.__spsSongbookBooted && existingApp) {
+      const stuck = document.getElementById("splash");
+      if (stuck) stuck.remove();
       setReady(true);
       return;
     }
+    window.__spsSongbookBooted = false;
+    const oldSplash = document.getElementById("splash");
+    if (oldSplash) oldSplash.remove();
+    ensureSplash();
     let cancelled = false;
 
     fetch("/songbook.html")
