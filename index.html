@@ -1217,15 +1217,22 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
 /* ---------- Tuner (full-screen overlay over any screen) ---------- */
 .tuner-overlay {
   position: fixed; inset: 0; z-index: 70;
-  background: var(--bg); color: var(--text);
+  /* The tuner is always a dark neon room, whatever theme the app is in. */
+  --bg: #080a06; --bg-elevated: #12160d; --text: #F3F6EA; --text-dim: rgba(243,246,234,0.6);
+  --line: rgba(200,255,46,0.16);
+  --neon-lime: #C8FF2E; --neon-green: #3DFF72;
+  background: radial-gradient(120% 70% at 50% 28%, #101808 0%, #080a06 70%);
+  color: var(--text);
   display: flex; flex-direction: column; align-items: center;
   padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px calc(env(safe-area-inset-bottom, 0px) + 18px);
   overflow-y: auto; -webkit-overflow-scrolling: touch;
   --tuner-color: var(--text-dim);
 }
-.tuner-overlay[data-state="intune"] { --tuner-color: var(--green-bright); }
-.tuner-overlay[data-state="close"] { --tuner-color: var(--yellow); }
-.tuner-overlay[data-state="far"] { --tuner-color: #FF7A45; }
+.tuner-overlay > *:not(.tuner-fx) { position: relative; z-index: 1; }
+.tuner-fx { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+.tuner-overlay[data-state="intune"] { --tuner-color: var(--neon-lime); }
+.tuner-overlay[data-state="close"] { --tuner-color: #FFE53A; }
+.tuner-overlay[data-state="far"] { --tuner-color: #FF6B3D; }
 .tuner-top {
   width: 100%; max-width: 520px;
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
@@ -1257,22 +1264,24 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   font-weight: 700; font-size: 12.5px; white-space: nowrap; cursor: pointer;
 }
 .tuner-chip:active { transform: scale(0.96); }
-.tuner-chip-active { border-color: var(--green-bright); color: var(--green-bright); background: rgba(147,216,62,0.14); }
+.tuner-chip-active { border-color: var(--neon-lime); color: var(--neon-lime); background: rgba(200,255,46,0.14); box-shadow: 0 0 12px rgba(200,255,46,0.35); }
 .tuner-main {
   width: 100%; max-width: 420px; flex: 1 0 auto;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 10px 0 4px;
 }
 .tuner-gauge { width: 100%; height: auto; display: block; overflow: visible; }
-.tuner-tick { stroke: var(--text-dim); stroke-width: 2; stroke-linecap: round; opacity: 0.6; }
-.tuner-tick-major { stroke: var(--text); stroke-width: 2.6; opacity: 0.8; }
-.tuner-tick-zero { stroke: var(--green-bright); stroke-width: 4; opacity: 1; }
-.tuner-zone { stroke: var(--green-bright); stroke-width: 10; fill: none; stroke-linecap: round; opacity: 0.3; transition: opacity 0.15s; }
-.tuner-overlay[data-state="intune"] .tuner-zone { opacity: 1; }
+.tuner-tick { stroke: var(--neon-green); stroke-width: 3; stroke-linecap: round; opacity: 0.35; }
+.tuner-tick-major { stroke: var(--neon-lime); stroke-width: 4; opacity: 0.7; }
+.tuner-tick-zero { stroke: var(--neon-lime); stroke-width: 6; opacity: 1; filter: drop-shadow(0 0 5px var(--neon-lime)); }
+.tuner-zone { stroke: var(--neon-lime); stroke-width: 12; fill: none; stroke-linecap: round; opacity: 0.28; transition: opacity 0.2s, filter 0.2s; }
+.tuner-overlay[data-state="intune"] .tuner-zone { opacity: 1; filter: drop-shadow(0 0 8px var(--neon-lime)) drop-shadow(0 0 18px var(--neon-green)); }
+.tuner-track { stroke: rgba(200,255,46,0.10); stroke-width: 16; fill: none; stroke-linecap: round; }
 .tuner-flat-sharp { fill: var(--text-dim); font-size: 24px; font-weight: 700; }
 .tuner-needle { transform-origin: 150px 158px; transition: transform 0.09s linear; }
-.tuner-needle line { stroke: var(--tuner-color); stroke-width: 4.5; stroke-linecap: round; }
-.tuner-needle circle { fill: var(--tuner-color); }
+.tuner-needle { filter: drop-shadow(0 0 6px var(--tuner-color)) drop-shadow(0 0 14px var(--tuner-color)); }
+.tuner-needle path, .tuner-needle circle { fill: var(--tuner-color); transition: fill 0.15s; }
+.tuner-needle .tuner-bristle { fill: none; stroke: rgba(0,0,0,0.18); stroke-width: 1; }
 .tuner-overlay[data-state="idle"] .tuner-needle { opacity: 0.35; }
 .tuner-readout { text-align: center; margin-top: 2px; }
 .tuner-note {
@@ -1293,12 +1302,16 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   font-weight: 800; font-size: 15px; color: var(--tuner-color);
 }
 .tuner-status:empty { visibility: hidden; }
-.tuner-overlay[data-state="intune"] .tuner-status { background: var(--green-bright); color: #0d1a02; }
+.tuner-overlay[data-state="intune"] .tuner-status { background: var(--neon-lime); color: #0d1a02; box-shadow: 0 0 18px rgba(200,255,46,0.7); }
+.tuner-overlay:not([data-state="idle"]) .tuner-note { color: var(--tuner-color); text-shadow: 0 0 14px var(--tuner-color), 0 0 34px var(--tuner-color); }
+.tuner-overlay[data-state="intune"] .tuner-note { animation: tunerPulse 1.6s ease-in-out infinite; }
+@keyframes tunerPulse { 50% { text-shadow: 0 0 22px var(--tuner-color), 0 0 60px var(--neon-green); } }
+@media (prefers-reduced-motion: reduce) { .tuner-overlay[data-state="intune"] .tuner-note { animation: none; } }
 .tuner-level {
   width: 150px; height: 4px; margin-top: 18px; overflow: hidden;
   border-radius: 999px; background: var(--bg-elevated);
 }
-.tuner-level-fill { height: 100%; width: 0; background: var(--text-dim); transition: width 0.08s linear; }
+.tuner-level-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--neon-green), var(--neon-lime)); box-shadow: 0 0 10px var(--neon-lime); transition: width 0.08s linear; }
 .tuner-strings {
   width: 100%; max-width: 460px; margin-top: 14px;
   display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px;
@@ -1314,11 +1327,11 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
 .tuner-string:active { transform: scale(0.95); }
 .tuner-string-name { font-size: 21px; font-weight: 800; }
 .tuner-string-oct { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
-.tuner-string-check { position: absolute; top: 4px; right: 4px; color: var(--green-bright); display: none; }
+.tuner-string-check { position: absolute; top: 4px; right: 4px; color: var(--neon-lime); display: none; }
 .tuner-string-check svg { width: 13px; height: 13px; display: block; }
 .tuner-string-tuned .tuner-string-check { display: block; }
 .tuner-string-active { border-color: var(--tuner-color); color: var(--tuner-color); box-shadow: 0 0 14px var(--tuner-color); }
-.tuner-string-playing { background: var(--green-bright); color: #0d1a02; }
+.tuner-string-playing { background: var(--neon-lime); color: #0d1a02; box-shadow: 0 0 20px rgba(200,255,46,0.7); }
 .tuner-string-playing .tuner-string-oct { color: #0d1a02; }
 .tuner-hint { margin: 10px 0 0; font-size: 12.5px; color: var(--text-dim); text-align: center; }
 .tuner-mic { width: 100%; max-width: 420px; margin-top: 16px; text-align: center; }
@@ -5708,22 +5721,175 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ticks += '<line class="tuner-tick' + (major ? ' tuner-tick-major' : '') + (c === 0 ? ' tuner-tick-zero' : '') +
         '" x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '"/>';
     }
-    var zr = r + 10, za = TUNER_IN_TUNE_CENTS * 1.2 * Math.PI / 180;
+    var zr = r + 10, za = TUNER_IN_TUNE_CENTS * 1.2 * Math.PI / 180, ta = 50 * 1.2 * Math.PI / 180;
+    var track = '<path class="tuner-track" d="M' + (cx - Math.sin(ta) * zr).toFixed(1) + ' ' + (cy - Math.cos(ta) * zr).toFixed(1) +
+      ' A' + zr + ' ' + zr + ' 0 0 1 ' + (cx + Math.sin(ta) * zr).toFixed(1) + ' ' + (cy - Math.cos(ta) * zr).toFixed(1) + '"/>';
     var zone = '<path class="tuner-zone" d="M' + (cx - Math.sin(za) * zr).toFixed(1) + ' ' + (cy - Math.cos(za) * zr).toFixed(1) +
       ' A' + zr + ' ' + zr + ' 0 0 1 ' + (cx + Math.sin(za) * zr).toFixed(1) + ' ' + (cy - Math.cos(za) * zr).toFixed(1) + '"/>';
-    return '<svg class="tuner-gauge" viewBox="0 0 300 172" aria-hidden="true">' +
-      zone + ticks +
+    var tipY = cy - r + 6;
+    // The needle is a loaded brush: tapered handle, a paint blob on the tip.
+    return '<svg class="tuner-gauge" id="tuner-gauge" viewBox="0 0 300 172" aria-hidden="true">' +
+      track + zone + ticks +
       '<text class="tuner-flat-sharp" x="24" y="126" text-anchor="middle">&#9837;</text>' +
       '<text class="tuner-flat-sharp" x="276" y="126" text-anchor="middle">&#9839;</text>' +
       '<g class="tuner-needle" id="tuner-needle">' +
-        '<line x1="' + cx + '" y1="' + cy + '" x2="' + cx + '" y2="' + (cy - r + 4) + '"/>' +
-        '<circle cx="' + cx + '" cy="' + cy + '" r="8"/>' +
+        '<path d="M' + (cx - 6) + ' ' + cy + ' L' + (cx - 2) + ' ' + (tipY + 10) + ' L' + (cx + 2) + ' ' + (tipY + 10) + ' L' + (cx + 6) + ' ' + cy + ' Z"/>' +
+        '<path class="tuner-bristle" d="M' + cx + ' ' + (cy - 10) + ' L' + cx + ' ' + (tipY + 14) + '"/>' +
+        '<circle cx="' + cx + '" cy="' + tipY + '" r="9.5"/>' +
+        '<circle cx="' + cx + '" cy="' + cy + '" r="9"/>' +
       '</g>' +
     '</svg>';
   }
 
+  /* TUNER-FX-START: neon paint drips + glow behind the gauge */
+  var TUNER_FX_COLORS = {
+    idle:   [120, 140, 100],
+    intune: [200, 255, 46],
+    close:  [255, 229, 58],
+    far:    [255, 107, 61]
+  };
+
+  function tunerTipPoint() {
+    var svg = byId('tuner-gauge');
+    if (!svg) return null;
+    var rc = svg.getBoundingClientRect();
+    var k = rc.width / 300;
+    var ang = Math.max(-50, Math.min(50, tuner.shownCents)) * 1.2 * Math.PI / 180;
+    return {
+      x: rc.left + (150 + Math.sin(ang) * 122) * k,
+      y: rc.top + (158 - Math.cos(ang) * 122) * k,
+      cx: rc.left + 150 * k, cy: rc.top + 158 * k, k: k, w: rc.width
+    };
+  }
+
+  function startTunerFx() {
+    var cv = byId('tuner-fx');
+    if (!cv || !tuner) return;
+    var fx = tuner.fx = {
+      cv: cv, g: cv.getContext('2d'), drips: [], parts: [], raf: 0, w: 0, h: 0, dpr: 1,
+      col: TUNER_FX_COLORS.idle.slice(), glow: 0.1, lastState: 'idle', last: 0, spawnAcc: 0,
+      reduce: !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+    };
+    fx.resize = function () {
+      fx.dpr = Math.min(2, window.devicePixelRatio || 1);
+      fx.w = window.innerWidth; fx.h = window.innerHeight;
+      cv.width = Math.round(fx.w * fx.dpr); cv.height = Math.round(fx.h * fx.dpr);
+      fx.g.setTransform(fx.dpr, 0, 0, fx.dpr, 0, 0);
+    };
+    fx.resize();
+    window.addEventListener('resize', fx.resize);
+    var frame = function (ts) {
+      if (!tuner || tuner.fx !== fx) return;
+      fx.raf = requestAnimationFrame(frame);
+      tunerFxFrame(fx, ts);
+    };
+    fx.raf = requestAnimationFrame(frame);
+  }
+
+  function stopTunerFx() {
+    if (!tuner || !tuner.fx) return;
+    cancelAnimationFrame(tuner.fx.raf);
+    window.removeEventListener('resize', tuner.fx.resize);
+    tuner.fx = null;
+  }
+
+  function tunerFxBurst(fx, tip) {
+    if (fx.reduce) return;
+    for (var i = 0; i < 34; i++) {
+      var a = Math.random() * Math.PI * 2, sp = 1.2 + Math.random() * 4.2;
+      fx.parts.push({ x: tip.x, y: tip.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1.4,
+        r: 1.5 + Math.random() * 3.6, life: 1, decay: 0.012 + Math.random() * 0.014, hue: Math.random() < 0.3 ? 1 : 0 });
+    }
+    for (var d = 0; d < 7; d++) tunerFxDrip(fx, tip.x + (Math.random() - 0.5) * 34 * tip.k, tip.y, 2.4 + Math.random() * 2.6, 0);
+  }
+
+  function tunerFxDrip(fx, x, y, r, v) {
+    if (fx.drips.length > 36) fx.drips.shift();
+    fx.drips.push({ x: x, y: y, y0: y, vy: v || 0.3, r: r, maxLen: 60 + Math.random() * 190, life: 1, hold: Math.random() < 0.5 ? 0 : 10 + Math.random() * 25 });
+  }
+
+  function tunerFxFrame(fx, ts) {
+    var dt = fx.last ? Math.min(2.5, (ts - fx.last) / 16.67) : 1;
+    fx.last = ts;
+    var g = fx.g, st = tuner.fxState || 'idle';
+    var tgt = TUNER_FX_COLORS[st] || TUNER_FX_COLORS.idle;
+    for (var c = 0; c < 3; c++) fx.col[c] += (tgt[c] - fx.col[c]) * 0.12 * dt;
+    var rgb = Math.round(fx.col[0]) + ',' + Math.round(fx.col[1]) + ',' + Math.round(fx.col[2]);
+    var active = tuner.fxActive && (Date.now() - tuner.fxActive < 600);
+    var tip = tunerTipPoint();
+    var pulse = 0.5 + 0.5 * Math.sin(ts / 420);
+    var glowT = !active ? 0.08 : (st === 'intune' ? 0.42 + 0.14 * pulse : (st === 'close' ? 0.26 : 0.2));
+    fx.glow += (glowT - fx.glow) * 0.08 * dt;
+
+    g.clearRect(0, 0, fx.w, fx.h);
+    if (tip) {
+      var rad = tip.w * (st === 'intune' && active ? 1.25 : 0.95);
+      var gr = g.createRadialGradient(tip.cx, tip.cy, 0, tip.cx, tip.cy, rad);
+      gr.addColorStop(0, 'rgba(' + rgb + ',' + fx.glow.toFixed(3) + ')');
+      gr.addColorStop(1, 'rgba(' + rgb + ',0)');
+      g.fillStyle = gr;
+      g.fillRect(0, 0, fx.w, fx.h);
+      if (active && !fx.reduce) {
+        var tg = g.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, 46 * tip.k);
+        tg.addColorStop(0, 'rgba(' + rgb + ',0.55)');
+        tg.addColorStop(1, 'rgba(' + rgb + ',0)');
+        g.fillStyle = tg;
+        g.fillRect(tip.x - 60 * tip.k, tip.y - 60 * tip.k, 120 * tip.k, 120 * tip.k);
+      }
+    }
+
+    // Transition into tune: splat.
+    if (st !== fx.lastState) {
+      if (st === 'intune' && tip && active) tunerFxBurst(fx, tip);
+      fx.lastState = st;
+    }
+
+    // Drips fall from the brush tip while a note is sounding.
+    if (tip && active && !fx.reduce) {
+      var rate = st === 'intune' ? 0.16 : (st === 'close' ? 0.1 : 0.06);
+      fx.spawnAcc += rate * dt;
+      while (fx.spawnAcc >= 1) {
+        fx.spawnAcc -= 1;
+        tunerFxDrip(fx, tip.x + (Math.random() - 0.5) * 10 * tip.k, tip.y + 6 * tip.k, (2.4 + Math.random() * 2.6) * Math.max(0.8, tip.k), 0.25);
+      }
+    }
+
+    g.lineCap = 'round';
+    g.shadowColor = 'rgba(' + rgb + ',0.95)';
+    g.shadowBlur = 14;
+    var i, d;
+    for (i = fx.drips.length - 1; i >= 0; i--) {
+      d = fx.drips[i];
+      if (d.hold > 0) { d.hold -= dt; }
+      else {
+        d.vy = Math.min(3.4, d.vy + 0.028 * dt);
+        d.y += d.vy * dt;
+      }
+      var len = d.y - d.y0;
+      if (len > d.maxLen || d.y > fx.h + 20) d.life -= 0.03 * dt;
+      if (d.life <= 0) { fx.drips.splice(i, 1); continue; }
+      var al = Math.max(0, d.life);
+      g.strokeStyle = 'rgba(' + rgb + ',' + (0.85 * al).toFixed(3) + ')';
+      g.lineWidth = Math.max(1.2, d.r * (1 - Math.min(0.6, len / 420)));
+      g.beginPath(); g.moveTo(d.x, d.y0); g.lineTo(d.x, d.y); g.stroke();
+      g.fillStyle = 'rgba(255,255,230,' + (0.9 * al).toFixed(3) + ')';
+      g.beginPath(); g.arc(d.x, d.y, d.r * 0.95 + 0.6, 0, 6.2832); g.fill();
+    }
+    for (i = fx.parts.length - 1; i >= 0; i--) {
+      var p = fx.parts[i];
+      p.vy += 0.09 * dt; p.vx *= 0.985;
+      p.x += p.vx * dt; p.y += p.vy * dt; p.life -= p.decay * dt;
+      if (p.life <= 0) { fx.parts.splice(i, 1); continue; }
+      g.fillStyle = p.hue ? 'rgba(61,255,114,' + p.life.toFixed(3) + ')' : 'rgba(' + rgb + ',' + p.life.toFixed(3) + ')';
+      g.beginPath(); g.arc(p.x, p.y, p.r * (0.5 + p.life * 0.5), 0, 6.2832); g.fill();
+    }
+    g.shadowBlur = 0;
+  }
+  /* TUNER-FX-END */
+
   function tunerHtml() {
     return (
+      '<canvas class="tuner-fx" id="tuner-fx" aria-hidden="true"></canvas>' +
       '<div class="tuner-top">' +
         '<button class="btn btn-back" type="button" data-action="close-tuner" aria-label="Close tuner">' + backSvg() + ' <span>Done</span></button>' +
         '<h1 class="tuner-title">Tuner</h1>' +
@@ -5792,6 +5958,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   function setTunerState(st) {
     var el = byId('tuner-overlay');
     if (el && el.getAttribute('data-state') !== st) el.setAttribute('data-state', st);
+    if (tuner) tuner.fxState = st;
   }
 
   function setTunerNeedle(cents) {
@@ -5803,6 +5970,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     if (!tuner) return;
     tuner.shownCents = 0;
     tuner.inTuneSince = 0;
+    tuner.fxActive = 0;
     setTunerState('idle');
     setTunerNeedle(0);
     var note = byId('tuner-note'), oct = byId('tuner-octave'), sub = byId('tuner-sub'), status = byId('tuner-status');
@@ -5829,6 +5997,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     }
     var cents = (midi - target) * 100;
     var abs = Math.abs(cents);
+    tuner.fxActive = Date.now();
     tuner.shownCents += (Math.max(-55, Math.min(55, cents)) - tuner.shownCents) * 0.45;
     setTunerNeedle(tuner.shownCents);
     var st = abs <= TUNER_IN_TUNE_CENTS ? 'intune' : (abs <= TUNER_CLOSE_CENTS ? 'close' : 'far');
@@ -6019,6 +6188,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     document.body.appendChild(el);
     paintTunerChrome();
     showTunerIdle();
+    startTunerFx();
     // Device back closes the tuner first (see the popstate handler).
     try { history.pushState({ view: view.name, tuner: true }, ''); } catch (e) {}
     startTunerMic();
@@ -6026,6 +6196,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
 
   function closeTuner() {
     if (!tuner) return;
+    stopTunerFx();
     stopTunerMic();
     if (tuner.ctx) { try { var cp = tuner.ctx.close(); if (cp && cp.catch) cp.catch(function () {}); } catch (e) {} }
     tuner = null;
@@ -6255,7 +6426,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 52';
+  var APP_VERSION_LABEL = 'Version 53';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
