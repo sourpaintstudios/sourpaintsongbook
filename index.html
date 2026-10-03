@@ -1344,6 +1344,46 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   .tuner-title { display: none; }
 }
 
+/* ---------- Painter (full-screen canvas) ---------- */
+.painter-overlay { position: fixed; inset: 0; z-index: 70; background: #F5F1E6; touch-action: none; overflow: hidden; }
+.paint-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.paint-top {
+  position: absolute; left: 0; right: 0; top: 0; z-index: 2;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 14px 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.paint-pill {
+  display: inline-flex; align-items: center; gap: 6px; height: 42px; padding: 0 16px; border-radius: 999px; cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.18); background: rgba(18,18,16,0.78); color: #F3F1E8;
+  font: 700 15px/1 inherit; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.paint-pill:active { transform: scale(0.96); }
+.paint-lengths { display: flex; gap: 6px; padding: 4px; border-radius: 999px; background: rgba(18,18,16,0.78); }
+.paint-len { height: 34px; min-width: 48px; padding: 0 12px; border-radius: 999px; border: 0; background: transparent; color: rgba(243,241,232,0.7); font: 700 14px/1 inherit; cursor: pointer; }
+.paint-len-on { background: #C8FF2E; color: #0d1a02; }
+.paint-len:disabled { opacity: 0.45; cursor: default; }
+.paint-len-on:disabled { opacity: 0.9; }
+.paint-progress { position: absolute; left: 0; right: 0; top: 0; height: 5px; z-index: 3; background: transparent; }
+.paint-progress-fill { height: 100%; width: 0; background: linear-gradient(90deg, #3DFF72, #C8FF2E); box-shadow: 0 0 10px #C8FF2E; }
+.paint-bottom {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+  padding: 0 18px calc(env(safe-area-inset-bottom, 0px) + 22px);
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.paint-big {
+  width: 100%; max-width: 360px; height: 58px; border-radius: 999px; border: 0; cursor: pointer;
+  background: #C8FF2E; color: #0d1a02; font: 800 18px/1 inherit; box-shadow: 0 6px 22px rgba(60,120,0,0.45);
+}
+.paint-big:active { transform: scale(0.97); }
+.paint-hint, .paint-msg { margin: 0; padding: 8px 14px; border-radius: 12px; background: rgba(18,18,16,0.78); color: #F3F1E8; font-size: 14px; line-height: 1.4; text-align: center; max-width: 360px; }
+.paint-hint:empty { display: none; }
+.paint-msg { background: rgba(217,67,46,0.92); }
+.paint-level { width: 100%; max-width: 360px; height: 6px; border-radius: 99px; background: rgba(18,18,16,0.25); overflow: hidden; }
+.paint-level-fill { height: 100%; width: 0; background: linear-gradient(90deg, #3DFF72, #C8FF2E); transition: width 0.06s linear; }
+.paint-time { padding: 6px 16px; border-radius: 999px; background: rgba(18,18,16,0.78); color: #C8FF2E; font: 800 22px/1 inherit; font-variant-numeric: tabular-nums; }
+.paint-finish { height: 38px; font-size: 13px; opacity: 0.85; }
+.paint-row { display: flex; gap: 10px; align-items: center; justify-content: center; width: 100%; }
+.paint-row .paint-big { width: auto; flex: 1; max-width: 220px; }
 </style>
 </head>
 <body>
@@ -2227,6 +2267,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     }
     // An open tuner closes first, leaving the screen under it as it was.
     if (tuner) { closeTuner(); return; }
+    if (painter) { closePainter(); return; }
     // Device back steps one level up: song/editor -> its list, a category
     // -> home, a song list -> song lists -> home.
     if (view.name === 'editor' || view.name === 'player') {
@@ -2706,6 +2747,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
             '<div class="library-heading"><h1>' + (arrangeMode ? 'Arrange' : 'Songbook') + '</h1><div class="library-heading-actions">' +
               (arrangeMode ?
                 '<button class="btn btn-primary" data-action="arrange-done">Done</button>' :
+                '<button class="btn btn-ghost" data-action="open-painter">' + brushSvg(18) + ' Paint</button>' +
                 '<button class="btn btn-ghost" data-action="open-tuner">' + tunerSvg(18) + ' Tuner</button>' +
                 '<button class="btn btn-primary" data-action="new-song">' + plusSvg() + ' Add song</button>') +
             '</div></div>' : '') +
@@ -6274,7 +6316,357 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     if (tuner && e.key === 'Escape') closeTuner();
   });
 
-  /* ============================================================
+    /* ============================================================
+     PAINTER — the guitar is the brush. The mic listens; how you play
+     (pick attacks, speed, pitch, loudness) lays down bristle-brush
+     strokes, splatter and drips on a Sour Paint canvas. A painting has
+     a start, a length (30/60/90 s) and a finish, then it locks.
+     ============================================================ */
+  var painter = null;
+  var PAINT_LENGTHS = [30, 60, 90];
+  var PAINT_PALETTE = [[27, 42, 91], [46, 107, 30], [95, 168, 42], [166, 226, 46], [255, 230, 0]];
+  var PAINT_CREAM = '#F5F1E6';
+
+  function brushSvg(size) { return svg('<path d="M20 3.5c-3 1.2-8 6.2-10.2 9.4l2.3 2.3C15.3 13 19.2 7.4 20 3.5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9.8 12.9c-2.6.3-3.6 2.1-3.8 4C5.8 19 4.4 20 3 20.4c3.4 1.3 8.2.4 9.1-3.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>', size || 20); }
+
+  function paintColor(t) {
+    var n = PAINT_PALETTE.length - 1, x = Math.max(0, Math.min(1, t)) * n;
+    var i = Math.min(n - 1, Math.floor(x)), f = x - i, a = PAINT_PALETTE[i], b = PAINT_PALETTE[i + 1];
+    return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
+  }
+  function paintRgba(c, al, shift) {
+    var s = shift || 0;
+    return 'rgba(' + Math.max(0, Math.min(255, Math.round(c[0] + s))) + ',' + Math.max(0, Math.min(255, Math.round(c[1] + s))) + ',' +
+      Math.max(0, Math.min(255, Math.round(c[2] + s))) + ',' + al.toFixed(3) + ')';
+  }
+
+  function painterHtml() {
+    return (
+      '<canvas class="paint-canvas" id="paint-canvas"></canvas>' +
+      '<div class="paint-top">' +
+        '<button class="paint-pill" type="button" data-action="close-painter" aria-label="Close painter">' + backSvg() + ' <span>Done</span></button>' +
+        '<div class="paint-lengths" id="paint-lengths" role="group" aria-label="Painting length"></div>' +
+      '</div>' +
+      '<div class="paint-progress" id="paint-progress"><div class="paint-progress-fill" id="paint-progress-fill"></div></div>' +
+      '<div class="paint-bottom" id="paint-bottom"></div>'
+    );
+  }
+
+  function paintBottomHtml() {
+    var P = painter, h = '';
+    if (P.state === 'idle') {
+      if (P.msg) h += '<p class="paint-msg">' + escapeHtml(P.msg) + '</p>';
+      h += '<div class="paint-hint" id="paint-hint">' + (P.running ? 'Pick a length, then tap Start and play.' : '') + '</div>';
+      h += '<div class="paint-level" aria-hidden="true"><div class="paint-level-fill" id="paint-level-fill"></div></div>';
+      h += '<button class="paint-big" type="button" data-action="painter-start">' + (P.running ? 'Start painting' : (P.starting ? 'Starting the microphone…' : 'Allow microphone')) + '</button>';
+    } else if (P.state === 'painting') {
+      h += '<div class="paint-time" id="paint-time"></div>';
+      h += '<button class="paint-pill paint-finish" type="button" data-action="painter-finish">Finish now</button>';
+    } else {
+      h += '<div class="paint-hint">Finished. Your painting is locked.</div>';
+      h += '<div class="paint-row"><button class="paint-big" type="button" data-action="painter-save">Save PNG</button>' +
+           '<button class="paint-pill" type="button" data-action="painter-new">New canvas</button></div>';
+    }
+    return h;
+  }
+
+  function paintPaintChrome() {
+    var P = painter; if (!P) return;
+    var l = byId('paint-lengths');
+    if (l) l.innerHTML = PAINT_LENGTHS.map(function (n) {
+      return '<button type="button" class="paint-len' + (n === P.length ? ' paint-len-on' : '') + '"' + (P.state !== 'idle' ? ' disabled' : '') +
+        ' data-action="painter-len" data-len="' + n + '">' + n + 's</button>';
+    }).join('');
+    var b = byId('paint-bottom'); if (b) b.innerHTML = paintBottomHtml();
+    var el = byId('painter-overlay'); if (el) el.setAttribute('data-state', P.state);
+  }
+
+  function paintCanvasFill() {
+    var P = painter, g = P.g;
+    g.setTransform(P.dpr, 0, 0, P.dpr, 0, 0);
+    g.fillStyle = PAINT_CREAM; g.fillRect(0, 0, P.w, P.h);
+    // A little tooth in the canvas.
+    for (var i = 0; i < Math.round(P.w * P.h / 140); i++) {
+      g.fillStyle = Math.random() < 0.5 ? 'rgba(120,105,70,0.05)' : 'rgba(255,255,255,0.35)';
+      g.fillRect(Math.random() * P.w, Math.random() * P.h, 1 + Math.random() * 1.6, 1 + Math.random() * 1.6);
+    }
+  }
+
+  function paintResize() {
+    var P = painter; if (!P) return;
+    var keep = null;
+    if (P.w) { keep = document.createElement('canvas'); keep.width = P.cv.width; keep.height = P.cv.height; keep.getContext('2d').drawImage(P.cv, 0, 0); }
+    P.dpr = Math.min(2, window.devicePixelRatio || 1);
+    P.w = window.innerWidth; P.h = window.innerHeight;
+    P.cv.width = Math.round(P.w * P.dpr); P.cv.height = Math.round(P.h * P.dpr);
+    P.g = P.cv.getContext('2d');
+    P.sc = Math.max(0.8, Math.min(2, P.w / 390));
+    if (keep) { P.g.drawImage(keep, 0, 0, P.cv.width, P.cv.height); } else { paintCanvasFill(); }
+    P.g.setTransform(P.dpr, 0, 0, P.dpr, 0, 0);
+  }
+
+  function paintNewStroke(P, strength, speed, pitchN, soft) {
+    if (P.strokes.length > 14) P.strokes.shift();
+    var fast = soft ? 0 : speed, sc = P.sc;
+    var len = (30 + (1 - fast) * (1 - fast) * 330 + (1 - fast) * 60) * (0.6 + strength * 0.8) * sc;
+    var width = (6 + (1 - fast) * 28) * (0.55 + strength * 0.7) * sc;
+    var x = P.w * (0.08 + 0.84 * Math.min(1, pitchN * 0.65 + Math.random() * 0.45));
+    var y = P.h * (0.14 + Math.random() * 0.62);
+    if (fast > 0.5) P.angle = Math.random() * Math.PI * 2;
+    else P.angle += (Math.random() - 0.5) * 1.3;
+    var nb = Math.max(8, Math.min(30, Math.round(width / 1.8)));
+    var bristles = [], sp = width / nb;
+    for (var i = 0; i < nb; i++) bristles.push({ off: (i / (nb - 1) - 0.5) * (0.92 + Math.random() * 0.16), lw: sp * (1.5 + Math.random() * 0.9),
+      am: 0.8 + Math.random() * 0.2, sh: (Math.random() - 0.5) * 30, drop: Math.random(), px: null, py: null });
+    var col = paintColor(0.18 + 0.82 * Math.max(0, Math.min(1, pitchN + (Math.random() - 0.5) * 1.0)));
+    var st = { x: x, y: y, ang: P.angle, curv: (Math.random() - 0.5) * (fast > 0.5 ? 0.03 : 0.012) / sc, len: len, width: width, trav: 0,
+      v: fast > 0.5 ? len / 6 : len / 42, col: col, alpha: soft ? 0.5 + 0.3 * strength : 0.72 + 0.28 * strength, bristles: bristles };
+    P.strokes.push(st);
+    if (!soft && fast > 0.45 && strength > 0.55) {
+      var dots = 5 + Math.round(strength * 10);
+      for (var d = 0; d < dots; d++) {
+        var a = Math.random() * 6.283, r = (12 + Math.random() * 70) * sc;
+        P.g.fillStyle = paintRgba(col, 0.55 + Math.random() * 0.4, (Math.random() - 0.5) * 30);
+        P.g.beginPath(); P.g.arc(x + Math.cos(a) * r, y + Math.sin(a) * r, (0.8 + Math.random() * 3.2) * sc, 0, 6.2832); P.g.fill();
+      }
+    }
+    if (strength > 0.6 && Math.random() < (soft ? 0.2 : 0.2) && P.drips.length < 14) {
+      P.drips.push({ x: x + (Math.random() - 0.5) * width * 0.6, y: y, py: y, v: 0.6 + Math.random() * 1.1, w: (2 + Math.random() * 3) * sc,
+        max: (50 + Math.random() * 180) * sc, trav: 0, col: col });
+    }
+  }
+
+  function paintStep(P, dt) {
+    var g = P.g, i, j;
+    for (i = P.strokes.length - 1; i >= 0; i--) {
+      var s = P.strokes[i], adv = s.v * dt, pts = [];
+      while (adv > 0 && s.trav < s.len) {
+        var step = Math.min(3, adv);
+        adv -= step;
+        s.trav += step;
+        s.ang += s.curv * step;
+        s.x += Math.cos(s.ang) * step; s.y += Math.sin(s.ang) * step;
+        var p = s.trav / s.len;
+        pts.push({ x: s.x, y: s.y, nx: -Math.sin(s.ang), ny: Math.cos(s.ang), w: s.width * (p < 0.1 ? 0.5 + 5 * p : 1 - 0.35 * p), p: p });
+      }
+      if (pts.length) {
+        var lastP = pts[pts.length - 1].p;
+        g.lineCap = 'butt'; g.lineJoin = 'round';
+        for (j = 0; j < s.bristles.length; j++) {
+          var b = s.bristles[j];
+          var dry = lastP > 0.55 && b.drop < (lastP - 0.55) * 1.7;
+          if (!dry && b.px !== null) {
+            g.strokeStyle = paintRgba(s.col, s.alpha * b.am * (1 - 0.35 * lastP), b.sh);
+            g.lineWidth = b.lw;
+            g.beginPath(); g.moveTo(b.px, b.py);
+            for (var q = 0; q < pts.length; q++) g.lineTo(pts[q].x + pts[q].nx * b.off * pts[q].w, pts[q].y + pts[q].ny * b.off * pts[q].w);
+            g.stroke();
+          }
+          var lp = pts[pts.length - 1];
+          b.px = lp.x + lp.nx * b.off * lp.w; b.py = lp.y + lp.ny * b.off * lp.w;
+        }
+      }
+      if (s.trav >= s.len) P.strokes.splice(i, 1);
+    }
+    for (i = P.drips.length - 1; i >= 0; i--) {
+      var d = P.drips[i];
+      var dy = d.v * dt;
+      d.y += dy; d.trav += dy; d.v *= Math.pow(0.992, dt);
+      g.strokeStyle = paintRgba(d.col, 0.85); g.lineWidth = d.w * (1 - 0.5 * d.trav / d.max); g.lineCap = 'round';
+      g.beginPath(); g.moveTo(d.x, d.py); g.lineTo(d.x, d.y); g.stroke();
+      d.py = d.y;
+      if (d.trav >= d.max || d.v < 0.07 || d.y > P.h) {
+        g.fillStyle = paintRgba(d.col, 0.9);
+        g.beginPath(); g.arc(d.x, d.y, d.w * 0.75, 0, 6.2832); g.fill();
+        P.drips.splice(i, 1);
+      }
+    }
+  }
+
+  function painterAnalyze(P, ts) {
+    var an = P.analyser; if (!an) return;
+    an.getFloatTimeDomainData(P.buf);
+    var buf = P.buf, n = buf.length, tail = Math.min(512, n), sum = 0, i;
+    for (i = n - tail; i < n; i++) sum += buf[i] * buf[i];
+    var r = Math.sqrt(sum / tail);
+    P.peak = Math.max(r, P.peak * 0.9993, 0.03);
+    var level = Math.min(1, r / P.peak);
+    var gate = r > 0.006;
+    var now = Date.now();
+    // Pick attack = a sharp rise over the running average.
+    var rh = P.rhist; rh.push(r); if (rh.length > 6) rh.shift();
+    var ref = rh.length >= 5 ? Math.min(rh[rh.length - 4], rh[rh.length - 3], rh[rh.length - 2]) : r;
+    var onset = gate && r - ref > Math.max(0.008, 0.1 * P.peak) && r > ref * 1.25 && r > P.prevR && now - P.lastOnset > 70;
+    P.env += (r - P.env) * 0.03;
+    P.prevR = r;
+    if (ts - P.lastPitch > 33) {
+      P.lastPitch = ts;
+      if (gate) {
+        var p = detectPitchMPM(buf, P.W, P.ctx.sampleRate, P.minLag, P.maxLag);
+        if (p && p.clarity >= 0.8 && p.freq >= 60 && p.freq <= 1400) P.pitchN = Math.max(0, Math.min(1, (tunerFreqToMidi(p.freq) - 40) / 48));
+      }
+    }
+    var cutoff = now - 2500, k = 0;
+    while (P.onsets.length && P.onsets[0] < cutoff) P.onsets.shift();
+    P.rate += (P.onsets.length / 2.5 - P.rate) * 0.05;
+    var speed = Math.max(0, Math.min(1, (P.rate - 0.8) / 5.5));
+    if (P.state === 'idle') {
+      var lf = byId('paint-level-fill'); if (lf) lf.style.width = Math.round(level * 100) + '%';
+      return;
+    }
+    if (onset) {
+      P.lastOnset = now; P.onsets.push(now); P.lastStroke = now;
+      var strength = Math.max(0.15, Math.min(1, level * 0.8 + (r - P.env) * 2));
+      paintNewStroke(P, strength, speed, P.pitchN, false);
+      if (speed > 0.6 && Math.random() < 0.5) paintNewStroke(P, strength * 0.8, speed, P.pitchN + (Math.random() - 0.5) * 0.2, false);
+    } else if (gate && level > 0.14 && now - P.lastStroke > 450) {
+      // A note ringing out keeps painting, gently.
+      P.lastStroke = now;
+      paintNewStroke(P, 0.2 + level * 0.3, speed, P.pitchN, true);
+    }
+  }
+
+  function painterFrame(ts) {
+    var P = painter; if (!P || !P.running) return;
+    P.raf = requestAnimationFrame(painterFrame);
+    var dt = P.last ? Math.min(3, (ts - P.last) / 16.67) : 1; P.last = ts;
+    painterAnalyze(P, ts);
+    if (P.state === 'painting') {
+      paintStep(P, dt);
+      var el = (Date.now() - P.t0) / 1000, left = Math.max(0, P.length - el);
+      var f = byId('paint-progress-fill'); if (f) f.style.width = Math.min(100, el / P.length * 100).toFixed(1) + '%';
+      var t = byId('paint-time'); if (t) { var sl = Math.ceil(left); t.textContent = Math.floor(sl / 60) + ':' + ('0' + (sl % 60)).slice(-2); }
+      if (left <= 0) painterFinish();
+    }
+  }
+
+  function painterFinish() {
+    var P = painter; if (!P || P.state !== 'painting') return;
+    // Let strokes in flight land, then lock.
+    for (var n = 0; n < 160 && (P.strokes.length || P.drips.length); n++) paintStep(P, 2);
+    P.state = 'done';
+    var f = byId('paint-progress-fill'); if (f) f.style.width = '100%';
+    paintPaintChrome();
+  }
+
+  function painterStart() {
+    var P = painter; if (!P) return;
+    if (!P.running) { startPainterMic(); return; }
+    P.state = 'painting'; P.t0 = Date.now(); P.strokes.length = 0; P.drips.length = 0;
+    P.onsets.length = 0; P.rate = 0; P.lastStroke = Date.now();
+    var f = byId('paint-progress-fill'); if (f) f.style.width = '0%';
+    paintPaintChrome();
+  }
+
+  function painterNew() {
+    var P = painter; if (!P) return;
+    P.state = 'idle'; P.strokes.length = 0; P.drips.length = 0;
+    paintCanvasFill();
+    var f = byId('paint-progress-fill'); if (f) f.style.width = '0%';
+    paintPaintChrome();
+  }
+
+  function painterSave() {
+    var P = painter; if (!P) return;
+    var out = document.createElement('canvas'); out.width = P.cv.width; out.height = P.cv.height;
+    var o = out.getContext('2d'); o.drawImage(P.cv, 0, 0);
+    o.fillStyle = 'rgba(27,42,91,0.85)'; o.font = '700 ' + Math.round(13 * P.dpr * P.sc) + 'px sans-serif'; o.textAlign = 'right';
+    o.fillText('Sour Paint Studios', out.width - 14 * P.dpr, out.height - 14 * P.dpr);
+    out.toBlob(function (blob) {
+      if (!blob) return;
+      var file = null;
+      try { file = new File([blob], 'sour-paint-painting.png', { type: 'image/png' }); } catch (e) {}
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: 'Sour Paint painting' }).catch(function () {});
+        return;
+      }
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'sour-paint-painting.png';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    }, 'image/png');
+  }
+
+  function startPainterMic() {
+    var P = painter; if (!P || P.running || P.starting) return;
+    var framed = false;
+    try { framed = window.self !== window.top; } catch (e) { framed = true; }
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !Ctx) {
+      P.msg = framed ? 'The painter needs the microphone, which this viewer blocks. Open the Songbook at sour-paint-songbook.vercel.app.' : 'This browser can’t use the microphone on this page.';
+      paintPaintChrome(); return;
+    }
+    if (!P.ctx || P.ctx.state === 'closed') P.ctx = new Ctx();
+    var ctx = P.ctx;
+    if (ctx.state === 'suspended') { var rp = ctx.resume(); if (rp && rp.catch) rp.catch(function () {}); }
+    P.msg = ''; P.starting = true; paintPaintChrome();
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false }, video: false })
+      .then(function (stream) {
+        if (!painter || painter.ctx !== ctx) { stream.getTracks().forEach(function (t) { t.stop(); }); return; }
+        P.starting = false; P.stream = stream;
+        if (ctx.state === 'suspended') { var r2 = ctx.resume(); if (r2 && r2.catch) r2.catch(function () {}); }
+        var src = ctx.createMediaStreamSource(stream);
+        var hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 50;
+        var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1800;
+        var an = ctx.createAnalyser(), W = 2048;
+        while (W < ctx.sampleRate * 0.04) W *= 2;
+        an.fftSize = W; an.smoothingTimeConstant = 0;
+        src.connect(hp); hp.connect(lp); lp.connect(an);
+        P.source = src; P.analyser = an; P.W = W; P.buf = new Float32Array(W);
+        P.minLag = Math.floor(ctx.sampleRate / 1400); P.maxLag = Math.min(W - 2, Math.ceil(ctx.sampleRate / 58));
+        P.running = true;
+        if (navigator.wakeLock && navigator.wakeLock.request) {
+          navigator.wakeLock.request('screen').then(function (l) { if (painter && painter.running) painter.wakeLock = l; else l.release(); }).catch(function () {});
+        }
+        paintPaintChrome();
+        P.raf = requestAnimationFrame(painterFrame);
+      }).catch(function (err) {
+        if (!painter) return;
+        P.starting = false;
+        var name = err && err.name;
+        P.msg = (name === 'NotAllowedError' || name === 'SecurityError') ?
+          (framed ? 'The painter needs the microphone, which this viewer blocks. Open the Songbook at sour-paint-songbook.vercel.app.' :
+            'Microphone access is off for this site. Turn it on in your browser’s site settings, then tap Allow microphone.') :
+          (name === 'NotFoundError' ? 'No microphone was found on this device.' : 'The microphone couldn’t start' + (err && err.message ? ': ' + err.message : '.'));
+        paintPaintChrome();
+      });
+  }
+
+  function openPainter() {
+    if (painter || tuner) return;
+    if (view.name === 'player' && playerAnimState.isPlaying) stopHoldScroll();
+    painter = { ctx: null, stream: null, source: null, analyser: null, buf: null, W: 0, minLag: 0, maxLag: 0, running: false, starting: false,
+      state: 'idle', length: 60, msg: '', raf: null, last: 0, w: 0, h: 0, dpr: 1, sc: 1, cv: null, g: null,
+      strokes: [], drips: [], angle: Math.random() * 6.283, env: 0, prevR: 0, peak: 0.1, lastOnset: 0, lastStroke: 0, lastPitch: 0,
+      onsets: [], rhist: [], rate: 0, pitchN: 0.5, t0: 0, wakeLock: null };
+    var el = document.createElement('div');
+    el.id = 'painter-overlay'; el.className = 'painter-overlay'; el.setAttribute('data-state', 'idle');
+    el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'Guitar painter');
+    el.innerHTML = painterHtml();
+    document.body.appendChild(el);
+    painter.cv = byId('paint-canvas');
+    paintResize();
+    painter.onResize = paintResize;
+    window.addEventListener('resize', painter.onResize);
+    paintPaintChrome();
+    try { history.pushState({ view: view.name, painter: true }, ''); } catch (e) {}
+    startPainterMic();
+  }
+
+  function closePainter() {
+    var P = painter; if (!P) return;
+    P.running = false;
+    if (P.raf) cancelAnimationFrame(P.raf);
+    window.removeEventListener('resize', P.onResize);
+    if (P.source) { try { P.source.disconnect(); } catch (e) {} }
+    if (P.stream) P.stream.getTracks().forEach(function (t) { t.stop(); });
+    if (P.wakeLock) { try { P.wakeLock.release(); } catch (e) {} }
+    if (P.ctx) { try { var cp = P.ctx.close(); if (cp && cp.catch) cp.catch(function () {}); } catch (e) {} }
+    painter = null;
+    var el = byId('painter-overlay'); if (el) el.remove();
+  }
+
+/* ============================================================
      MAIN RENDER DISPATCH
      ============================================================ */
   function render() {
@@ -6380,6 +6772,13 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     else if (action === 'art-wheel-next') { flipArtWheel(1); }
     else if (action === 'art-wheel-lock') { lockArtPalette(); }
     else if (action === 'art-wheel-clear') { clearArtPalette(); }
+    else if (action === 'open-painter') { openPainter(); }
+    else if (action === 'close-painter') { closePainter(); }
+    else if (action === 'painter-start') { painterStart(); }
+    else if (action === 'painter-finish') { painterFinish(); }
+    else if (action === 'painter-new') { painterNew(); }
+    else if (action === 'painter-save') { painterSave(); }
+    else if (action === 'painter-len') { if (painter && painter.state === 'idle') { painter.length = Number(el.getAttribute('data-len')) || 60; paintPaintChrome(); } }
     else if (action === 'open-tuner') { openTuner(); }
     else if (action === 'close-tuner') { closeTuner(); }
     else if (action === 'tuner-start') { startTunerMic(); }
@@ -6426,7 +6825,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 53';
+  var APP_VERSION_LABEL = 'Version 54';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
