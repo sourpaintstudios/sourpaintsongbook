@@ -1204,6 +1204,133 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   50% { box-shadow: 0 0 18px rgba(212,255,58,0.75), 0 0 40px rgba(240,222,0,0.28); }
 }
 
+/* Tuner shortcut at the foot of the player's speed rail — kept out of the
+   header so the song title keeps its room in the slim stage view. */
+.fader-tuner {
+  width: 42px; height: 42px; flex-shrink: 0; margin-top: 4px;
+  border-radius: 999px; border: 1px solid var(--line);
+  background: var(--bg-elevated); color: var(--text); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.fader-tuner:active { transform: scale(0.92); }
+
+/* ---------- Tuner (full-screen overlay over any screen) ---------- */
+.tuner-overlay {
+  position: fixed; inset: 0; z-index: 70;
+  background: var(--bg); color: var(--text);
+  display: flex; flex-direction: column; align-items: center;
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 16px calc(env(safe-area-inset-bottom, 0px) + 18px);
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  --tuner-color: var(--text-dim);
+}
+.tuner-overlay[data-state="intune"] { --tuner-color: var(--green-bright); }
+.tuner-overlay[data-state="close"] { --tuner-color: var(--yellow); }
+.tuner-overlay[data-state="far"] { --tuner-color: #FF7A45; }
+.tuner-top {
+  width: 100%; max-width: 520px;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.tuner-title { font-size: 18px; }
+.tuner-a4 {
+  display: flex; align-items: center; height: 40px; flex-shrink: 0;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--bg-elevated);
+}
+.tuner-a4-btn {
+  width: 36px; height: 100%; border: none; background: transparent; color: var(--text);
+  font-size: 18px; font-weight: 800; cursor: pointer;
+}
+.tuner-a4-btn:active { transform: scale(0.9); }
+.tuner-a4-val {
+  min-width: 52px; text-align: center;
+  font-family: 'Sour Display','Sour Body',sans-serif; font-weight: 800; font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.tuner-tunings {
+  width: 100%; max-width: 520px;
+  display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  padding: 14px 2px 4px; scrollbar-width: none;
+}
+.tuner-tunings::-webkit-scrollbar { display: none; }
+.tuner-chip {
+  flex-shrink: 0; height: 34px; padding: 0 14px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--bg-elevated); color: var(--text-dim);
+  font-weight: 700; font-size: 12.5px; white-space: nowrap; cursor: pointer;
+}
+.tuner-chip:active { transform: scale(0.96); }
+.tuner-chip-active { border-color: var(--green-bright); color: var(--green-bright); background: rgba(147,216,62,0.14); }
+.tuner-main {
+  width: 100%; max-width: 420px; flex: 1 0 auto;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 10px 0 4px;
+}
+.tuner-gauge { width: 100%; height: auto; display: block; overflow: visible; }
+.tuner-tick { stroke: var(--text-dim); stroke-width: 2; stroke-linecap: round; opacity: 0.6; }
+.tuner-tick-major { stroke: var(--text); stroke-width: 2.6; opacity: 0.8; }
+.tuner-tick-zero { stroke: var(--green-bright); stroke-width: 4; opacity: 1; }
+.tuner-zone { stroke: var(--green-bright); stroke-width: 10; fill: none; stroke-linecap: round; opacity: 0.3; transition: opacity 0.15s; }
+.tuner-overlay[data-state="intune"] .tuner-zone { opacity: 1; }
+.tuner-flat-sharp { fill: var(--text-dim); font-size: 24px; font-weight: 700; }
+.tuner-needle { transform-origin: 150px 158px; transition: transform 0.09s linear; }
+.tuner-needle line { stroke: var(--tuner-color); stroke-width: 4.5; stroke-linecap: round; }
+.tuner-needle circle { fill: var(--tuner-color); }
+.tuner-overlay[data-state="idle"] .tuner-needle { opacity: 0.35; }
+.tuner-readout { text-align: center; margin-top: 2px; }
+.tuner-note {
+  font-family: 'Sour Display','Sour Body',sans-serif;
+  font-size: clamp(76px, 25vw, 116px); font-weight: 800; line-height: 1;
+  color: var(--tuner-color); transition: color 0.15s;
+}
+.tuner-overlay[data-state="idle"] .tuner-note { color: var(--text-dim); }
+.tuner-note sub { font-size: 0.32em; vertical-align: baseline; margin-left: 3px; color: var(--text-dim); }
+.tuner-sub {
+  margin-top: 8px; min-height: 1.4em;
+  font-size: 15px; color: var(--text-dim); font-variant-numeric: tabular-nums;
+}
+.tuner-status {
+  margin-top: 12px; min-height: 36px; padding: 0 18px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px; border: 1.5px solid var(--tuner-color);
+  font-weight: 800; font-size: 15px; color: var(--tuner-color);
+}
+.tuner-status:empty { visibility: hidden; }
+.tuner-overlay[data-state="intune"] .tuner-status { background: var(--green-bright); color: #0d1a02; }
+.tuner-level {
+  width: 150px; height: 4px; margin-top: 18px; overflow: hidden;
+  border-radius: 999px; background: var(--bg-elevated);
+}
+.tuner-level-fill { height: 100%; width: 0; background: var(--text-dim); transition: width 0.08s linear; }
+.tuner-strings {
+  width: 100%; max-width: 460px; margin-top: 14px;
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px;
+}
+.tuner-strings[hidden] { display: none; }
+.tuner-string {
+  position: relative; height: 64px; border-radius: 14px; cursor: pointer;
+  border: 1.5px solid var(--line); background: var(--bg-elevated); color: var(--text);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1;
+  font-family: 'Sour Display','Sour Body',sans-serif;
+  transition: border-color 0.12s, color 0.12s, background-color 0.12s;
+}
+.tuner-string:active { transform: scale(0.95); }
+.tuner-string-name { font-size: 21px; font-weight: 800; }
+.tuner-string-oct { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+.tuner-string-check { position: absolute; top: 4px; right: 4px; color: var(--green-bright); display: none; }
+.tuner-string-check svg { width: 13px; height: 13px; display: block; }
+.tuner-string-tuned .tuner-string-check { display: block; }
+.tuner-string-active { border-color: var(--tuner-color); color: var(--tuner-color); box-shadow: 0 0 14px var(--tuner-color); }
+.tuner-string-playing { background: var(--green-bright); color: #0d1a02; }
+.tuner-string-playing .tuner-string-oct { color: #0d1a02; }
+.tuner-hint { margin: 10px 0 0; font-size: 12.5px; color: var(--text-dim); text-align: center; }
+.tuner-mic { width: 100%; max-width: 420px; margin-top: 16px; text-align: center; }
+.tuner-mic[hidden] { display: none; }
+.tuner-mic p { margin: 0 0 12px; font-size: 14px; line-height: 1.5; color: var(--text); }
+.tuner-mic .btn { width: 100%; }
+@media (max-width: 360px) {
+  .tuner-string { height: 56px; }
+  .tuner-string-name { font-size: 18px; }
+  .tuner-title { display: none; }
+}
+
 </style>
 </head>
 <body>
@@ -2073,6 +2200,8 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       try { history.pushState({ view: view.name }, ''); } catch (e) {}
       return;
     }
+    // An open tuner closes first, leaving the screen under it as it was.
+    if (tuner) { closeTuner(); return; }
     // Device back steps one level up: song/editor -> its list, a category
     // -> home, a song list -> song lists -> home.
     if (view.name === 'editor' || view.name === 'player') {
@@ -2552,6 +2681,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
             '<div class="library-heading"><h1>' + (arrangeMode ? 'Arrange' : 'Songbook') + '</h1><div class="library-heading-actions">' +
               (arrangeMode ?
                 '<button class="btn btn-primary" data-action="arrange-done">Done</button>' :
+                '<button class="btn btn-ghost" data-action="open-tuner">' + tunerSvg(18) + ' Tuner</button>' +
                 '<button class="btn btn-primary" data-action="new-song">' + plusSvg() + ' Add song</button>') +
             '</div></div>' : '') +
           (arrangeMode ? '<p class="arrange-hint">Use the arrows to move a category earlier or later.</p>' : '') +
@@ -4448,6 +4578,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
               '<div class="fader-thumb" id="fader-thumb"></div>' +
             '</div>' +
             '<span class="fader-label">SLOW</span>' +
+            '<button class="fader-tuner" type="button" data-action="open-tuner" aria-label="Tuner" title="Tuner">' + tunerSvg(20) + '</button>' +
           '</div>' +
         '</div>' +
 
@@ -5448,6 +5579,518 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     );
   }
 
+  function tunerSvg(size) { return svg('<path d="M8.5 2.5v7.5a3.5 3.5 0 007 0V2.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M12 13.5V21.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>', size || 20); }
+  function micSvg() { return svg('<rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 11a6.5 6.5 0 0013 0M12 17.5V21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>', 20); }
+
+  /* ============================================================
+     TUNER — chromatic + guitar-string tuner on the phone's mic.
+     Pitch comes from the McLeod Pitch Method (normalized square
+     difference + parabolic peak) run on a ~40 ms window about 30 times
+     a second. The browser's voice processing (echo cancel, noise
+     suppression, auto gain) is switched off where the browser allows it
+     — it's built for speech and smears a held guitar note. Opens as an
+     overlay on top of whatever screen is showing, so a song stays right
+     where it was. The mic is only on while the tuner is open.
+     ============================================================ */
+  var TUNER_SHARPS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  var TUNER_FLATS = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+  // Strings low to high, as MIDI note numbers (E2 = 40).
+  var TUNINGS = [
+    { id: 'chromatic', label: 'Chromatic', strings: null },
+    { id: 'standard', label: 'Standard', strings: [40, 45, 50, 55, 59, 64] },
+    { id: 'half-down', label: 'Half step down', flats: true, strings: [39, 44, 49, 54, 58, 63] },
+    { id: 'drop-d', label: 'Drop D', strings: [38, 45, 50, 55, 59, 64] },
+    { id: 'open-g', label: 'Open G', strings: [38, 43, 50, 55, 59, 62] },
+    { id: 'open-d', label: 'Open D', strings: [38, 45, 50, 54, 57, 62] },
+    { id: 'open-e', label: 'Open E', strings: [40, 47, 52, 56, 59, 64] },
+    { id: 'dadgad', label: 'DADGAD', strings: [38, 45, 50, 55, 57, 62] }
+  ];
+  var TUNER_IN_TUNE_CENTS = 3;
+  var TUNER_CLOSE_CENTS = 10;
+
+  function tunerA4() {
+    var a = Number(state.settings.tunerA4);
+    return (a >= 430 && a <= 450) ? a : 440;
+  }
+  function tunerTuning() {
+    var id = state.settings.tunerTuning || 'standard';
+    for (var i = 0; i < TUNINGS.length; i++) if (TUNINGS[i].id === id) return TUNINGS[i];
+    return TUNINGS[1];
+  }
+  function tunerMidiToFreq(m) { return tunerA4() * Math.pow(2, (m - 69) / 12); }
+  function tunerFreqToMidi(f) { return 69 + 12 * Math.log(f / tunerA4()) / Math.LN2; }
+  function tunerNoteName(m, flats) {
+    var i = ((Math.round(m) % 12) + 12) % 12;
+    return (flats ? TUNER_FLATS : TUNER_SHARPS)[i];
+  }
+  function tunerOctave(m) { return Math.floor(Math.round(m) / 12) - 1; }
+  function tunerMedian(arr) {
+    var s = arr.slice().sort(function (a, b) { return a - b; });
+    return s[Math.floor(s.length / 2)];
+  }
+
+  /* TUNER-DSP-START */
+  // McLeod Pitch Method on the first W samples of buf. Lags outside
+  // [minLag, maxLag] are ignored (they bound the detectable range).
+  // Returns { freq, clarity } (clarity 0..1), or null if nothing clear.
+  var mpmScratch = null;
+  function detectPitchMPM(buf, W, sr, minLag, maxLag) {
+    if (maxLag > W - 2) maxLag = W - 2;
+    if (!mpmScratch || mpmScratch.length < maxLag + 1) mpmScratch = new Float32Array(maxLag + 1);
+    var nsdf = mpmScratch;
+    var m = 0, j, tau;
+    for (j = 0; j < W; j++) m += buf[j] * buf[j];
+    m *= 2;
+    if (m <= 0) return null;
+    for (tau = 0; tau <= maxLag; tau++) {
+      if (tau > 0) m -= buf[tau - 1] * buf[tau - 1] + buf[W - tau] * buf[W - tau];
+      var r = 0;
+      for (var k = 0, n = W - tau; k < n; k++) r += buf[k] * buf[k + tau];
+      nsdf[tau] = m > 1e-12 ? (2 * r) / m : 0;
+    }
+    // Key maxima: the highest point of each positive lobe, after the
+    // zero-lag lobe has dropped below zero.
+    var peaks = [];
+    tau = 1;
+    while (tau < maxLag && nsdf[tau] > 0) tau++;
+    var inPos = false, best = 0, bestTau = -1;
+    for (; tau < maxLag; tau++) {
+      if (!inPos) {
+        if (nsdf[tau] > 0 && nsdf[tau - 1] <= 0) { inPos = true; best = nsdf[tau]; bestTau = tau; }
+      } else if (nsdf[tau] <= 0) {
+        inPos = false;
+        peaks.push(bestTau);
+      } else if (nsdf[tau] > best) {
+        best = nsdf[tau]; bestTau = tau;
+      }
+    }
+    if (inPos && bestTau > 0 && bestTau < maxLag - 1) peaks.push(bestTau);
+    var highest = 0, i;
+    for (i = 0; i < peaks.length; i++) {
+      if (peaks[i] >= minLag && nsdf[peaks[i]] > highest) highest = nsdf[peaks[i]];
+    }
+    if (highest <= 0) return null;
+    var chosen = -1;
+    for (i = 0; i < peaks.length; i++) {
+      if (peaks[i] >= minLag && nsdf[peaks[i]] >= 0.9 * highest) { chosen = peaks[i]; break; }
+    }
+    if (chosen < 1) return null;
+    var a = nsdf[chosen - 1], b = nsdf[chosen], c = nsdf[chosen + 1];
+    var denom = a - 2 * b + c;
+    var shift = denom !== 0 ? 0.5 * (a - c) / denom : 0;
+    if (shift > 1 || shift < -1) shift = 0;
+    return { freq: sr / (chosen + shift), clarity: b - 0.25 * (a - c) * shift };
+  }
+  /* TUNER-DSP-END */
+
+  var tuner = null; // live session state while the overlay is open
+
+  function tunerGaugeSvg() {
+    var cx = 150, cy = 158, r = 128, ticks = '';
+    for (var c = -50; c <= 50; c += 5) {
+      var ang = c * 1.2 * Math.PI / 180;
+      var major = c % 10 === 0;
+      var len = c === 0 ? 24 : (major ? 15 : 8);
+      var x1 = cx + Math.sin(ang) * r, y1 = cy - Math.cos(ang) * r;
+      var x2 = cx + Math.sin(ang) * (r - len), y2 = cy - Math.cos(ang) * (r - len);
+      ticks += '<line class="tuner-tick' + (major ? ' tuner-tick-major' : '') + (c === 0 ? ' tuner-tick-zero' : '') +
+        '" x1="' + x1.toFixed(1) + '" y1="' + y1.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '"/>';
+    }
+    var zr = r + 10, za = TUNER_IN_TUNE_CENTS * 1.2 * Math.PI / 180;
+    var zone = '<path class="tuner-zone" d="M' + (cx - Math.sin(za) * zr).toFixed(1) + ' ' + (cy - Math.cos(za) * zr).toFixed(1) +
+      ' A' + zr + ' ' + zr + ' 0 0 1 ' + (cx + Math.sin(za) * zr).toFixed(1) + ' ' + (cy - Math.cos(za) * zr).toFixed(1) + '"/>';
+    return '<svg class="tuner-gauge" viewBox="0 0 300 172" aria-hidden="true">' +
+      zone + ticks +
+      '<text class="tuner-flat-sharp" x="24" y="126" text-anchor="middle">&#9837;</text>' +
+      '<text class="tuner-flat-sharp" x="276" y="126" text-anchor="middle">&#9839;</text>' +
+      '<g class="tuner-needle" id="tuner-needle">' +
+        '<line x1="' + cx + '" y1="' + cy + '" x2="' + cx + '" y2="' + (cy - r + 4) + '"/>' +
+        '<circle cx="' + cx + '" cy="' + cy + '" r="8"/>' +
+      '</g>' +
+    '</svg>';
+  }
+
+  function tunerHtml() {
+    return (
+      '<div class="tuner-top">' +
+        '<button class="btn btn-back" type="button" data-action="close-tuner" aria-label="Close tuner">' + backSvg() + ' <span>Done</span></button>' +
+        '<h1 class="tuner-title">Tuner</h1>' +
+        '<div class="tuner-a4" role="group" aria-label="Reference pitch">' +
+          '<button type="button" class="tuner-a4-btn" data-action="tuner-a4" data-dir="-1" aria-label="Lower the reference pitch">&#8722;</button>' +
+          '<span class="tuner-a4-val" id="tuner-a4-val"></span>' +
+          '<button type="button" class="tuner-a4-btn" data-action="tuner-a4" data-dir="1" aria-label="Raise the reference pitch">+</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="tuner-tunings" id="tuner-tunings"></div>' +
+      '<div class="tuner-main">' +
+        tunerGaugeSvg() +
+        '<div class="tuner-readout">' +
+          '<div class="tuner-note" aria-live="polite"><span id="tuner-note">&ndash;</span><sub id="tuner-octave"></sub></div>' +
+          '<div class="tuner-sub" id="tuner-sub"></div>' +
+          '<div class="tuner-status" id="tuner-status"></div>' +
+        '</div>' +
+        '<div class="tuner-level" aria-hidden="true"><div class="tuner-level-fill" id="tuner-level-fill"></div></div>' +
+      '</div>' +
+      '<div class="tuner-strings" id="tuner-strings"></div>' +
+      '<p class="tuner-hint" id="tuner-hint"></p>' +
+      '<div class="tuner-mic" id="tuner-mic" hidden>' +
+        '<p id="tuner-mic-msg"></p>' +
+        '<button type="button" class="btn btn-primary btn-lg" data-action="tuner-start">' + micSvg() + ' Start tuner</button>' +
+      '</div>'
+    );
+  }
+
+  function paintTunerChrome() {
+    var t = tunerTuning();
+    var chips = byId('tuner-tunings');
+    if (chips) {
+      chips.innerHTML = TUNINGS.map(function (tu) {
+        return '<button type="button" class="tuner-chip' + (tu.id === t.id ? ' tuner-chip-active' : '') +
+          '" data-action="tuner-set-tuning" data-tuning="' + tu.id + '">' + escapeHtml(tu.label) + '</button>';
+      }).join('');
+    }
+    var a4 = byId('tuner-a4-val');
+    if (a4) a4.textContent = 'A ' + tunerA4();
+    var strings = byId('tuner-strings');
+    if (strings) {
+      if (!t.strings) {
+        strings.hidden = true;
+        strings.innerHTML = '';
+      } else {
+        strings.hidden = false;
+        strings.innerHTML = t.strings.map(function (m, i) {
+          var name = tunerNoteName(m, t.flats);
+          var label = i === t.strings.length - 1 ? name.charAt(0).toLowerCase() + name.slice(1) : name;
+          var tuned = tuner && tuner.tunedStrings[i];
+          return '<button type="button" class="tuner-string' + (tuned ? ' tuner-string-tuned' : '') +
+            '" data-action="tuner-play-string" data-idx="' + i + '" aria-label="Play ' + name + tunerOctave(m) + '">' +
+            '<span class="tuner-string-name">' + label + '</span>' +
+            '<span class="tuner-string-oct">' + tunerOctave(m) + '</span>' +
+            '<span class="tuner-string-check">' + checkSvg() + '</span>' +
+          '</button>';
+        }).join('');
+      }
+    }
+    var hint = byId('tuner-hint');
+    if (hint) hint.textContent = t.strings ?
+      'Tap a string to hear its note.' :
+      'Shows the nearest note for anything you play or sing.';
+  }
+
+  function setTunerState(st) {
+    var el = byId('tuner-overlay');
+    if (el && el.getAttribute('data-state') !== st) el.setAttribute('data-state', st);
+  }
+
+  function setTunerNeedle(cents) {
+    var needle = byId('tuner-needle');
+    if (needle) needle.style.transform = 'rotate(' + (Math.max(-50, Math.min(50, cents)) * 1.2).toFixed(2) + 'deg)';
+  }
+
+  function showTunerIdle() {
+    if (!tuner) return;
+    tuner.shownCents = 0;
+    tuner.inTuneSince = 0;
+    setTunerState('idle');
+    setTunerNeedle(0);
+    var note = byId('tuner-note'), oct = byId('tuner-octave'), sub = byId('tuner-sub'), status = byId('tuner-status');
+    if (note) note.innerHTML = '&ndash;';
+    if (oct) oct.textContent = '';
+    if (sub) sub.textContent = tuner.running ? (tunerTuning().strings ? 'Play a string' : 'Play a note') : '';
+    if (status) status.textContent = '';
+    var btns = document.querySelectorAll('.tuner-string');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.remove('tuner-string-active');
+  }
+
+  function showTunerPitch(midi) {
+    var t = tunerTuning();
+    var target, idx = -1;
+    if (t.strings) {
+      var bestD = Infinity;
+      for (var i = 0; i < t.strings.length; i++) {
+        var d = Math.abs(midi - t.strings[i]);
+        if (d < bestD) { bestD = d; idx = i; }
+      }
+      target = t.strings[idx];
+    } else {
+      target = Math.round(midi);
+    }
+    var cents = (midi - target) * 100;
+    var abs = Math.abs(cents);
+    tuner.shownCents += (Math.max(-55, Math.min(55, cents)) - tuner.shownCents) * 0.45;
+    setTunerNeedle(tuner.shownCents);
+    var st = abs <= TUNER_IN_TUNE_CENTS ? 'intune' : (abs <= TUNER_CLOSE_CENTS ? 'close' : 'far');
+    setTunerState(st);
+
+    var note = byId('tuner-note'), oct = byId('tuner-octave'), sub = byId('tuner-sub'), status = byId('tuner-status');
+    if (note) note.textContent = tunerNoteName(target, t.flats);
+    if (oct) oct.textContent = String(tunerOctave(target));
+    var centsText = Math.round(abs) === 0 ? '0¢' : (cents > 0 ? '+' : '−') + Math.round(abs) + '¢';
+    var hz = tunerMidiToFreq(midi).toFixed(1) + ' Hz';
+    if (sub) {
+      sub.textContent = (t.strings && abs > 50) ?
+        ('Hearing ' + tunerNoteName(midi, t.flats) + tunerOctave(midi) + ' · ' + hz) :
+        (centsText + ' · ' + hz);
+    }
+    if (status) {
+      status.textContent = st === 'intune' ? 'In tune' :
+        (cents < 0 ? (abs > 50 ? 'Way low — tune up' : 'Low — tune up') :
+                     (abs > 50 ? 'Way high — tune down' : 'High — tune down'));
+    }
+
+    if (t.strings) {
+      var btns = document.querySelectorAll('.tuner-string');
+      for (var b = 0; b < btns.length; b++) btns[b].classList.toggle('tuner-string-active', b === idx);
+      // A string counts as tuned once it has held in tune for a moment.
+      var now = Date.now();
+      if (st === 'intune') {
+        if (tuner.inTuneIdx !== idx || !tuner.inTuneSince) { tuner.inTuneIdx = idx; tuner.inTuneSince = now; }
+        else if (now - tuner.inTuneSince > 600 && !tuner.tunedStrings[idx]) {
+          tuner.tunedStrings[idx] = true;
+          if (btns[idx]) btns[idx].classList.add('tuner-string-tuned');
+        }
+      } else {
+        tuner.inTuneSince = 0;
+      }
+    }
+  }
+
+  function paintTunerLevel(rms) {
+    var fill = byId('tuner-level-fill');
+    if (fill) fill.style.width = Math.min(100, Math.sqrt(rms / 0.2) * 100).toFixed(0) + '%';
+  }
+
+  function tunerTick(ts) {
+    if (!tuner || !tuner.running) return;
+    tuner.raf = requestAnimationFrame(tunerTick);
+    if (ts - tuner.lastProc < 30) return;
+    tuner.lastProc = ts;
+    var buf = tuner.buf;
+    tuner.analyser.getFloatTimeDomainData(buf);
+    var sum = 0;
+    for (var i = 0; i < buf.length; i++) sum += buf[i] * buf[i];
+    var rms = Math.sqrt(sum / buf.length);
+    paintTunerLevel(rms);
+    var now = Date.now();
+    var freq = 0;
+    if (now >= tuner.toneUntil && rms > 0.004) {
+      var p = detectPitchMPM(buf, tuner.W, tuner.ctx.sampleRate, tuner.minLag, tuner.maxLag);
+      if (p && p.clarity >= 0.88 && p.freq >= 60 && p.freq <= 1400) freq = p.freq;
+    }
+    if (freq) {
+      var midi = tunerFreqToMidi(freq);
+      var h = tuner.hist;
+      // A jump of more than ~half a semitone is a new note: start over
+      // rather than averaging two different notes together.
+      if (h.length && Math.abs(midi - tunerMedian(h)) > 0.6) h.length = 0;
+      h.push(midi);
+      if (h.length > 7) h.shift();
+      tuner.lastHeard = now;
+      if (h.length >= 2) showTunerPitch(tunerMedian(h));
+    } else if (tuner.lastHeard && now - tuner.lastHeard > 1500) {
+      tuner.lastHeard = 0;
+      tuner.hist.length = 0;
+      showTunerIdle();
+    }
+  }
+
+  function tunerMicMessage(text) {
+    var box = byId('tuner-mic'), msg = byId('tuner-mic-msg');
+    if (msg) msg.textContent = text || '';
+    if (box) box.hidden = !text;
+  }
+
+  function startTunerMic() {
+    if (!tuner || tuner.running || tuner.starting) return;
+    var framed = false;
+    try { framed = window.self !== window.top; } catch (e) { framed = true; }
+    var blockedHere = 'The tuner needs the microphone, which this viewer blocks. Open the Songbook at sour-paint-songbook.vercel.app to tune.';
+    if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      tunerMicMessage(framed ? blockedHere : 'This browser can’t use the microphone on this page.');
+      return;
+    }
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) { tunerMicMessage('This browser can’t run the tuner.'); return; }
+    // Created inside the tap that opened the tuner — phones only allow
+    // audio to start from a tap.
+    if (!tuner.ctx || tuner.ctx.state === 'closed') tuner.ctx = new Ctx();
+    var ctx = tuner.ctx;
+    if (ctx.state === 'suspended') { var rp = ctx.resume(); if (rp && rp.catch) rp.catch(function () {}); }
+    tunerMicMessage('');
+    tuner.starting = true;
+    var sub = byId('tuner-sub');
+    if (sub) sub.textContent = 'Starting the microphone…';
+    navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+      video: false
+    }).then(function (stream) {
+      if (!tuner || tuner.ctx !== ctx) { stream.getTracks().forEach(function (tr) { tr.stop(); }); return; }
+      tuner.starting = false;
+      tuner.stream = stream;
+      if (ctx.state === 'suspended') { var rp2 = ctx.resume(); if (rp2 && rp2.catch) rp2.catch(function () {}); }
+      var src = ctx.createMediaStreamSource(stream);
+      // Trim rumble below the low strings and hiss above the useful range.
+      var hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 50;
+      var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1800;
+      var an = ctx.createAnalyser();
+      var W = 2048;
+      while (W < ctx.sampleRate * 0.04) W *= 2;
+      an.fftSize = W;
+      an.smoothingTimeConstant = 0;
+      src.connect(hp); hp.connect(lp); lp.connect(an);
+      tuner.source = src;
+      tuner.analyser = an;
+      tuner.W = W;
+      tuner.buf = new Float32Array(W);
+      tuner.minLag = Math.floor(ctx.sampleRate / 1400);
+      tuner.maxLag = Math.min(W - 2, Math.ceil(ctx.sampleRate / 58));
+      tuner.running = true;
+      tuner.hist = [];
+      showTunerIdle();
+      requestTunerWakeLock();
+      tuner.raf = requestAnimationFrame(tunerTick);
+    }).catch(function (err) {
+      if (!tuner) return;
+      tuner.starting = false;
+      if (sub) sub.textContent = '';
+      var name = err && err.name;
+      if (name === 'NotAllowedError' || name === 'SecurityError') {
+        tunerMicMessage(framed ? blockedHere :
+          'Microphone access is off for this site. Turn it on in your browser’s site settings (tap the icon left of the web address → Permissions → Microphone → Allow), then tap Start tuner.');
+      } else if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+        tunerMicMessage('No microphone was found on this device.');
+      } else if (name === 'NotReadableError') {
+        tunerMicMessage('Another app is using the microphone. Close it, then tap Start tuner.');
+      } else {
+        tunerMicMessage('The microphone couldn’t start' + (err && err.message ? ': ' + err.message : '.'));
+      }
+    });
+  }
+
+  function requestTunerWakeLock() {
+    if (!tuner || !navigator.wakeLock || !navigator.wakeLock.request) return;
+    navigator.wakeLock.request('screen').then(function (lock) {
+      if (tuner && tuner.running) tuner.wakeLock = lock;
+      else lock.release();
+    }).catch(function () {});
+  }
+
+  function stopTunerMic() {
+    if (!tuner) return;
+    tuner.running = false;
+    tuner.starting = false;
+    if (tuner.raf) cancelAnimationFrame(tuner.raf);
+    tuner.raf = null;
+    if (tuner.source) { try { tuner.source.disconnect(); } catch (e) {} tuner.source = null; }
+    if (tuner.stream) { tuner.stream.getTracks().forEach(function (tr) { tr.stop(); }); tuner.stream = null; }
+    tuner.analyser = null;
+    if (tuner.wakeLock) { try { tuner.wakeLock.release(); } catch (e) {} tuner.wakeLock = null; }
+    paintTunerLevel(0);
+  }
+
+  function openTuner() {
+    if (tuner) return;
+    // Scrolling lyrics behind the tuner would just run off the page.
+    if (view.name === 'player' && playerAnimState.isPlaying) stopHoldScroll();
+    tuner = {
+      ctx: null, stream: null, source: null, analyser: null, buf: null, W: 0, minLag: 0, maxLag: 0,
+      raf: null, lastProc: 0, hist: [], shownCents: 0, lastHeard: 0, wakeLock: null,
+      toneUntil: 0, inTuneSince: 0, inTuneIdx: -1, tunedStrings: {}, running: false, starting: false
+    };
+    var el = document.createElement('div');
+    el.id = 'tuner-overlay';
+    el.className = 'tuner-overlay';
+    el.setAttribute('data-state', 'idle');
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-label', 'Tuner');
+    el.innerHTML = tunerHtml();
+    document.body.appendChild(el);
+    paintTunerChrome();
+    showTunerIdle();
+    // Device back closes the tuner first (see the popstate handler).
+    try { history.pushState({ view: view.name, tuner: true }, ''); } catch (e) {}
+    startTunerMic();
+  }
+
+  function closeTuner() {
+    if (!tuner) return;
+    stopTunerMic();
+    if (tuner.ctx) { try { var cp = tuner.ctx.close(); if (cp && cp.catch) cp.catch(function () {}); } catch (e) {} }
+    tuner = null;
+    var el = byId('tuner-overlay');
+    if (el) el.remove();
+  }
+
+  function setTunerTuning(id) {
+    if (!tuner) return;
+    state.settings.tunerTuning = id;
+    persist();
+    tuner.tunedStrings = {};
+    tuner.hist = [];
+    paintTunerChrome();
+    showTunerIdle();
+  }
+
+  function nudgeTunerA4(dir) {
+    if (!tuner || !dir) return;
+    state.settings.tunerA4 = Math.max(430, Math.min(450, tunerA4() + dir));
+    persist();
+    tuner.tunedStrings = {};
+    tuner.hist = [];
+    paintTunerChrome();
+    showTunerIdle();
+  }
+
+  // A short plucked-sounding reference note for one string. The mic
+  // reading is ignored while it plays so the tuner doesn't tune to itself.
+  function playTunerString(idx) {
+    if (!tuner) return;
+    var t = tunerTuning();
+    if (!t.strings || !(idx >= 0 && idx < t.strings.length)) return;
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    if (!tuner.ctx || tuner.ctx.state === 'closed') tuner.ctx = new Ctx();
+    var ctx = tuner.ctx;
+    if (ctx.state === 'suspended') { var rp = ctx.resume(); if (rp && rp.catch) rp.catch(function () {}); }
+    var f = tunerMidiToFreq(t.strings[idx]);
+    var start = ctx.currentTime + 0.02, dur = 2.4;
+    var out = ctx.createGain();
+    out.gain.setValueAtTime(0.0001, start);
+    out.gain.exponentialRampToValueAtTime(0.35, start + 0.012);
+    out.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+    out.connect(ctx.destination);
+    [[1, 'triangle', 1], [2, 'sine', 0.35], [3, 'sine', 0.12]].forEach(function (part) {
+      var o = ctx.createOscillator();
+      o.type = part[1];
+      o.frequency.value = f * part[0];
+      var g = ctx.createGain();
+      g.gain.value = part[2];
+      o.connect(g); g.connect(out);
+      o.start(start);
+      o.stop(start + dur + 0.05);
+    });
+    tuner.toneUntil = Date.now() + dur * 1000 + 200;
+    tuner.hist = [];
+    var btns = document.querySelectorAll('.tuner-string');
+    if (btns[idx]) {
+      var btn = btns[idx];
+      btn.classList.add('tuner-string-playing');
+      setTimeout(function () { btn.classList.remove('tuner-string-playing'); }, 600);
+    }
+  }
+
+  // Leaving the app (screen off, switching apps) releases the mic; the
+  // tuner waits for a tap to pick back up.
+  document.addEventListener('visibilitychange', function () {
+    if (!tuner || !document.hidden || !(tuner.running || tuner.starting)) return;
+    stopTunerMic();
+    showTunerIdle();
+    tunerMicMessage('Tuner paused while the app was in the background.');
+  });
+  document.addEventListener('keydown', function (e) {
+    if (tuner && e.key === 'Escape') closeTuner();
+  });
+
   /* ============================================================
      MAIN RENDER DISPATCH
      ============================================================ */
@@ -5554,6 +6197,12 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     else if (action === 'art-wheel-next') { flipArtWheel(1); }
     else if (action === 'art-wheel-lock') { lockArtPalette(); }
     else if (action === 'art-wheel-clear') { clearArtPalette(); }
+    else if (action === 'open-tuner') { openTuner(); }
+    else if (action === 'close-tuner') { closeTuner(); }
+    else if (action === 'tuner-start') { startTunerMic(); }
+    else if (action === 'tuner-set-tuning') { setTunerTuning(el.getAttribute('data-tuning')); }
+    else if (action === 'tuner-a4') { nudgeTunerA4(Number(el.getAttribute('data-dir')) || 0); }
+    else if (action === 'tuner-play-string') { playTunerString(Number(el.getAttribute('data-idx'))); }
     else if (action === 'toggle-reading-picker') {
       var picker = byId('reading-picker');
       if (picker) picker.hidden = !picker.hidden;
@@ -5594,7 +6243,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 50';
+  var APP_VERSION_LABEL = 'Version 51';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
