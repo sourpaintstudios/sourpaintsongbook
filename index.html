@@ -6375,9 +6375,10 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       h += '<div class="paint-time" id="paint-time"></div>';
       h += '<button class="paint-pill paint-finish" type="button" data-action="painter-finish">Finish now</button>';
     } else {
-      h += '<div class="paint-hint">Finished. Your painting is locked.</div>';
+      h += '<div class="paint-hint">' + (P.videoState === 'preparing' ? 'Finished. Preparing your video…' : 'Finished. Your painting is locked.') + '</div>';
       h += '<div class="paint-row"><button class="paint-big" type="button" data-action="painter-save">Save PNG</button>' +
-           '<button class="paint-pill" type="button" data-action="painter-new">New canvas</button></div>';
+           (P.videoState === 'ready' ? '<button class="paint-big" type="button" data-action="painter-save-video">Save video</button>' : '') + '</div>';
+      h += '<button class="paint-pill" type="button" data-action="painter-new">New canvas</button>';
     }
     return h;
   }
@@ -6557,8 +6558,68 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     // Let strokes in flight land, then lock.
     for (var n = 0; n < 160 && (P.strokes.length || P.drips.length); n++) paintStep(P, 2);
     P.state = 'done';
+    paintSignature(P);
     var f = byId('paint-progress-fill'); if (f) f.style.width = '100%';
+    painterStopRecording(P);
     paintPaintChrome();
+  }
+
+  function paintSignature(P) {
+    var g = P.g;
+    g.save();
+    g.fillStyle = 'rgba(27,42,91,0.85)'; g.font = '700 ' + Math.round(13 * P.sc) + 'px sans-serif'; g.textAlign = 'right';
+    g.fillText('Sour Paint Studios', P.w - 14, P.h - 14);
+    g.restore();
+  }
+
+  // ----- Time-lapse video of the painting (canvas + the mic's audio) -----
+  function painterStartRecording(P) {
+    P.videoState = ''; P.videoBlob = null; P.rec = null;
+    try {
+      if (!window.MediaRecorder || !P.cv.captureStream) return;
+      var types = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+      var mime = '';
+      for (var i = 0; i < types.length; i++) { if (MediaRecorder.isTypeSupported(types[i])) { mime = types[i]; break; } }
+      var vs = P.cv.captureStream(30);
+      var tracks = vs.getVideoTracks();
+      var stream = new MediaStream(tracks);
+      if (P.stream) P.stream.getAudioTracks().forEach(function (t) { try { stream.addTrack(t.clone()); } catch (e) {} });
+      var rec = mime ? new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 4000000 }) : new MediaRecorder(stream);
+      P.recChunks = [];
+      rec.ondataavailable = function (e) { if (e.data && e.data.size) P.recChunks.push(e.data); };
+      rec.onstop = function () {
+        stream.getTracks().forEach(function (t) { try { t.stop(); } catch (e) {} });
+        if (!painter || painter !== P || !P.recChunks.length) { if (painter === P) { P.videoState = ''; paintPaintChrome(); } return; }
+        P.videoBlob = new Blob(P.recChunks, { type: (rec.mimeType || mime || 'video/webm').split(';')[0] });
+        P.recChunks = [];
+        P.videoState = 'ready';
+        if (P.state === 'done') paintPaintChrome();
+      };
+      rec.start(1000);
+      P.rec = rec;
+    } catch (e) { P.rec = null; P.videoState = ''; }
+  }
+
+  function painterStopRecording(P) {
+    if (!P.rec || P.rec.state === 'inactive') return;
+    P.videoState = 'preparing';
+    // Hold the finished (signed) canvas for a moment so the video ends on it.
+    setTimeout(function () { try { if (P.rec && P.rec.state !== 'inactive') P.rec.stop(); } catch (e) {} }, 1500);
+  }
+
+  function painterSaveVideo() {
+    var P = painter; if (!P || !P.videoBlob) return;
+    var ext = /mp4/.test(P.videoBlob.type) ? 'mp4' : 'webm';
+    var file = null;
+    try { file = new File([P.videoBlob], 'sour-paint-painting.' + ext, { type: P.videoBlob.type }); } catch (e) {}
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: 'Sour Paint painting' }).catch(function () {});
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(P.videoBlob); a.download = 'sour-paint-painting.' + ext;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 8000);
   }
 
   function painterStart() {
@@ -6567,12 +6628,13 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     P.state = 'painting'; P.t0 = Date.now(); P.strokes.length = 0; P.drips.length = 0;
     P.onsets.length = 0; P.rate = 0; P.lastStroke = Date.now();
     var f = byId('paint-progress-fill'); if (f) f.style.width = '0%';
+    painterStartRecording(P);
     paintPaintChrome();
   }
 
   function painterNew() {
     var P = painter; if (!P) return;
-    P.state = 'idle'; P.strokes.length = 0; P.drips.length = 0;
+    P.state = 'idle'; P.strokes.length = 0; P.drips.length = 0; P.videoBlob = null; P.videoState = '';
     paintCanvasFill();
     var f = byId('paint-progress-fill'); if (f) f.style.width = '0%';
     paintPaintChrome();
@@ -6580,10 +6642,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
 
   function painterSave() {
     var P = painter; if (!P) return;
-    var out = document.createElement('canvas'); out.width = P.cv.width; out.height = P.cv.height;
-    var o = out.getContext('2d'); o.drawImage(P.cv, 0, 0);
-    o.fillStyle = 'rgba(27,42,91,0.85)'; o.font = '700 ' + Math.round(13 * P.dpr * P.sc) + 'px sans-serif'; o.textAlign = 'right';
-    o.fillText('Sour Paint Studios', out.width - 14 * P.dpr, out.height - 14 * P.dpr);
+    var out = P.cv;
     out.toBlob(function (blob) {
       if (!blob) return;
       var file = null;
@@ -6668,6 +6727,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   function closePainter() {
     var P = painter; if (!P) return;
     P.running = false;
+    try { if (P.rec && P.rec.state !== 'inactive') { P.rec.onstop = null; P.rec.stop(); } } catch (e) {}
     if (P.raf) cancelAnimationFrame(P.raf);
     window.removeEventListener('resize', P.onResize);
     if (P.source) { try { P.source.disconnect(); } catch (e) {} }
@@ -6790,6 +6850,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     else if (action === 'painter-finish') { painterFinish(); }
     else if (action === 'painter-new') { painterNew(); }
     else if (action === 'painter-save') { painterSave(); }
+    else if (action === 'painter-save-video') { painterSaveVideo(); }
     else if (action === 'painter-len') { if (painter && painter.state === 'idle') { painter.length = Number(el.getAttribute('data-len')) || 60; paintPaintChrome(); } }
     else if (action === 'open-tuner') { openTuner(); }
     else if (action === 'close-tuner') { closeTuner(); }
@@ -6837,7 +6898,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 55';
+  var APP_VERSION_LABEL = 'Version 56';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
