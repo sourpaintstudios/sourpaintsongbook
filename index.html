@@ -1072,6 +1072,24 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
 .home-tile-arrow:active { transform: scale(0.92); }
 .home-tile-arrow svg { width: 20px; height: 20px; }
 .more-menu-card h2 { margin-bottom: 14px; }
+
+/* HOWTO-START */
+.howto-card { max-height: 88vh; overflow-y: auto; text-align: left; -webkit-overflow-scrolling: touch; }
+.howto-card h2 { margin-bottom: 4px; }
+.howto-sub { opacity: .7; font-size: .9rem; margin: 0 0 12px; }
+.howto-tabs { display: flex; gap: 8px; margin: 0 0 12px; }
+.howto-tab { flex: 1; padding: 9px 10px; border-radius: 999px; border: 1px solid rgba(147,216,62,.45); background: transparent; color: inherit; font: inherit; font-weight: 700; }
+.howto-tab.is-on { background: #93D83E; color: #10200a; border-color: #93D83E; }
+.howto-sec { margin: 0 0 14px; }
+.howto-sec h3 { margin: 0 0 6px; font-size: 1.02rem; color: var(--green-bright); }
+.howto-sec ul { margin: 0; padding-left: 18px; }
+.howto-sec li { margin: 0 0 5px; line-height: 1.38; font-size: .93rem; }
+.howto-sec li b { color: var(--text); }
+.howto-q { font-weight: 800; font-size: 20px; }
+.howto-ver { opacity: .55; font-size: .8rem; margin-top: 10px; }
+.howto-pane[hidden] { display: none; }
+/* HOWTO-END */
+
 .restore-file-btn { width: 100%; height: 46px; margin: 0 0 10px; box-sizing: border-box; }
 #restore-text, #backup-text { width: 100%; box-sizing: border-box; min-height: 120px; margin: 0 0 16px; font-size: 13px; }
 
@@ -2621,6 +2639,8 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
         '<div class="modal-card more-menu-card">' +
           '<h2>Songbook</h2>' +
           '<div class="move-cat-list">' +
+            '<button type="button" class="move-cat-btn" data-action="open-howto" data-tab="how"><span>How to use</span></button>' +
+            '<button type="button" class="move-cat-btn" data-action="open-howto" data-tab="about"><span>About</span></button>' +
             '<button type="button" class="move-cat-btn" data-action="more-backup"><span>Back up library</span></button>' +
             '<button type="button" class="move-cat-btn" data-action="more-restore"><span>Restore from backup</span></button>' +
             '<button type="button" class="move-cat-btn" data-action="more-arrange"><span>Arrange categories</span></button>' +
@@ -2632,6 +2652,95 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       '</div>'
     );
   }
+
+  /* ============================================================
+     HOW TO USE + ABOUT (HOWTO-START). STANDING RULE: every app gets an
+     About page and a How-to page, and this content must be updated in the
+     same release as any feature change. Edit HOWTO_SECTIONS below.
+     ============================================================ */
+  var HOWTO_SECTIONS = [
+    { h: 'Home', items: [
+      ['Category tiles', 'Tap a tile to open that group of songs.'],
+      ['Add song', 'Type, paste, or import lyrics. Put chords in [brackets] like [G] or [Am7].'],
+      ['Paint', 'Play guitar into the mic and watch it paint a picture live. Save it as an image or a time-lapse video.'],
+      ['Tuner', 'Chromatic and alternate-tuning guitar tuner with a neon needle.'],
+      ['Song lists', 'Build set lists and open them in order for a gig.'],
+      ['⋮ menu', 'Back up your library, restore a backup, or rearrange categories.']
+    ]},
+    { h: 'Song cards', items: [
+      ['Tap a card', 'Opens the song in the stage player.'],
+      ['Palette / folder / pencil / trash', 'Color the card, move it to a category, edit it, or delete it.']
+    ]},
+    { h: 'Stage player', items: [
+      ['TAP TO START', 'Starts auto-scroll. Tap along with the beat to set the speed.'],
+      ['HOLD TO RAMP', 'Press and hold to speed up or slow down smoothly. Reset and Top are on the ramp bar.'],
+      ['Fader + BPM', 'Drag the fader or type a number to set scroll speed.'],
+      ['A− / A+', 'Smaller or larger text.'],
+      ['S / Fit / L', 'Small text, fit the whole song on screen, or large text.'],
+      ['STD / SPS', 'Chord layout: STD puts chords above the line, SPS puts them beside the line.'],
+      ['Reading colors, light/dark', 'Pick a color scheme or flip between light and dark.'],
+      ['Glass mode', 'Transparent lyrics over an art background.'],
+      ['Art mode', 'Flip through Sour Paint Studios looks and lock one in.'],
+      ['Tuner (fork icon)', 'Opens the tuner without leaving the song.']
+    ]},
+    { h: 'Tuner', items: [
+      ['Start tuner', 'Allow the microphone, then play one string.'],
+      ['Needle + note', 'Centered and green means in tune. Left is flat, right is sharp.'],
+      ['Tuning buttons', 'Chromatic, Standard, Half step down, Drop D, Open G, Open D, Open E, DADGAD.'],
+      ['String buttons', 'Tap a string to hear its target pitch.'],
+      ['A4 − / +', 'Change the reference pitch (430–450 Hz).']
+    ]},
+    { h: 'Guitar painter', items: [
+      ['30 / 60 / 90 s', 'Pick how long the piece lasts, then tap Start and play.'],
+      ['What it hears', 'Pitch sets the color, loudness sets brush weight, playing speed sets stroke size and energy.'],
+      ['Save', 'Save the finished piece as a PNG, or the time-lapse as a video with your guitar audio.']
+    ]},
+    { h: 'Your data', items: [
+      ['Saved on this device', 'Songs, edits, and settings live in this phone’s browser storage. Use Back up library to keep a copy.'],
+      ['Updates', 'Reload the app to get the newest version. Your songs and edits are kept.']
+    ]}
+  ];
+  var ABOUT_TEXT = [
+    'Sour Paint Studios Songbook is a stage-ready lyrics and chord reader for working musicians: auto-scroll with tap tempo, chord layouts, set lists, a tuner, and a guitar painter.',
+    'Built by Daniel Lee Ruggeberg for Sour Paint Studios, Phoenix, AZ.',
+    'sourpaintstudios.com'
+  ];
+  function howToModalHtml() {
+    var how = HOWTO_SECTIONS.map(function (sec) {
+      return '<div class="howto-sec"><h3>' + escapeHtml(sec.h) + '</h3><ul>' +
+        sec.items.map(function (it) { return '<li><b>' + escapeHtml(it[0]) + '</b> — ' + escapeHtml(it[1]) + '</li>'; }).join('') +
+        '</ul></div>';
+    }).join('');
+    var about = ABOUT_TEXT.map(function (t) { return '<p>' + escapeHtml(t) + '</p>'; }).join('');
+    return (
+      '<div class="modal-backdrop" id="howto-modal" hidden>' +
+        '<div class="modal-card howto-card">' +
+          '<div class="howto-tabs">' +
+            '<button type="button" class="howto-tab is-on" data-action="howto-tab" data-tab="how">How to use</button>' +
+            '<button type="button" class="howto-tab" data-action="howto-tab" data-tab="about">About</button>' +
+          '</div>' +
+          '<div class="howto-pane" id="howto-pane-how">' + how + '</div>' +
+          '<div class="howto-pane" id="howto-pane-about" hidden><h2>Songbook</h2>' + about + '</div>' +
+          '<div class="howto-ver">' + escapeHtml(APP_VERSION_LABEL) + '</div>' +
+          '<div class="modal-actions"><button class="btn btn-primary" data-action="howto-close">Close</button></div>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+  function openHowTo(tab) {
+    setModal('more-menu-modal', false);
+    setModal('howto-modal', true);
+    showHowToTab(tab || 'how');
+  }
+  function showHowToTab(tab) {
+    var a = byId('howto-pane-how'), b = byId('howto-pane-about');
+    if (a) a.hidden = tab !== 'how';
+    if (b) b.hidden = tab !== 'about';
+    Array.prototype.forEach.call(document.querySelectorAll('.howto-tab'), function (el) {
+      el.classList.toggle('is-on', el.getAttribute('data-tab') === tab);
+    });
+  }
+  /* HOWTO-END */
   function setModal(id, open) {
     var m = byId(id);
     if (m) m.hidden = !open;
@@ -2777,6 +2886,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
           '</button>' +
           '<div class="topbar-actions">' +
             '<button class="btn btn-ghost btn-sm" type="button" data-action="open-songlists">' + listSvg(16) + ' Song lists</button>' +
+            '<button class="icon-btn howto-q" type="button" data-action="open-howto" data-tab="how" aria-label="How to use this app" title="How to use">?</button>' +
             '<button class="icon-btn" type="button" data-action="open-more-menu" aria-label="More: backup, restore, arrange" title="More">' + dotsSvg() + '</button>' +
           '</div>' +
         '</header>' +
@@ -2793,6 +2903,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
           body +
         '</main>' +
         moreMenuModalHtml() +
+        howToModalHtml() +
         editCategoryModalHtml() +
         restoreModalHtml() +
         backupTextModalHtml() +
@@ -6795,6 +6906,9 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     else if (action === 'open-category') { goCategory(el.getAttribute('data-filter')); }
     else if (action === 'open-more-menu') { setModal('more-menu-modal', true); }
     else if (action === 'close-more-menu') { setModal('more-menu-modal', false); }
+    else if (action === 'open-howto') { openHowTo(el.getAttribute('data-tab')); }
+    else if (action === 'howto-tab') { showHowToTab(el.getAttribute('data-tab')); }
+    else if (action === 'howto-close') { setModal('howto-modal', false); }
     else if (action === 'more-backup') { setModal('more-menu-modal', false); backupLibrary(); }
     else if (action === 'more-restore') { setModal('more-menu-modal', false); setModal('restore-modal', true); }
     else if (action === 'more-arrange') { setModal('more-menu-modal', false); arrangeMode = true; renderHome(); }
@@ -6924,7 +7038,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 59';
+  var APP_VERSION_LABEL = 'Version 60';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
