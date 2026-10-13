@@ -1351,6 +1351,12 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
 .tuner-string-active { border-color: var(--tuner-color); color: var(--tuner-color); box-shadow: 0 0 14px var(--tuner-color); }
 .tuner-string-playing { background: var(--neon-lime); color: #0d1a02; box-shadow: 0 0 20px rgba(200,255,46,0.7); }
 .tuner-string-playing .tuner-string-oct { color: #0d1a02; }
+.tuner-wave { width: 100%; max-width: 420px; height: 76px; display: block; margin-top: 14px; border-radius: 16px;
+  background: rgba(0,0,0,0.28); border: 1px solid rgba(200,255,46,0.18); }
+.tuner-wave-cap { margin: 6px 0 0; font-size: 11.5px; letter-spacing: .4px; color: var(--text-dim); text-align: center; }
+.tuner-string-tone { animation: tunerToneGlow 1.3s ease-in-out infinite; }
+@keyframes tunerToneGlow { 50% { box-shadow: 0 0 34px rgba(200,255,46,0.95); } }
+@media (prefers-reduced-motion: reduce) { .tuner-string-tone { animation: none; } }
 .tuner-hint { margin: 10px 0 0; font-size: 12.5px; color: var(--text-dim); text-align: center; }
 .tuner-mic { width: 100%; max-width: 420px; margin-top: 16px; text-align: center; }
 .tuner-mic[hidden] { display: none; }
@@ -2687,7 +2693,8 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['Start tuner', 'Allow the microphone, then play one string.'],
       ['Needle + note', 'Centered and green means in tune. Left is flat, right is sharp.'],
       ['Tuning buttons', 'Chromatic, Standard, Half step down, Drop D, Open G, Open D, Open E, DADGAD.'],
-      ['String buttons', 'Tap a string to hear its target pitch.'],
+      ['String buttons', 'Tap a string and its tone stays on so you can tune by ear. Tap it again to turn it off.'],
+      ['Vibration meter', 'The wave under the note shakes while you are off pitch and flattens to a straight line when you are in tune. Its direction shows flat or sharp.'],
       ['A4 − / +', 'Change the reference pitch (430–450 Hz).']
     ]},
     { h: 'Guitar painter', items: [
@@ -5999,6 +6006,53 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     fx.drips.push({ x: x, y: y, y0: y, vy: v || 0.3, r: r, maxLen: 60 + Math.random() * 190, life: 1, hold: Math.random() < 0.5 ? 0 : 10 + Math.random() * 25 });
   }
 
+
+  /* TUNER-WAVE-START: second meter. A wave that vibrates while the note is
+     off and flattens to a straight line when it is in tune. Wobble speed and
+     height follow how many cents off you are; direction of travel shows
+     flat vs sharp. */
+  function tunerWaveFrame(dt, rgb) {
+    var cv = byId('tuner-wave');
+    if (!cv || !tuner) return;
+    var w = cv.clientWidth, h = cv.clientHeight;
+    if (!w || !h) return;
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    var g = cv.getContext('2d');
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, w, h);
+    var wv = tuner.wave || (tuner.wave = { amp: 0, phase: 0, cents: 0, at: 0, lock: 0 });
+    var live = wv.at && (Date.now() - wv.at < 600);
+    var c = wv.cents || 0, ac = Math.abs(c);
+    var inTune = live && ac <= TUNER_IN_TUNE_CENTS;
+    var targetAmp = live && !inTune ? Math.max(0.14, Math.min(1, ac / 30)) : 0;
+    wv.amp += (targetAmp - wv.amp) * Math.min(1, 0.14 * dt);
+    if (wv.amp < 0.01) wv.amp = 0;
+    var speed = live ? Math.max(-1, Math.min(1, c / 14)) * 5.5 : 0;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    wv.phase += (reduce ? 0 : speed) * 2 * Math.PI * (dt / 60);
+    wv.lock += ((inTune ? 1 : 0) - wv.lock) * Math.min(1, 0.12 * dt);
+    var mid = h / 2, maxA = h * 0.42, k = 2 * Math.PI * 2.4 / w;
+    var col = live ? rgb : '138,138,128';
+    var path = function () {
+      g.beginPath();
+      for (var x = 0; x <= w; x += 3) {
+        var env = Math.pow(Math.sin(Math.PI * x / w), 0.7);
+        var y = mid + wv.amp * maxA * env * (Math.sin(k * x + wv.phase) + 0.35 * Math.sin(2 * k * x - wv.phase * 1.3)) / 1.35;
+        if (x === 0) g.moveTo(x, y); else g.lineTo(x, y);
+      }
+    };
+    g.lineCap = 'round'; g.lineJoin = 'round';
+    path(); g.strokeStyle = 'rgba(' + col + ',' + (0.18 + 0.2 * wv.lock).toFixed(3) + ')'; g.lineWidth = 9; g.stroke();
+    path(); g.strokeStyle = 'rgba(' + col + ',' + (live ? 1 : 0.45) + ')'; g.lineWidth = 2.6 + wv.lock * 1.6;
+    g.shadowColor = 'rgba(' + col + ',0.9)'; g.shadowBlur = live ? 6 + wv.lock * 14 : 0; g.stroke();
+    g.shadowBlur = 0;
+    // Center marks so a flat line reads as "locked".
+    g.fillStyle = 'rgba(' + col + ',' + (0.35 + 0.65 * wv.lock).toFixed(3) + ')';
+    g.beginPath(); g.arc(8, mid, 3, 0, 6.2832); g.arc(w - 8, mid, 3, 0, 6.2832); g.fill();
+  }
+  /* TUNER-WAVE-END */
+
   function tunerFxFrame(fx, ts) {
     var dt = fx.last ? Math.min(2.5, (ts - fx.last) / 16.67) : 1;
     fx.last = ts;
@@ -6007,6 +6061,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     for (var c = 0; c < 3; c++) fx.col[c] += (tgt[c] - fx.col[c]) * 0.12 * dt;
     var rgb = Math.round(fx.col[0]) + ',' + Math.round(fx.col[1]) + ',' + Math.round(fx.col[2]);
     var active = tuner.fxActive && (Date.now() - tuner.fxActive < 600);
+    tunerWaveFrame(dt, rgb);
     var tip = tunerTipPoint();
     var pulse = 0.5 + 0.5 * Math.sin(ts / 420);
     var glowT = !active ? 0.08 : (st === 'intune' ? 0.42 + 0.14 * pulse : (st === 'close' ? 0.26 : 0.2));
@@ -6098,6 +6153,8 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
           '<div class="tuner-sub" id="tuner-sub"></div>' +
           '<div class="tuner-status" id="tuner-status"></div>' +
         '</div>' +
+        '<canvas class="tuner-wave" id="tuner-wave" aria-label="Vibration meter: the wave levels out flat when the note is in tune"></canvas>' +
+        '<div class="tuner-wave-cap">Vibration meter &mdash; flat means in tune</div>' +
         '<div class="tuner-level" aria-hidden="true"><div class="tuner-level-fill" id="tuner-level-fill"></div></div>' +
       '</div>' +
       '<div class="tuner-strings" id="tuner-strings"></div>' +
@@ -6191,6 +6248,8 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     tuner.fxActive = Date.now();
     tuner.shownCents += (Math.max(-55, Math.min(55, cents)) - tuner.shownCents) * 0.45;
     setTunerNeedle(tuner.shownCents);
+    if (!tuner.wave) tuner.wave = { amp: 0, phase: 0, cents: 0, at: 0, lock: 0 };
+    tuner.wave.cents = cents; tuner.wave.at = Date.now();
     var st = abs <= TUNER_IN_TUNE_CENTS ? 'intune' : (abs <= TUNER_CLOSE_CENTS ? 'close' : 'far');
     setTunerState(st);
 
@@ -6387,6 +6446,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
 
   function closeTuner() {
     if (!tuner) return;
+    stopTunerTone();
     stopTunerFx();
     stopTunerMic();
     if (tuner.ctx) { try { var cp = tuner.ctx.close(); if (cp && cp.catch) cp.catch(function () {}); } catch (e) {} }
@@ -6397,6 +6457,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
 
   function setTunerTuning(id) {
     if (!tuner) return;
+    stopTunerTone();
     state.settings.tunerTuning = id;
     persist();
     tuner.tunedStrings = {};
@@ -6407,6 +6468,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
 
   function nudgeTunerA4(dir) {
     if (!tuner || !dir) return;
+    stopTunerTone();
     state.settings.tunerA4 = Math.max(430, Math.min(450, tunerA4() + dir));
     persist();
     tuner.tunedStrings = {};
@@ -6415,25 +6477,46 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     showTunerIdle();
   }
 
-  // A short plucked-sounding reference note for one string. The mic
-  // reading is ignored while it plays so the tuner doesn't tune to itself.
+  // Reference tone for one string. Tap a string and it keeps sounding until
+  // you tap it again (or pick another string, change tuning, or leave). The
+  // mic reading is ignored while it plays so the tuner doesn't tune to itself.
+  function stopTunerTone() {
+    if (!tuner || !tuner.tone) return;
+    var tn = tuner.tone;
+    tuner.tone = null;
+    try {
+      var t0 = tn.ctx.currentTime;
+      tn.out.gain.cancelScheduledValues(t0);
+      tn.out.gain.setValueAtTime(Math.max(0.0001, tn.out.gain.value), t0);
+      tn.out.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.12);
+      tn.oscs.forEach(function (o) { try { o.stop(t0 + 0.16); } catch (e) {} });
+    } catch (e) {}
+    tuner.toneUntil = 0;
+    var btns = document.querySelectorAll('.tuner-string');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.remove('tuner-string-playing', 'tuner-string-tone');
+    var hint = byId('tuner-hint');
+    if (hint) hint.textContent = tunerTuning().strings ? 'Tap a string to hear its note.' : 'Shows the nearest note for anything you play or sing.';
+  }
+
   function playTunerString(idx) {
     if (!tuner) return;
     var t = tunerTuning();
     if (!t.strings || !(idx >= 0 && idx < t.strings.length)) return;
+    if (tuner.tone && tuner.tone.idx === idx) { stopTunerTone(); return; }
+    stopTunerTone();
     var Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return;
     if (!tuner.ctx || tuner.ctx.state === 'closed') tuner.ctx = new Ctx();
     var ctx = tuner.ctx;
     if (ctx.state === 'suspended') { var rp = ctx.resume(); if (rp && rp.catch) rp.catch(function () {}); }
     var f = tunerMidiToFreq(t.strings[idx]);
-    var start = ctx.currentTime + 0.02, dur = 2.4;
+    var start = ctx.currentTime + 0.02;
     var out = ctx.createGain();
     out.gain.setValueAtTime(0.0001, start);
-    out.gain.exponentialRampToValueAtTime(0.35, start + 0.012);
-    out.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+    out.gain.exponentialRampToValueAtTime(0.3, start + 0.03);
     out.connect(ctx.destination);
-    [[1, 'triangle', 1], [2, 'sine', 0.35], [3, 'sine', 0.12]].forEach(function (part) {
+    var oscs = [];
+    [[1, 'triangle', 1], [2, 'sine', 0.3], [3, 'sine', 0.1]].forEach(function (part) {
       var o = ctx.createOscillator();
       o.type = part[1];
       o.frequency.value = f * part[0];
@@ -6441,21 +6524,22 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       g.gain.value = part[2];
       o.connect(g); g.connect(out);
       o.start(start);
-      o.stop(start + dur + 0.05);
+      oscs.push(o);
     });
-    tuner.toneUntil = Date.now() + dur * 1000 + 200;
+    tuner.tone = { idx: idx, ctx: ctx, out: out, oscs: oscs };
+    tuner.toneUntil = Infinity;
     tuner.hist = [];
+    showTunerIdle();
     var btns = document.querySelectorAll('.tuner-string');
-    if (btns[idx]) {
-      var btn = btns[idx];
-      btn.classList.add('tuner-string-playing');
-      setTimeout(function () { btn.classList.remove('tuner-string-playing'); }, 600);
-    }
+    if (btns[idx]) btns[idx].classList.add('tuner-string-playing', 'tuner-string-tone');
+    var hint = byId('tuner-hint');
+    if (hint) hint.textContent = 'Tone is on. Tap the string again to turn it off.';
   }
 
   // Leaving the app (screen off, switching apps) releases the mic; the
   // tuner waits for a tap to pick back up.
   document.addEventListener('visibilitychange', function () {
+    if (tuner && document.hidden) stopTunerTone();
     if (!tuner || !document.hidden || !(tuner.running || tuner.starting)) return;
     stopTunerMic();
     showTunerIdle();
@@ -7038,7 +7122,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 60';
+  var APP_VERSION_LABEL = 'Version 61';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
