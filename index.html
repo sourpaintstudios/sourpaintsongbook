@@ -311,7 +311,7 @@ button {
 }
 .library-tabs::-webkit-scrollbar { display: none; }
 .library-tab {
-  flex-shrink: 0; height: 34px; padding: 0 14px; border-radius: 999px;
+  flex-shrink: 0; height: 30px; padding: 0 12px; border-radius: 999px;
   border: 1px solid var(--line); background: var(--bg-elevated); color: var(--text-dim);
   font-weight: 700; font-size: 12.5px; white-space: nowrap; cursor: pointer;
 }
@@ -1272,14 +1272,14 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
 }
 .tuner-tunings {
   width: 100%; max-width: 520px;
-  display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch;
-  padding: 14px 2px 4px; scrollbar-width: none;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 7px;
+  padding: 10px 2px 2px;
 }
 .tuner-tunings::-webkit-scrollbar { display: none; }
 .tuner-chip {
   flex-shrink: 0; height: 34px; padding: 0 14px; border-radius: 999px;
   border: 1px solid var(--line); background: var(--bg-elevated); color: var(--text-dim);
-  font-weight: 700; font-size: 12.5px; white-space: nowrap; cursor: pointer;
+  font-weight: 700; font-size: 12px; white-space: nowrap; cursor: pointer;
 }
 .tuner-chip:active { transform: scale(0.96); }
 .tuner-chip-active { border-color: var(--neon-lime); color: var(--neon-lime); background: rgba(200,255,46,0.14); box-shadow: 0 0 12px rgba(200,255,46,0.35); }
@@ -1362,6 +1362,29 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
 .tuner-mic[hidden] { display: none; }
 .tuner-mic p { margin: 0 0 12px; font-size: 14px; line-height: 1.5; color: var(--text); }
 .tuner-mic .btn { width: 100%; }
+/* Short phone screens (browser bars eat height): shrink the tuner so the
+   string buttons and tunings are always on screen, no scrolling needed. */
+.tuner-gauge { max-height: 34vh; width: auto; max-width: 100%; margin: 0 auto; }
+.tuner-wave { height: clamp(46px, 9vh, 76px); }
+.tuner-string { height: clamp(50px, 9vh, 64px); }
+@media (max-height: 760px) {
+  .tuner-note { font-size: clamp(56px, 13vh, 100px); }
+  .tuner-wave-cap, .tuner-level { display: none; }
+  .tuner-main { padding-top: 2px; }
+  .tuner-wave { margin-top: 8px; }
+  .tuner-status { margin-top: 8px; min-height: 32px; }
+  .tuner-tunings { margin-top: 0; gap: 5px 6px; padding-top: 6px; }
+  .tuner-chip { height: 28px; padding: 0 9px; font-size: 11.5px; }
+  .tuner-status { min-height: 28px; }
+  .tuner-note sub { font-size: 0.3em; }
+}
+@media (max-height: 640px) {
+  .tuner-gauge { max-height: 21vh; }
+  .tuner-wave { height: 44px; }
+  .tuner-string { height: 48px; }
+  .tuner-hint { margin-top: 6px; }
+  .tuner-sub { margin-top: 4px; }
+}
 @media (max-width: 360px) {
   .tuner-string { height: 56px; }
   .tuner-string-name { font-size: 18px; }
@@ -7122,7 +7145,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 61';
+  var APP_VERSION_LABEL = 'Version 62';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
