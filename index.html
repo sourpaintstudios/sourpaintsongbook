@@ -1037,7 +1037,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
 .screen-player.is-stage .brand-mark-btn,
 .screen-player.is-stage .chip-row-tight,
 .screen-player.is-stage .reading-picker { display: none !important; }
-.screen-player.is-stage .topbar-player-row2 > *:not([data-action="dec-font-size"]):not([data-action="inc-font-size"]):not(.size-mode-group):not(.font-size-readout) { display: none; }
+.screen-player.is-stage .topbar-player-row2 > *:not([data-action="dec-font-size"]):not([data-action="inc-font-size"]):not(.size-mode-group):not(.font-size-readout):not(#chord-layout-btn-top) { display: none; }
 .screen-player.is-stage .btn-back { padding: 0 12px; }
 .screen-player.is-stage .btn-back span { display: none; }
 .screen-player.is-stage .player-title { text-align: left; }
@@ -6898,7 +6898,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 56';
+  var APP_VERSION_LABEL = 'Version 57';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
