@@ -1035,12 +1035,17 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
 .screen-player.is-stage .topbar-player-row1 { flex: 1 1 auto; min-width: 0; }
 .screen-player.is-stage .topbar-player-row2 { flex: 0 0 auto; flex-wrap: nowrap; gap: 6px; }
 .screen-player.is-stage .brand-mark-btn,
-.screen-player.is-stage .chip-row-tight,
-.screen-player.is-stage .reading-picker { display: none !important; }
-.screen-player.is-stage .topbar-player-row2 > *:not([data-action="dec-font-size"]):not([data-action="inc-font-size"]):not(.size-mode-group):not(.font-size-readout):not(#chord-layout-btn-top) { display: none; }
+.screen-player.is-stage .chip-row-tight { display: none !important; }
+.screen-player.is-stage .topbar-player-row2 > *:not([data-action="dec-font-size"]):not([data-action="inc-font-size"]):not(.size-mode-group):not(.font-size-readout):not(#chord-layout-btn-top):not(.player-tools-btn) { display: none; }
 .screen-player.is-stage .btn-back { padding: 0 12px; }
 .screen-player.is-stage .btn-back span { display: none; }
 .screen-player.is-stage .player-title { text-align: left; }
+
+/* The thin one-row header is used for every size preset; the remaining
+   tools (art, colors, light/dark, glass, edit, delete) live in the ⋮ tray. */
+.player-tools-btn { font-size: 22px; font-weight: 800; line-height: 1; }
+.player-tools { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 6px 12px 8px; border-bottom: 1px solid rgba(243,241,232,0.12); }
+.player-tools[hidden] { display: none; }
 
 /* Compact preset: pack lines and verse blocks tighter, on top of the
    smaller font size, so noticeably more of the song is on screen at once. */
@@ -2711,6 +2716,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['Reading colors, light/dark', 'Pick a color scheme or flip between light and dark.'],
       ['Glass mode', 'Transparent lyrics over an art background.'],
       ['Art mode', 'Flip through Sour Paint Studios looks and lock one in.'],
+      ['⋮ (three dots)', 'Opens the extra tools tray: art mode, reading colors, light/dark, glass mode, edit song, delete song. The top bar stays one thin row in every size.'],
       ['Tuner (fork icon)', 'Opens the tuner without leaving the song.']
     ]},
     { h: 'Tuner', items: [
@@ -4739,7 +4745,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     readingOverride = false;
 
     root.innerHTML =
-      '<div class="screen screen-player">' +
+      '<div class="screen screen-player is-stage">' +
         '<header class="topbar topbar-player">' +
           '<div class="topbar-player-row1">' +
             '<button class="btn btn-back" data-action="player-back" aria-label="Back to library">' + backSvg() + ' <span>Back</span></button>' +
@@ -4757,21 +4763,24 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
           '<div class="topbar-player-row2">' +
             '<button class="btn-fontsize-top" data-action="dec-font-size" aria-label="Smaller text" title="Smaller text">A&#8722;</button>' +
             '<span class="font-size-readout" id="font-size-readout" aria-label="Text size"></span>' +
-            '<button class="btn-art-mode" data-action="open-art-wheel" aria-label="Sour Paint Studios art mode" title="Art mode">' + artModeSvg() + '</button>' +
             '<button class="btn-layout-top" id="chord-layout-btn-top" data-action="toggle-chord-layout" aria-label="Toggle chord layout" title="Chord layout">Standard</button>' +
-            '<button class="icon-btn" data-action="toggle-reading-picker" aria-label="Change reading colors" title="Reading colors">' + paletteSvg() + '</button>' +
-            '<button class="icon-btn" id="invert-btn" data-action="toggle-reading-invert" aria-label="Switch reading light or dark" title="Light / dark reading">' + moonSvg() + '</button>' +
             '<div class="size-mode-group" role="group" aria-label="Lyrics size">' +
               '<button class="size-mode-btn' + (sizeMode() === 'compact' ? ' size-mode-btn-active' : '') + '" data-action="set-size-mode" data-mode="compact" aria-label="Compact size" title="Compact">S</button>' +
               '<button class="size-mode-btn' + (sizeMode() === 'fit' ? ' size-mode-btn-active' : '') + '" data-action="set-size-mode" data-mode="fit" aria-label="Fit to screen" title="Fit">' + fitScreenSvg(16) + '</button>' +
               '<button class="size-mode-btn' + (sizeMode() === 'large' ? ' size-mode-btn-active' : '') + '" data-action="set-size-mode" data-mode="large" aria-label="Large size" title="Large">L</button>' +
             '</div>' +
+            '<button class="btn-fontsize-top" data-action="inc-font-size" aria-label="Larger text" title="Larger text">A+</button>' +
+            '<button class="icon-btn player-tools-btn" data-action="toggle-player-tools" aria-label="More tools" title="More tools">&#8942;</button>' +
+          '</div>' +
+        '</header>' +
+        '<div class="player-tools" id="player-tools" hidden>' +
+            '<button class="btn-art-mode" data-action="open-art-wheel" aria-label="Sour Paint Studios art mode" title="Art mode">' + artModeSvg() + '</button>' +
+            '<button class="icon-btn" data-action="toggle-reading-picker" aria-label="Change reading colors" title="Reading colors">' + paletteSvg() + '</button>' +
+            '<button class="icon-btn" id="invert-btn" data-action="toggle-reading-invert" aria-label="Switch reading light or dark" title="Light / dark reading">' + moonSvg() + '</button>' +
             '<button class="icon-btn" data-action="toggle-glass-mode" aria-label="Transparent glass mode" title="Glass mode">' + glassSvg() + '</button>' +
             '<button class="icon-btn" data-action="edit-song" data-id="' + s.id + '" aria-label="Edit song">' + pencilSvg(26) + '</button>' +
             '<button class="icon-btn icon-btn-danger" data-action="request-delete-song" data-id="' + s.id + '" aria-label="Delete song" title="Delete">' + trashSvg() + '</button>' +
-            '<button class="btn-fontsize-top" data-action="inc-font-size" aria-label="Larger text" title="Larger text">A+</button>' +
-          '</div>' +
-        '</header>' +
+        '</div>' +
 
         '<div class="reading-picker" id="reading-picker" hidden>' +
           '<button class="btn-fontsize" data-action="dec-font-size" aria-label="Smaller text" title="Smaller text">A&#8722;</button>' +
@@ -5162,7 +5171,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     }
     var screen = document.querySelector('.screen-player');
     if (screen) {
-      screen.classList.toggle('is-stage', mode !== 'large');
+      screen.classList.add('is-stage');
       screen.classList.toggle('is-size-compact', mode === 'compact');
     }
   }
@@ -7189,6 +7198,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     else if (action === 'backup-text-copy') { copyBackupText(); }
     else if (action === 'go-home') { goHome(); }
     else if (action === 'open-song') { goPlayer(id); }
+    else if (action === 'toggle-player-tools') { var pt = byId('player-tools'); if (pt) pt.hidden = !pt.hidden; }
     else if (action === 'edit-song') { openEditorDraft(id); goEditor(id); }
     else if (action === 'request-delete-song') { requestDeleteSong(id); }
     else if (action === 'set-library-filter') { goCategory(el.getAttribute('data-filter')); }
@@ -7303,7 +7313,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 64';
+  var APP_VERSION_LABEL = 'Version 65';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
