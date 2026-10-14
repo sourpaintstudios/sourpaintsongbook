@@ -445,8 +445,40 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
 }
 
 /* ---------- Player ---------- */
-.screen-player { height: 100dvh; overflow: hidden; }
-.player-body { flex: 1; display: flex; min-height: 0; }
+.screen-player {
+  height: 100dvh; max-height: 100dvh; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+.screen-player > .player-body { flex: 1 1 auto; min-height: 0; }
+.screen-player > .topbar-player { flex-shrink: 0; padding-top: 6px; padding-bottom: 6px; gap: 4px; }
+.screen-player > .player-tools:not([hidden]),
+.screen-player > .reading-picker:not([hidden]) {
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  gap: 6px;
+  padding: 4px 8px;
+  position: static;
+  top: auto;
+  max-height: none;
+}
+.screen-player > .player-tools .icon-btn,
+.screen-player > .player-tools .btn-art-mode,
+.screen-player > .player-tools .tray-chip {
+  height: 34px; width: auto; min-width: 34px; flex-shrink: 0; padding: 0 10px;
+}
+.screen-player > .player-tools .btn-art-mode { width: 34px; padding: 0; }
+.screen-player > .reading-picker .swatch,
+.screen-player > .reading-picker .btn-fontsize {
+  width: 34px; height: 34px; flex-shrink: 0;
+}
+.screen-player > .reading-picker .btn-layout { height: 34px; flex-shrink: 0; }
+.screen-player > .player-controls { flex-shrink: 0; padding-top: 6px; padding-bottom: calc(6px + env(safe-area-inset-bottom)); gap: 4px; }
+.screen-player .btn-tap,
+.screen-player .btn-hold,
+.screen-player .btn-ramp { height: 42px; }
 
 .lyrics-viewport {
   flex: 1; min-width: 0; overflow-y: auto; overflow-x: hidden;
@@ -7466,7 +7498,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 67';
+  var APP_VERSION_LABEL = 'Version 68';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
