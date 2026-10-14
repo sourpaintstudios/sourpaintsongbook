@@ -2709,6 +2709,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     { h: 'Stage player', items: [
       ['TAP TO START', 'Starts auto-scroll. Tap along with the beat to set the speed.'],
       ['HOLD TO RAMP', 'Press and hold to speed up or slow down smoothly. Reset and Top are on the ramp bar.'],
+      ['Slower / Faster', 'Always on screen under the TAP and HOLD buttons. Press and hold to ramp the scroll speed down or up while it is scrolling or stopped. Reset zeroes the speed; Top jumps to the start of the song.'],
       ['Fader + BPM', 'Drag the fader or type a number to set scroll speed.'],
       ['A− / A+', 'Smaller or larger text.'],
       ['S / Fit / L', 'Small text, fit the whole song on screen, or large text.'],
@@ -5550,7 +5551,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     if (fasterBtn) {
       fasterBtn.addEventListener('pointerdown', function (e) {
         e.preventDefault();
-        if (playerAnimState.holdStage === 'stopped') startHoldRamp(1);
+        if (!playerAnimState.holdRAF) startHoldRamp(1);
       });
       fasterBtn.addEventListener('pointerup', function (e) {
         e.preventDefault();
@@ -5563,7 +5564,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     if (slowerBtn) {
       slowerBtn.addEventListener('pointerdown', function (e) {
         e.preventDefault();
-        if (playerAnimState.holdStage === 'stopped') startHoldRamp(-1);
+        if (!playerAnimState.holdRAF) startHoldRamp(-1);
       });
       slowerBtn.addEventListener('pointerup', function (e) {
         e.preventDefault();
@@ -5661,7 +5662,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       icon.innerHTML = holdSvg();
       if (hint) hint.hidden = true;
     }
-    if (rampRow) rampRow.hidden = playerAnimState.holdStage !== 'stopped';
+    if (rampRow) rampRow.hidden = false;  // Slower / Faster / Reset / Top are always available
   }
 
   function handleTap() {
@@ -7313,7 +7314,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 65';
+  var APP_VERSION_LABEL = 'Version 66';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
