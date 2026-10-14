@@ -984,16 +984,16 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
 .category-title-count { font-size: 15px; font-weight: 600; color: var(--text-dim); }
 
 /* ---------- Video splash ---------- */
-#splash.splash-video { background: #000; }
+#splash.splash-video { background: #120a2a; }
 .splash-stage {
-  position: relative; width: min(88vw, 560px); aspect-ratio: 16 / 9; max-width: 100%;
-  border-radius: 16px; overflow: hidden; background: #0a0a08;
-  box-shadow: 0 22px 60px rgba(0,0,0,0.65), 0 0 0 1px rgba(147,216,62,0.22);
+  position: relative; width: min(100vw, calc(100dvh * 0.753)); aspect-ratio: 720 / 956;
+  overflow: hidden; background: #120a2a;
 }
 #splash .splash-stage video, #splash .splash-stage img {
   position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: contain; background: #0a0a08; border-radius: 0; box-shadow: none; animation: none;
+  object-fit: cover; background: #120a2a; border-radius: 0; box-shadow: none; animation: none;
 }
+.splash-still[hidden], .splash-vid[hidden], .splash-sound[hidden] { display: none !important; }
 .splash-skip {
   position: absolute; top: calc(env(safe-area-inset-top, 0px) + 16px); right: 16px;
   color: rgba(243,241,232,0.85); font-size: 13px; font-weight: 700;
@@ -2689,6 +2689,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      ============================================================ */
   var HOWTO_SECTIONS = [
     { h: 'Home', items: [
+      ['Opening intro', 'A 10-second animated intro plays when the app opens. Tap "Tap to skip" to jump past it, or "Tap for sound" to replay it with audio.'],
       ['Category tiles', 'Tap a tile to open that group of songs.'],
       ['Add song', 'Type, paste, or import lyrics. Put chords in [brackets] like [G] or [Am7].'],
       ['Paint', 'Play guitar into the mic and watch it paint a picture live. Save it as an image or a time-lapse video.'],
@@ -7302,7 +7303,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 63';
+  var APP_VERSION_LABEL = 'Version 64';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
