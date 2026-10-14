@@ -2716,7 +2716,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['Start tuner', 'Allow the microphone, then play one string.'],
       ['Needle + note', 'Centered and green means in tune. Left is flat, right is sharp.'],
       ['Tuning buttons', 'Chromatic, Standard, Half step down, Drop D, Open G, Open D, Open E, DADGAD.'],
-      ['String buttons', 'Tap a string and its tone stays on so you can tune by ear. Tap it again to turn it off.'],
+      ['String buttons', 'Tap a string and its tone stays on so you can tune by ear. Tap it again to turn it off. While the tone plays, play your string next to the phone: the meters read the beat between the two (about 8 Hz either side).'],
       ['Vibration meter', 'The wave under the note shakes while you are off pitch and flattens to a straight line when you are in tune. Its direction shows flat or sharp.'],
       ['A4 − / +', 'Change the reference pitch (430–450 Hz).']
     ]},
@@ -6503,10 +6503,165 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   // Reference tone for one string. Tap a string and it keeps sounding until
   // you tap it again (or pick another string, change tuning, or leave). The
   // mic reading is ignored while it plays so the tuner doesn't tune to itself.
+  /* TUNER-BEAT-START: meters while the reference tone plays. The mic hears
+     the speaker tone AND your guitar, so normal pitch detection can't work.
+     Instead we lock onto the tone's own frequency (I/Q demodulation, sample
+     accurate). The speaker is a steady component; your string, if close in
+     pitch, shows up as a phasor rotating at the beat frequency. Rotation
+     direction = sharp or flat, rotation speed = how far off. Zero rotation
+     = in tune. Works from about -8 to +8 Hz away from the tone. */
+  // The demodulator runs off the main thread (AudioWorklet) so a busy screen
+  // can't drop audio and shift the phase. Older browsers fall back to a
+  // main-thread ScriptProcessor running the same maths.
+  var BEAT_WORKLET_SRC =
+    "class SpsBeat extends AudioWorkletProcessor {" +
+    " constructor(o){super();var p=o.processorOptions;this.w=p.w;this.a=p.a;this.ph=0;this.r1=0;this.i1=0;this.r2=0;this.i2=0;this.r3=0;this.i3=0;this.sr=0;this.si=0;this.n=0;}" +
+    " process(inputs){var x=inputs[0]&&inputs[0][0];if(!x)return true;var w=this.w,a=this.a,ph=this.ph,r1=this.r1,i1=this.i1,r2=this.r2,i2=this.i2,r3=this.r3,i3=this.i3;" +
+    "  for(var i=0;i<x.length;i++){ph+=w;if(ph>6.283185307)ph-=6.283185307;var v=x[i];" +
+    "   r1+=a*(v*Math.cos(ph)-r1);i1+=a*(-v*Math.sin(ph)-i1);r2+=a*(r1-r2);i2+=a*(i1-i2);r3+=a*(r2-r3);i3+=a*(i2-i3);this.sr+=r3;this.si+=i3;}" +
+    "  this.ph=ph;this.r1=r1;this.i1=i1;this.r2=r2;this.i2=i2;this.r3=r3;this.i3=i3;this.n+=x.length;" +
+    "  if(this.n>=1024){this.port.postMessage({zr:this.sr/this.n,zi:this.si/this.n,n:this.n});this.sr=0;this.si=0;this.n=0;}" +
+    "  return true;}}" +
+    "registerProcessor('sps-beat',SpsBeat);";
+
+  function startTunerBeat(tn, f) {
+    if (!tuner || !tuner.running || !tuner.source) return;
+    var ctx = tn.ctx, sr = ctx.sampleRate;
+    var h = f < 150 ? 2 : 1;          // phone speakers are weak below ~150 Hz: use the 2nd harmonic
+    var w = 2 * Math.PI * h * f / sr;
+    var a = 1 - Math.exp(-2 * Math.PI * 15 / sr);
+    var st = { Sr: 0, Si: 0, init: false, pa: 0, havePrev: false, lastActive: 0, tooFast: false, f: f, h: h, ring: [], gap: 0, est: 0, valid: false, lastAbs: 99 };
+    tn.beatState = st;
+    var frame = function (zr, zi, n) {
+      if (!tuner || tuner.tone !== tn) return;
+      var dt = n / sr;
+      if (!st.init) { st.Sr = zr; st.Si = zi; st.init = true; return; }
+      var beta = 1 - Math.exp(-dt / 1.2);
+      st.Sr += (zr - st.Sr) * beta; st.Si += (zi - st.Si) * beta;
+      var dr = zr - st.Sr, di = zi - st.Si, mag = Math.sqrt(dr * dr + di * di);
+      var now = Date.now();
+      var Smag = Math.sqrt(st.Sr * st.Sr + st.Si * st.Si);
+      var gate = Math.max(0.005, 0.06 * Smag);
+      var gated = mag > gate;
+      st.mag = mag; st.gate = gate; st.Smag = Smag;
+      if (gated) {
+        var ang = Math.atan2(di, dr);
+        if (st.havePrev) {
+          var d = ang - st.pa;
+          while (d > Math.PI) d -= 6.283185307;
+          while (d < -Math.PI) d += 6.283185307;
+          st.ring.push(d / dt / (2 * Math.PI * st.h));       // Hz of the fundamental, + = sharp
+          if (st.ring.length > 12) st.ring.shift();
+        }
+        st.pa = ang; st.havePrev = true; st.gap = 0; st.lastActive = now;
+      } else {
+        st.havePrev = false;
+        if (++st.gap > 12) { st.ring.length = 0; st.valid = false; }
+      }
+      // A reading counts only when ten or more recent frames agree (rejects clicks, bumps and room noise).
+      st.valid = false;
+      if (st.ring.length >= 10) {
+        var srt = st.ring.slice().sort(function (p, q) { return p - q; });
+        var med = srt[srt.length >> 1];
+        var dev = srt.map(function (v) { return Math.abs(v - med); }).sort(function (p, q) { return p - q; })[srt.length >> 1];
+        if (dev < Math.max(0.35, 0.35 * Math.abs(med))) {
+          st.valid = true;
+          st.est += (med - st.est) * 0.35;
+          st.lastAbs = Math.abs(st.est);
+          if (Math.abs(med) > 0.5) st.sawBeat = now;
+        }
+      }
+      st.tooFast = st.valid && Math.abs(st.est) > 9;
+      showTunerBeat(tn, st, gated);
+    };
+    var attachScriptProcessor = function () {
+      if (!ctx.createScriptProcessor || tuner.tone !== tn) return;
+      var sp = ctx.createScriptProcessor(1024, 1, 1);
+      var ph = 0, r1 = 0, i1 = 0, r2 = 0, i2 = 0, r3 = 0, i3 = 0;
+      sp.onaudioprocess = function (e) {
+        var x = e.inputBuffer.getChannelData(0), n = x.length, sumR = 0, sumI = 0;
+        for (var i = 0; i < n; i++) {
+          ph += w; if (ph > 6.283185307) ph -= 6.283185307;
+          var v = x[i];
+          r1 += a * (v * Math.cos(ph) - r1); i1 += a * (-v * Math.sin(ph) - i1);
+          r2 += a * (r1 - r2); i2 += a * (i1 - i2);
+          r3 += a * (r2 - r3); i3 += a * (i2 - i3);
+          sumR += r3; sumI += i3;
+        }
+        frame(sumR / n, sumI / n, n);
+      };
+      tuner.source.connect(sp); sp.connect(ctx.destination);
+      tn.sp = sp;
+    };
+    if (ctx.audioWorklet && window.AudioWorkletNode) {
+      var addMod = tuner.beatModule;
+      if (!addMod || tuner.beatModuleCtx !== ctx) {
+        var url = URL.createObjectURL(new Blob([BEAT_WORKLET_SRC], { type: 'application/javascript' }));
+        addMod = tuner.beatModule = ctx.audioWorklet.addModule(url);
+        tuner.beatModuleCtx = ctx;
+      }
+      addMod.then(function () {
+        if (!tuner || tuner.tone !== tn || !tuner.source) return;
+        var node = new AudioWorkletNode(ctx, 'sps-beat', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1], processorOptions: { w: w, a: a } });
+        node.port.onmessage = function (ev) { frame(ev.data.zr, ev.data.zi, ev.data.n); };
+        tuner.source.connect(node); node.connect(ctx.destination);
+        tn.sp = node;
+      }).catch(attachScriptProcessor);
+    } else {
+      attachScriptProcessor();
+    }
+  }
+
+  function stopTunerBeat(tn) {
+    if (!tn || !tn.sp) return;
+    var n = tn.sp;
+    tn.sp = null;
+    try { if (n.port) n.port.onmessage = null; if ('onaudioprocess' in n) n.onaudioprocess = null; } catch (e) {}
+    try { if (tuner && tuner.source) tuner.source.disconnect(n); } catch (e) {}
+    try { n.disconnect(); } catch (e) {}
+  }
+
+  function showTunerBeat(tn, st, activeNow) {
+    if (!tuner) return;
+    var t = tunerTuning();
+    var now = Date.now();
+    var delta = st.est;                                        // Hz of the fundamental, + = sharp
+    var cents = Math.max(-60, Math.min(60, 1731 * delta / st.f));
+    var recent = st.lastActive && (now - st.lastActive < 3000);
+    // "In tune" only after a beat was seen and then settled; silence or a glitch alone never reads as in tune.
+    var locked = !st.valid && st.sawBeat && (now - st.sawBeat < 10000) && recent && (st.gap > 6 || Math.abs(delta) < 0.3) && st.lastAbs < 0.8;
+    var sawRecent = st.sawBeat && (now - st.sawBeat < 10000);
+    var live = (st.valid && (Math.abs(delta) >= 0.3 || sawRecent)) || locked;
+    if (!live) {
+      if (!recent || !st.sawBeat) { if (tuner.wave) tuner.wave.at = 0; tuner.fxActive = 0; setTunerState('idle'); setTunerNeedle(0); tuner.shownCents = 0;
+        var sub0 = byId('tuner-sub'); if (sub0) sub0.textContent = 'Tone on. Play the string to see the meters.'; var s0 = byId('tuner-status'); if (s0) s0.textContent = ''; }
+      return;
+    }
+    if (st.tooFast) cents = (delta > 0 ? 1 : -1) * 60;
+    var abs = Math.abs(cents);
+    if (locked) { cents = 0; abs = 0; }
+    tuner.fxActive = now;
+    if (!tuner.wave) tuner.wave = { amp: 0, phase: 0, cents: 0, at: 0, lock: 0 };
+    tuner.wave.cents = cents; tuner.wave.at = now;
+    tuner.shownCents += (cents - tuner.shownCents) * 0.3;
+    setTunerNeedle(tuner.shownCents);
+    var stt = abs <= TUNER_IN_TUNE_CENTS ? 'intune' : (abs <= TUNER_CLOSE_CENTS ? 'close' : 'far');
+    setTunerState(stt);
+    var midi = t.strings ? t.strings[tn.idx] : 0;
+    var note = byId('tuner-note'), oct = byId('tuner-octave'), sub = byId('tuner-sub'), status = byId('tuner-status');
+    if (note && midi) note.textContent = tunerNoteName(midi, t.flats);
+    if (oct && midi) oct.textContent = String(tunerOctave(midi));
+    if (sub) sub.textContent = st.tooFast ? 'Too far off to read' : (locked || abs <= TUNER_IN_TUNE_CENTS ? 'Beat 0.0 Hz' : 'Beat ' + (delta > 0 ? '+' : '−') + Math.abs(delta).toFixed(1) + ' Hz');
+    if (status) status.textContent = st.tooFast ? 'Tune closer by ear first' : (stt === 'intune' ? 'In tune' : (cents < 0 ? 'Low — tune up' : 'High — tune down'));
+  }
+  /* TUNER-BEAT-END */
+
   function stopTunerTone() {
     if (!tuner || !tuner.tone) return;
     var tn = tuner.tone;
     tuner.tone = null;
+    stopTunerBeat(tn);
+    showTunerIdle();
     try {
       var t0 = tn.ctx.currentTime;
       tn.out.gain.cancelScheduledValues(t0);
@@ -6539,7 +6694,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     out.gain.exponentialRampToValueAtTime(0.3, start + 0.03);
     out.connect(ctx.destination);
     var oscs = [];
-    [[1, 'triangle', 1], [2, 'sine', 0.3], [3, 'sine', 0.1]].forEach(function (part) {
+    [[1, 'triangle', 1], [2, 'sine', 0.6], [3, 'sine', 0.25]].forEach(function (part) {
       var o = ctx.createOscillator();
       o.type = part[1];
       o.frequency.value = f * part[0];
@@ -6552,11 +6707,13 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     tuner.tone = { idx: idx, ctx: ctx, out: out, oscs: oscs };
     tuner.toneUntil = Infinity;
     tuner.hist = [];
+    tuner.lastHeard = 0;
     showTunerIdle();
+    startTunerBeat(tuner.tone, f);
     var btns = document.querySelectorAll('.tuner-string');
     if (btns[idx]) btns[idx].classList.add('tuner-string-playing', 'tuner-string-tone');
     var hint = byId('tuner-hint');
-    if (hint) hint.textContent = 'Tone is on. Tap the string again to turn it off.';
+    if (hint) hint.textContent = tuner.running ? 'Tone is on. Play your string to see the meters. Tap the string again to turn it off.' : 'Tone is on. Tap the string again to turn it off.';
   }
 
   // Leaving the app (screen off, switching apps) releases the mic; the
@@ -7145,7 +7302,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 62';
+  var APP_VERSION_LABEL = 'Version 63';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
