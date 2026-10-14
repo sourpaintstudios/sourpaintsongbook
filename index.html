@@ -1047,6 +1047,50 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
 .player-tools { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 6px 12px 8px; border-bottom: 1px solid rgba(243,241,232,0.12); }
 .player-tools[hidden] { display: none; }
 
+
+/* ---------- Compact player controls (V68) ----------
+   Header and bottom buttons are smaller so the lyrics get more room; the
+   speed fader on the right stays full size for a thumb. Nothing may overlap
+   on narrow phones: the Back circle and every header control are fixed-size
+   and never shrink. */
+.screen-player .topbar-player { padding: 5px 8px; gap: 6px; }
+.screen-player .topbar-player-row1 { gap: 6px; }
+.screen-player .topbar-player-row2 { gap: 5px; }
+.screen-player .btn-back { height: 34px; min-width: 34px; padding: 0 12px; flex: 0 0 auto; }
+.screen-player.is-stage .btn-back { width: 34px; padding: 0; justify-content: center; }
+.screen-player .topbar-player .icon-btn,
+.screen-player .player-tools .icon-btn,
+.screen-player .btn-fontsize-top { width: 34px; height: 34px; flex: 0 0 34px; }
+.screen-player .btn-layout-top { height: 34px; padding: 0 9px; font-size: 11px; }
+.screen-player .size-mode-group { height: 34px; }
+.screen-player .size-mode-btn { width: 30px; }
+.screen-player .font-size-readout { min-width: 22px; font-size: 13px; }
+.screen-player.is-stage .topbar-player-row1 { flex: 1 1 0; min-width: 34px; }
+.screen-player .player-tools { padding: 4px 8px 6px; gap: 8px; }
+.screen-player .tray-chip { height: 34px; }
+.screen-player .reading-picker .swatch,
+.screen-player .reading-picker .btn-fontsize { width: 34px; height: 34px; }
+.screen-player .reading-picker .btn-layout { height: 34px; }
+.screen-player .player-controls { padding: 6px 8px calc(6px + env(safe-area-inset-bottom)); gap: 5px; }
+.screen-player .control-row { gap: 5px; }
+.screen-player .btn-tap, .screen-player .btn-hold { height: 42px; font-size: 12.5px; min-width: 0; }
+.screen-player .btn-tap .tap-icon svg, .screen-player .btn-hold .hold-icon svg { width: 16px; height: 16px; }
+.screen-player .hold-hint { font-size: 8px; }
+.screen-player .ramp-row:not([hidden]) { grid-template-columns: minmax(0,1fr) minmax(0,0.7fr) minmax(0,0.7fr) minmax(0,1fr); gap: 5px; }
+.screen-player .btn-ramp { height: 38px; min-width: 0; padding: 0 6px; overflow: hidden; font-size: 11.5px; }
+.screen-player .ramp-word { font-size: 11.5px; }
+.screen-player .ramp-hint { font-size: 7.5px; }
+@media (max-width: 350px) {
+  .screen-player .topbar-player { padding: 5px 5px; }
+  .screen-player .topbar-player-row2 { gap: 3px; }
+  .screen-player .btn-back, .screen-player.is-stage .btn-back { width: 30px; min-width: 30px; height: 30px; }
+  .screen-player .topbar-player .icon-btn, .screen-player .btn-fontsize-top { width: 30px; height: 30px; flex: 0 0 30px; }
+  .screen-player .btn-layout-top { height: 30px; padding: 0 6px; font-size: 10px; }
+  .screen-player .size-mode-group { height: 30px; }
+  .screen-player .size-mode-btn { width: 26px; }
+  .screen-player .font-size-readout { min-width: 18px; font-size: 12px; }
+}
+
 /* Compact preset: pack lines and verse blocks tighter, on top of the
    smaller font size, so noticeably more of the song is on screen at once. */
 .screen-player.is-size-compact .lyrics-body { line-height: 1.35; }
@@ -7314,7 +7358,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 66';
+  var APP_VERSION_LABEL = 'Version 69';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
