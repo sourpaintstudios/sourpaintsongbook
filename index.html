@@ -564,7 +564,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
 }
 .ramp-row[hidden] { display: none; }
 .ramp-row:not([hidden]) {
-  display: grid; grid-template-columns: 1fr 0.7fr 0.7fr 1fr; gap: 6px;
+  display: grid; grid-template-columns: minmax(0,1fr) minmax(0,0.7fr) minmax(0,0.7fr) minmax(0,1fr); gap: 6px;
   max-width: 640px; margin: 0 auto; width: 100%;
 }
 .btn-ramp {
@@ -574,6 +574,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
   background: var(--bg-elevated); color: var(--text); border: 1.5px solid var(--line);
   transition: transform 0.08s ease;
 }
+.btn-ramp { min-width: 0; padding: 0 6px; overflow: hidden; }
 .btn-ramp svg { width: 15px; height: 15px; flex-shrink: 0; }
 .btn-ramp:active { transform: scale(0.96); }
 .btn-faster { border-color: var(--green-bright); color: var(--green-bright); }
@@ -1046,6 +1047,32 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
 .player-tools-btn { font-size: 22px; font-weight: 800; line-height: 1; }
 .player-tools { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 6px 12px 8px; border-bottom: 1px solid rgba(243,241,232,0.12); }
 .player-tools[hidden] { display: none; }
+
+
+/* ---------- Magic Glass scroll mode ---------- */
+.player-body { position: relative; }
+.magic-strip {
+  position: absolute; left: 0; right: 60px; z-index: 6; pointer-events: none;
+  border-top: 1px solid rgba(214,239,106,0.55); border-bottom: 1px solid rgba(214,239,106,0.55);
+  background: linear-gradient(to bottom, rgba(214,239,106,0.05), rgba(214,239,106,0.13) 50%, rgba(214,239,106,0.05));
+  backdrop-filter: brightness(1.12) saturate(1.15); -webkit-backdrop-filter: brightness(1.12) saturate(1.15);
+  box-shadow: 0 0 22px rgba(214,239,106,0.18), inset 0 0 18px rgba(214,239,106,0.08);
+  animation: magic-breathe 3.4s ease-in-out infinite;
+}
+.magic-strip[hidden] { display: none; }
+@keyframes magic-breathe {
+  0%, 100% { box-shadow: 0 0 16px rgba(214,239,106,0.14), inset 0 0 14px rgba(214,239,106,0.06); border-color: rgba(214,239,106,0.42); }
+  50% { box-shadow: 0 0 30px rgba(214,239,106,0.32), inset 0 0 22px rgba(214,239,106,0.12); border-color: rgba(214,239,106,0.8); }
+}
+.screen-player.is-magic .lyrics-body .lyric-line,
+.screen-player.is-magic .lyrics-body .lyric-cue-row { will-change: transform, color, opacity; }
+.screen-player.is-magic .lyrics-body { padding-top: 38vh; padding-bottom: 60vh; }
+.tray-chip {
+  height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line, rgba(243,241,232,0.2));
+  background: transparent; color: inherit; font-weight: 800; font-size: 13px; cursor: pointer;
+}
+.tray-chip.is-on { background: #d6ef6a; color: #12120f; border-color: #d6ef6a; }
+.tray-chip[hidden] { display: none; }
 
 /* Compact preset: pack lines and verse blocks tighter, on top of the
    smaller font size, so noticeably more of the song is on screen at once. */
@@ -2415,6 +2442,123 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     for (var i = 0; i < btns.length; i++) btns[i].classList.toggle('icon-btn-active', !!state.settings.glassMode);
   }
 
+
+  /* ---------- Magic Glass scroll mode ----------
+     A reading strip sits across the screen; every lyric line is colored by
+     its position relative to it, continuously: upcoming lines are
+     fluorescent lemon that brightens as it approaches, the line in the
+     strip peaks (bright, glowing, magnified), and lines already sung cool
+     through lime to dark hunter green. Rides on the normal scroll, so tap
+     tempo / fader / Slower-Faster all drive it. No timestamps needed. */
+  var MAGIC_ZOOMS = [1.1, 1.2, 1.3, 1.4];
+  var magic = { raf: 0, items: [], sig: '', lineH: 40 };
+  function magicOn() { return !!state.settings.magicGlass; }
+  function magicZoom() { var z = Number(state.settings.magicZoom); return z >= 1 && z <= 1.6 ? z : 1.2; }
+  function magicClamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function magicStop() { if (magic.raf) cancelAnimationFrame(magic.raf); magic.raf = 0; }
+  function magicClear() {
+    for (var i = 0; i < magic.items.length; i++) {
+      var st = magic.items[i].el.style;
+      st.color = ''; st.opacity = ''; st.transform = ''; st.textShadow = ''; st.transformOrigin = '';
+    }
+    magic.items = []; magic.sig = '';
+  }
+  function magicBuild() {
+    var body = byId('lyrics-body');
+    if (!body) { magic.items = []; return; }
+    for (var k = 0; k < magic.items.length; k++) { var o = magic.items[k].el.style; o.transform = ''; }
+    var br = body.getBoundingClientRect();
+    var cs = getComputedStyle(body);
+    var innerW = body.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+    var nodes = body.querySelectorAll('.lyric-line, .lyric-cue-row');
+    var items = [], hs = 0, hn = 0;
+    for (var i = 0; i < nodes.length; i++) {
+      var el = nodes[i];
+      var r = el.getBoundingClientRect();
+      if (r.height < 2) continue;
+      var range = document.createRange(); range.selectNodeContents(el);
+      var tw = range.getBoundingClientRect().width || r.width;
+      items.push({ el: el, cy: (r.top + r.bottom) / 2 - br.top, w: tw, maxZoom: magicClamp(innerW / Math.max(tw, 1), 1, 3) });
+      hs += r.height; hn++;
+    }
+    magic.items = items;
+    magic.lineH = hn ? hs / hn : 40;
+    magic.sig = body.scrollHeight + 'x' + body.clientWidth + 'x' + (state.settings.sizeMode || '') + (state.settings.chordLayout || '');
+  }
+  function magicFrame(ts) {
+    var vp = byId('lyrics-viewport'), body = byId('lyrics-body');
+    if (!vp || !body || !magicOn()) { magic.raf = 0; return; }
+    var sig = body.scrollHeight + 'x' + body.clientWidth + 'x' + (state.settings.sizeMode || '') + (state.settings.chordLayout || '');
+    if (sig !== magic.sig) magicBuild();
+    var H = vp.clientHeight, st = vp.scrollTop;
+    var center = H * 0.42;
+    var sigma = Math.max(magic.lineH * 1.1, H * 0.07);
+    var zoom = magicZoom();
+    var strip = byId('magic-strip');
+    if (strip) {
+      var h = magic.lineH * Math.min(zoom, 1.3) * 1.35;
+      strip.style.height = Math.round(h) + 'px';
+      strip.style.top = Math.round(center - h / 2) + 'px';
+    }
+    var t = ts / 1000;
+    var items = magic.items;
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      var dy = it.cy - st - center;                   // px; + = upcoming (below), - = already read (above)
+      var d = dy / (H * 0.5);
+      var p = Math.exp(-(dy * dy) / (2 * sigma * sigma)); // 1 in the strip, falling off smoothly
+      var hue, sat, lig, op;
+      var shimmer = Math.sin(t * 1.7 + i * 0.9) * 3 * (0.4 + p);
+      if (dy >= 0) {                                    // coming at you: lemon, brighter near
+        var v = magicClamp(d / 0.95, 0, 1);
+        hue = 57 + shimmer; sat = 100; lig = 90 - 24 * v + 4 * p; op = 1 - 0.38 * v;
+      } else {                                          // already sung: yellow -> lime -> hunter green
+        var u = magicClamp(-d / 0.6, 0, 1);
+        hue = 57 + 72 * Math.pow(u, 0.7) + shimmer * (1 - u); sat = 100 - 48 * u; lig = 72 - 48 * u + 14 * p; op = 1 - 0.42 * u;
+      }
+      if (p > 0.85) { lig = Math.min(95, lig + 4); }
+      var sc = 1 + (Math.min(zoom, it.maxZoom) - 1) * p;
+      var glow = 0.75 * p * (0.8 + 0.2 * Math.sin(t * 3.1 + i));
+      var s2 = it.el.style;
+      s2.color = 'hsl(' + hue.toFixed(1) + ',' + sat.toFixed(0) + '%,' + lig.toFixed(1) + '%)';
+      s2.opacity = op.toFixed(3);
+      s2.transformOrigin = 'left center';
+      s2.transform = sc > 1.002 ? 'scale(' + sc.toFixed(3) + ')' : '';
+      s2.textShadow = glow > 0.03 ? '0 0 ' + (16 * p).toFixed(1) + 'px rgba(214,239,106,' + glow.toFixed(2) + ')' : '';
+    }
+    magic.raf = requestAnimationFrame(magicFrame);
+  }
+  function paintMagicButtons() {
+    var b = byId('magic-btn'), z = byId('magic-zoom-btn');
+    if (b) b.classList.toggle('is-on', magicOn());
+    if (z) { z.hidden = !magicOn(); z.textContent = 'Zoom \u00d7' + magicZoom().toFixed(1); }
+  }
+  function magicInit() {
+    magicStop(); magic.items = []; magic.sig = '';
+    var screen = document.querySelector('.screen-player');
+    var strip = byId('magic-strip');
+    var on = magicOn();
+    if (screen) screen.classList.toggle('is-magic', on);
+    if (strip) strip.hidden = !on;
+    paintMagicButtons();
+    if (on) { applyReadingMode(); magic.raf = requestAnimationFrame(magicFrame); }
+  }
+  function toggleMagicGlass() {
+    state.settings.magicGlass = !state.settings.magicGlass;
+    persist();
+    var wasOn = !state.settings.magicGlass;
+    if (wasOn) magicClear();
+    magicInit();
+    if (!magicOn()) { applyReadingMode(); }
+    toast(magicOn() ? 'Magic Glass on.' : 'Magic Glass off.');
+  }
+  function cycleMagicZoom() {
+    var cur = magicZoom(), idx = 0;
+    for (var i = 0; i < MAGIC_ZOOMS.length; i++) if (Math.abs(MAGIC_ZOOMS[i] - cur) < 0.01) idx = i;
+    state.settings.magicZoom = MAGIC_ZOOMS[(idx + 1) % MAGIC_ZOOMS.length];
+    persist(); paintMagicButtons();
+  }
+
   /* ---------- Helpers ---------- */
   function escapeHtml(str) {
     return String(str == null ? '' : str)
@@ -2715,6 +2859,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['S / Fit / L', 'Small text, fit the whole song on screen, or large text.'],
       ['STD / SPS', 'Chord layout: STD puts chords above the line, SPS puts them beside the line.'],
       ['Reading colors, light/dark', 'Pick a color scheme or flip between light and dark.'],
+      ['Magic Glass (⋮ tray)', 'Lyrics scroll through a glowing reading strip. Coming lines are bright lemon, the line in the strip glows and grows, lines already sung fade to dark green. It follows your normal scroll speed (tap tempo, fader, Slower/Faster). Tap Zoom in the tray to change how much the strip magnifies.'],
       ['Glass mode', 'Transparent lyrics over an art background.'],
       ['Art mode', 'Flip through Sour Paint Studios looks and lock one in.'],
       ['⋮ (three dots)', 'Opens the extra tools tray: art mode, reading colors, light/dark, glass mode, edit song, delete song. The top bar stays one thin row in every size.'],
@@ -4775,6 +4920,8 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
           '</div>' +
         '</header>' +
         '<div class="player-tools" id="player-tools" hidden>' +
+            '<button class="tray-chip" id="magic-btn" data-action="toggle-magic-glass" title="Magic Glass: lyrics glow as they pass through a reading strip">&#10022; Magic Glass</button>' +
+            '<button class="tray-chip" id="magic-zoom-btn" data-action="cycle-magic-zoom" title="Reading-zone magnification" hidden>Zoom</button>' +
             '<button class="btn-art-mode" data-action="open-art-wheel" aria-label="Sour Paint Studios art mode" title="Art mode">' + artModeSvg() + '</button>' +
             '<button class="icon-btn" data-action="toggle-reading-picker" aria-label="Change reading colors" title="Reading colors">' + paletteSvg() + '</button>' +
             '<button class="icon-btn" id="invert-btn" data-action="toggle-reading-invert" aria-label="Switch reading light or dark" title="Light / dark reading">' + moonSvg() + '</button>' +
@@ -4818,6 +4965,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
         '</div>' +
 
         '<div class="player-body">' +
+          '<div class="magic-strip" id="magic-strip" hidden></div>' +
           '<div class="lyrics-viewport" id="lyrics-viewport">' +
             '<div class="lyrics-body" id="lyrics-body">' + lyricsHtml + '</div>' +
           '</div>' +
@@ -4874,6 +5022,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     paintInvertButton();
     paintChordLayoutButton();
     paintGlassButton();
+    magicInit();
     setupFader(speedToFaderPct(playerAnimState.speed));
     setupBpmInput();
 
@@ -5046,6 +5195,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     if (skin && !readingOverride) mode = { bg: skin.dark, fg: skin.light, accent: skin.accent };
     viewport.style.background = mode.bg;
     viewport.style.color = mode.fg;
+    if (state.settings.magicGlass) viewport.style.background = '#070b07';
     var chordEls = viewport.querySelectorAll('.chord');
     for (var i = 0; i < chordEls.length; i++) chordEls[i].style.color = mode.accent;
   }
@@ -7200,6 +7350,8 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     else if (action === 'go-home') { goHome(); }
     else if (action === 'open-song') { goPlayer(id); }
     else if (action === 'toggle-player-tools') { var pt = byId('player-tools'); if (pt) pt.hidden = !pt.hidden; }
+    else if (action === 'toggle-magic-glass') { toggleMagicGlass(); }
+    else if (action === 'cycle-magic-zoom') { cycleMagicZoom(); }
     else if (action === 'edit-song') { openEditorDraft(id); goEditor(id); }
     else if (action === 'request-delete-song') { requestDeleteSong(id); }
     else if (action === 'set-library-filter') { goCategory(el.getAttribute('data-filter')); }
@@ -7314,7 +7466,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 66';
+  var APP_VERSION_LABEL = 'Version 67';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
