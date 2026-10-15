@@ -1,0 +1,478 @@
+=== Auld Lang Syne | G | folk | 1796
+# Verse 1
+G|Should auld acquaintance be forgot
+C G|And never brought to mind
+G|Should auld acquaintance be forgot
+Em D7 G|And auld lang syne
+
+# Chorus
+G|For auld lang syne, my dear
+C G|For auld lang syne
+G|We'll take a cup of kindness yet
+Em D7 G|For auld lang syne
+
+# Verse 2
+G|And surely you'll buy your pint cup
+C G|And surely I'll buy mine
+G|And we'll take a cup o' kindness yet
+Em D7 G|For auld lang syne
+
+=== Danny Boy | D | folk | 1913
+# Verse 1
+D G D|Oh Danny boy, the pipes, the pipes are calling
+D Bm|From glen to glen, and down the mountain side
+D G D|The summer's gone, and all the roses falling
+D A7 D|'Tis you, 'tis you must go and I must bide
+
+# Chorus
+D G D|But come ye back when summer's in the meadow
+D Bm|Or when the valley's hushed and white with snow
+D G D|'Tis I'll be here in sunshine or in shadow
+D A7 D|Oh Danny boy, oh Danny boy, I love you so
+
+# Verse 2
+D G D|And if you come, when all the flowers are dying
+D Bm|And I am dead, as dead I well may be
+D G D|You'll come and find the place where I am lying
+D A7 D|And kneel and say an Ave there for me
+
+=== Shenandoah | G | folk | 1800s
+# Verse 1
+G|Oh Shenandoah, I long to see you
+C G|Away, you rolling river
+G|Oh Shenandoah, I long to see you
+D7 G|Away, I'm bound away, 'cross the wide Missouri
+
+# Verse 2
+G|Oh Shenandoah, I love your daughter
+C G|Away, you rolling river
+G|For her I'd cross the roaming water
+D7 G|Away, I'm bound away, 'cross the wide Missouri
+
+# Verse 3
+G|The white man loved the Indian maiden
+C G|Away, you rolling river
+G|With notions his canoe was laden
+D7 G|Away, I'm bound away, 'cross the wide Missouri
+
+=== Drunken Sailor | Dm | shanty | 1800s
+# Verse 1
+Dm|What shall we do with the drunken sailor
+Dm|What shall we do with the drunken sailor
+Dm|What shall we do with the drunken sailor
+C Dm|Early in the morning
+
+# Chorus
+Dm|Way hay and up she rises
+C|Way hay and up she rises
+Dm|Way hay and up she rises
+C Dm|Early in the morning
+
+# Verse 2
+Dm|Put him in the long boat till he's sober
+Dm|Put him in the long boat till he's sober
+Dm|Put him in the long boat till he's sober
+C Dm|Early in the morning
+
+# Verse 3
+Dm|Pull out the plug and wet him all over
+Dm|Pull out the plug and wet him all over
+Dm|Pull out the plug and wet him all over
+C Dm|Early in the morning
+
+=== Red River Valley | G | cowboy | 1896
+# Verse 1
+G|From this valley they say you are going
+C G|We will miss your bright eyes and sweet smile
+G|For they say you are taking the sunshine
+D7 G|That has brightened our pathway a while
+
+# Chorus
+G|Come and sit by my side if you love me
+C G|Do not hasten to bid me adieu
+G|But remember the Red River Valley
+D7 G|And the cowboy who loved you so true
+
+# Verse 2
+G|I've been thinking a long time, my darling
+C G|Of the sweet words you never would say
+G|Now, alas, must my fond hopes all vanish
+D7 G|For they say you are going away
+
+=== Home on the Range | G | cowboy | 1873
+# Verse 1
+G C G|Oh give me a home where the buffalo roam
+G D7|Where the deer and the antelope play
+G C G|Where seldom is heard a discouraging word
+G D7 G|And the skies are not cloudy all day
+
+# Chorus
+D7 G|Home, home on the range
+G C G|Where the deer and the antelope play
+G C G|Where seldom is heard a discouraging word
+G D7 G|And the skies are not cloudy all day
+
+# Verse 2
+G C G|How often at night when the heavens are bright
+G D7|With the light from the glittering stars
+G C G|Have I stood here amazed and asked as I gazed
+G D7 G|If their glory exceeds that of ours
+
+=== Streets of Laredo | Am | cowboy | 1910
+# Verse 1
+Am|As I walked out in the streets of Laredo
+E7 Am|As I walked out in Laredo one day
+Am|I spied a young cowboy all wrapped in white linen
+E7 Am|Wrapped in white linen and cold as the clay
+
+# Verse 2
+Am|I see by your outfit that you are a cowboy
+E7 Am|These words he did say as I boldly stepped by
+Am|Come sit down beside me and hear my sad story
+E7 Am|I'm shot in the breast and I know I must die
+
+# Verse 3
+Am|Oh, beat the drum slowly and play the fife lowly
+E7 Am|Play the dead march as you carry me along
+Am|Take me to the valley, there lay the sod o'er me
+E7 Am|For I'm a young cowboy and I know I've done wrong
+
+=== Git Along, Little Dogies | G | cowboy | 1910
+# Verse 1
+G|As I was a-walking one morning for pleasure
+D7 G|I spied a cowpuncher a-riding along
+G|His hat was thrown back and his spurs were a-jingling
+D7 G|And as he approached he was singing this song
+
+# Chorus
+G|Whoopee ti yi yo, git along, little dogies
+D7 G|It's your misfortune and none of my own
+G|Whoopee ti yi yo, git along, little dogies
+D7 G|You know that Wyoming will be your new home
+
+# Verse 2
+G|Early in the springtime we round up the dogies
+D7 G|Slap on their brands and bob off their tails
+G|Round up the horses, load up the chuck wagon
+D7 G|Then throw the dogies upon the trail
+
+=== Goodbye, Old Paint | G | cowboy | 1900s
+# Verse 1
+G|I'm a-leaving Cheyenne, I'm off to Montana
+D7 G|Goodbye, Old Paint, I'm a-leaving Cheyenne
+G|My foot's in the stirrup, my pony won't stand
+D7 G|Goodbye, Old Paint, I'm a-leaving Cheyenne
+
+# Verse 2
+G|Old Paint's a good pony, he paces when he's able
+D7 G|Goodbye, Old Paint, I'm a-leaving Cheyenne
+G|We'll jingle together, we'll ride to the stable
+D7 G|Goodbye, Old Paint, I'm a-leaving Cheyenne
+
+=== The Old Chisholm Trail | G | cowboy | 1880s
+# Verse 1
+G|Come along, boys, and listen to my tale
+D7 G|I'll tell you of my troubles on the old Chisholm Trail
+
+# Chorus
+G|Come a ti yi yippee, yippee yay, yippee yay
+D7 G|Come a ti yi yippee, yippee yay
+
+# Verse 2
+G|On a ten-dollar horse and a forty-dollar saddle
+D7 G|I'm a-going to punch some Texas cattle
+
+# Verse 3
+G|I woke up one morning on the Chisholm Trail
+D7 G|With a rope in my hand and a cow by the tail
+
+=== Buffalo Gals | G | folk | 1844
+G|As I was walking down the street
+D7 G|Down the street, down the street
+G|A pretty little gal I chanced to meet
+D7 G|Oh, she was fair to see
+
+# Chorus
+G|Buffalo gals, won't you come out tonight
+D7 G|Come out tonight, come out tonight
+G|Buffalo gals, won't you come out tonight
+D7 G|And dance by the light of the moon
+
+=== Camptown Races | G | parlor | 1850
+# Verse 1
+G|De Camptown ladies sing this song, doo-dah, doo-dah
+D7 G|De Camptown racetrack's five miles long, oh de doo-dah day
+G|I come down dere wid my hat caved in, doo-dah, doo-dah
+D7 G|I go back home wid a pocket full of tin, oh de doo-dah day
+
+# Chorus
+G|Gonna run all night, gonna run all day
+D7 G|I bet my money on de bobtail nag
+D7|Somebody bet on de bay
+
+=== Hard Times Come Again No More | G | parlor | 1854
+# Verse 1
+G C G|Let us pause in life's pleasures and count its many tears
+Em D7|While we all sup sorrow with the poor
+G C G|There's a song that will linger forever in our ears
+D7 G|Oh, hard times, come again no more
+
+# Chorus
+G C G|'Tis the song, the sigh of the weary
+Em D7|Hard times, hard times, come again no more
+G C G|Many days you have lingered around my cabin door
+D7 G|Oh, hard times, come again no more
+
+# Verse 2
+G C G|While we seek mirth and beauty and music light and gay
+Em D7|There are frail forms fainting at the door
+G C G|Though their voices are silent, their pleading looks will say
+D7 G|Oh, hard times, come again no more
+
+=== Beautiful Dreamer | C | parlor | 1864
+# Verse 1
+C G7 C|Beautiful dreamer, wake unto me
+C G7 C|Starlight and dewdrops are waiting for thee
+F C|Sounds of the rude world, heard in the day
+F C G7 C|Lulled by the moonlight have all passed away
+
+# Verse 2
+C G7 C|Beautiful dreamer, queen of my song
+C G7 C|List while I woo thee with soft melody
+F C|Gone are the cares of life's busy throng
+F C G7 C|Beautiful dreamer, awake unto me
+
+=== Shady Grove | Am | folk | 1900s
+# Verse 1
+Am|Cheeks as red as a blooming rose
+G Am|Eyes of the prettiest brown
+Am|She's the darling of my heart
+G Am|Sweetest girl in town
+
+# Chorus
+Am|Shady Grove, my little love
+G Am|Shady Grove, my darling
+Am|Shady Grove, my little love
+G Am|I'm goin' back to Harlan
+
+# Verse 2
+Am|Wish I had a banjo string
+G Am|Made of golden twine
+Am|Every tune that I would play
+G Am|Would be, "Shady Grove, be mine"
+
+=== Cripple Creek | A | folk | 1900s
+# Verse 1
+A|Went up Cripple Creek, goin' on a run
+D A|Gonna have a little fun, goin' up Cripple Creek
+A|Went up Cripple Creek, goin' on a run
+D A E|Gonna have a little fun, goin' up Cripple Creek
+
+# Verse 2
+A|Cripple Creek's wide and Cripple Creek's deep
+D A|I'll wade old Cripple Creek before I sleep
+A|Roll my breeches to my knees
+D A E A|I'll wade old Cripple Creek when I please
+
+=== Wildwood Flower | C | folk | 1860
+# Verse 1
+C|Oh, I'll twine with my mingles and waving black hair
+G7 C|With the roses so red and the lilies so fair
+C F|And the myrtle so bright with an emerald hue
+G7 C|And the pale aronatus with eyes of bright blue
+
+# Verse 2
+C|Oh, I'll dance, and I'll sing, and my laugh shall be gay
+G7 C|I will charm every heart, in his crown I will sway
+C F|When I woke from my dream, all the idols were clay
+G7 C|All portions of love had all flown away
+
+=== In the Pines | Am | folk | 1870
+# Verse 1
+Am|In the pines, in the pines
+G Am|Where the sun never shines
+Am|And we shiver when the cold winds blow
+
+# Verse 2
+Am|Little girl, little girl
+G Am|What have I done
+Am|That makes you treat me so
+
+# Verse 3
+Am|I asked my captain
+G Am|For the time of day
+Am|He said he throwed his watch away
+
+=== John Henry | G | folk | 1870s
+# Verse 1
+G|John Henry was a little baby, sitting on his papa's knee
+D7 G|He picked up a hammer and a little piece of steel
+G|Said, "This hammer'll be the death of me, Lord, Lord
+D7 G|This hammer'll be the death of me"
+
+# Verse 2
+G|The captain said to John Henry, "I'm going to bring a steam drill 'round
+D7 G|Going to bring that steam drill out on the job
+G|I'm going to whop that steel on down, Lord, Lord
+D7 G|Going to whop that steel on down"
+
+# Verse 3
+G|John Henry said to the captain, "A man ain't nothing but a man
+D7 G|But before I let that steam drill beat me down
+G|I'll die with my hammer in my hand, Lord, Lord
+D7 G|I'll die with my hammer in my hand"
+
+=== Frankie and Johnny | G | folk | 1904
+# Verse 1
+G|Frankie and Johnny were lovers, oh Lordy, how they could love
+D7 G|Swore to be true to each other, true as the stars above
+G C|He was her man, but he done her wrong
+
+# Verse 2
+G|Frankie went down to the corner, just for a bucket of beer
+D7 G|Said to the fellow behind the bar, "Has my lovin' Johnny been here?"
+G C|He is my man, but he's doing me wrong
+
+=== Careless Love | G | folk | 1900s
+# Verse 1
+G|Love, oh love, oh careless love
+D7 G|Love, oh love, oh careless love
+G C|Love, oh love, oh careless love
+G D7 G|You see what careless love has done
+
+# Verse 2
+G|I cried last night and the night before
+D7 G|I cried last night and the night before
+G C|I cried last night and the night before
+G D7 G|I'm gonna cry tonight and cry no more
+
+=== Wayfaring Stranger | Am | spiritual | 1858
+# Verse 1
+Am|I am a poor wayfaring stranger
+Em Am|Traveling through this world below
+Am|There is no sickness, toil, nor danger
+Em Am|In that bright land to which I go
+
+# Chorus
+C Am|I'm going there to see my father
+Em Am|I'm going there no more to roam
+Am|I'm only going over Jordan
+Em Am|I'm only going over home
+
+=== Down to the River to Pray | G | spiritual | 1867
+# Verse 1
+G|As I went down in the river to pray
+C G|Studying about that good old way
+G|And who shall wear the starry crown
+D7 G|Good Lord, show me the way
+
+# Chorus
+G|Oh sisters, let's go down
+C G|Let's go down, come on down
+G|Oh sisters, let's go down
+D7 G|Down in the river to pray
+
+=== Michael, Row the Boat Ashore | G | spiritual | 1867
+# Verse 1
+G|Michael, row the boat ashore, hallelujah
+D7 G|Michael, row the boat ashore, hallelujah
+
+# Verse 2
+G|Sister, help to trim the sail, hallelujah
+D7 G|Sister, help to trim the sail, hallelujah
+
+# Verse 3
+G|Jordan's river is chilly and cold, hallelujah
+D7 G|Chills the body but not the soul, hallelujah
+
+=== When the Saints Go Marching In | G | spiritual | 1896
+# Verse 1
+G|Oh when the saints go marching in
+D7|Oh when the saints go marching in
+G G7 C|Oh Lord, I want to be in that number
+G D7 G|When the saints go marching in
+
+# Verse 2
+G|Oh when the sun refuse to shine
+D7|Oh when the sun refuse to shine
+G G7 C|Oh Lord, I want to be in that number
+G D7 G|When the sun refuse to shine
+
+# Verse 3
+G|Oh when the trumpet sounds its call
+D7|Oh when the trumpet sounds its call
+G G7 C|Oh Lord, I want to be in that number
+G D7 G|When the trumpet sounds its call
+
+=== Down by the Riverside | G | spiritual | 1918
+# Verse 1
+G|I'm gonna lay down my sword and shield
+D7 G|Down by the riverside, down by the riverside
+G|I'm gonna lay down my sword and shield
+D7 G|Down by the riverside, and study war no more
+
+# Chorus
+G C|I ain't gonna study war no more
+G|I ain't gonna study war no more
+D7 G|I ain't gonna study war no more
+
+=== Go Down, Moses | Am | spiritual | 1861
+# Verse 1
+Am|When Israel was in Egypt's land
+E7 Am|Let my people go
+Am|Oppressed so hard they could not stand
+E7 Am|Let my people go
+
+# Chorus
+C Am|Go down, Moses, way down in Egypt's land
+E7 Am|Tell old Pharaoh, let my people go
+
+=== Wade in the Water | Am | spiritual | 1901
+# Chorus
+Am|Wade in the water, wade in the water, children
+E7 Am|Wade in the water, God's gonna trouble the water
+
+# Verse 1
+Am|See that band all dressed in red
+E7 Am|God's gonna trouble the water
+Am|Looks like the band that Moses led
+E7 Am|God's gonna trouble the water
+
+=== Were You There | G | spiritual | 1899
+# Verse 1
+G|Were you there when they crucified my Lord
+D7 G|Were you there when they crucified my Lord
+G C G|Oh, sometimes it causes me to tremble, tremble, tremble
+G D7 G|Were you there when they crucified my Lord
+
+# Verse 2
+G|Were you there when they laid Him in the tomb
+D7 G|Were you there when they laid Him in the tomb
+G C G|Oh, sometimes it causes me to tremble, tremble, tremble
+G D7 G|Were you there when they laid Him in the tomb
+
+=== He's Got the Whole World in His Hands | G | spiritual | 1927
+# Verse 1
+G|He's got the whole world in His hands
+D7|He's got the whole wide world in His hands
+G|He's got the whole world in His hands
+D7 G|He's got the whole world in His hands
+
+# Verse 2
+G|He's got you and me, brother, in His hands
+D7|He's got you and me, sister, in His hands
+G|He's got you and me, brother, in His hands
+D7 G|He's got the whole world in His hands
+
+=== Give Me That Old Time Religion | G | spiritual | 1873
+# Verse 1
+G|Give me that old time religion
+C G|Give me that old time religion
+G|Give me that old time religion
+D7 G|It's good enough for me
+
+# Verse 2
+G|It was good for our mothers
+C G|It was good for our mothers
+G|It was good for our mothers
+D7 G|And it's good enough for me

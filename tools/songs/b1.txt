@@ -1,0 +1,462 @@
+=== Silent Night | G | holiday | 1818
+# Verse 1
+G|Silent night, holy night
+G|All is calm, all is bright
+C G|Round yon virgin mother and child
+C G|Holy infant so tender and mild
+D7|Sleep in heavenly peace
+G|Sleep in heavenly peace
+
+# Verse 2
+G|Silent night, holy night
+G|Shepherds quake at the sight
+C G|Glories stream from heaven afar
+C G|Heavenly hosts sing Alleluia
+D7|Christ the Saviour is born
+G|Christ the Saviour is born
+
+# Verse 3
+G|Silent night, holy night
+G|Son of God, love's pure light
+C G|Radiant beams from thy holy face
+C G|With the dawn of redeeming grace
+D7|Jesus, Lord, at thy birth
+G|Jesus, Lord, at thy birth
+
+=== Jingle Bells | G | holiday | 1857
+# Verse 1
+G|Dashing through the snow, in a one-horse open sleigh
+D7 G|O'er the fields we go, laughing all the way
+G|Bells on bobtail ring, making spirits bright
+C D7 G|What fun it is to ride and sing a sleighing song tonight
+
+# Chorus
+G|Jingle bells, jingle bells, jingle all the way
+C G|Oh what fun it is to ride in a one-horse open sleigh, hey
+G|Jingle bells, jingle bells, jingle all the way
+C G D7 G|Oh what fun it is to ride in a one-horse open sleigh
+
+# Verse 2
+G|A day or two ago, I thought I'd take a ride
+D7 G|And soon Miss Fanny Bright was seated by my side
+G|The horse was lean and lank, misfortune seemed his lot
+C D7 G|He got into a drifted bank and we, we got upsot
+
+# Chorus
+G|Jingle bells, jingle bells, jingle all the way
+C G|Oh what fun it is to ride in a one-horse open sleigh, hey
+G|Jingle bells, jingle bells, jingle all the way
+C G D7 G|Oh what fun it is to ride in a one-horse open sleigh
+
+=== We Wish You a Merry Christmas | G | holiday | 1830s
+G|We wish you a merry Christmas
+C D7 G|We wish you a merry Christmas
+Em A7|We wish you a merry Christmas
+D7 G|And a happy New Year
+
+# Chorus
+G|Good tidings we bring to you and your kin
+C D7 G|Good tidings for Christmas and a happy New Year
+
+# Verse 2
+G|Now bring us some figgy pudding
+C D7 G|Now bring us some figgy pudding
+Em A7|Now bring us some figgy pudding
+D7 G|And bring it right here
+
+# Chorus
+G|Good tidings we bring to you and your kin
+C D7 G|Good tidings for Christmas and a happy New Year
+
+# Verse 3
+G|We won't go until we get some
+C D7 G|We won't go until we get some
+Em A7|We won't go until we get some
+D7 G|So bring it right here
+
+=== Deck the Halls | G | holiday | 1862
+# Verse 1
+G|Deck the halls with boughs of holly
+D7 G|Fa la la la la, la la la la
+G|'Tis the season to be jolly
+D7 G|Fa la la la la, la la la la
+G C|Don we now our gay apparel
+G A7 D7|Fa la la, la la la, la la la
+G C|Troll the ancient Yuletide carol
+G D7 G|Fa la la la la, la la la la
+
+# Verse 2
+G|See the blazing yule before us
+D7 G|Fa la la la la, la la la la
+G|Strike the harp and join the chorus
+D7 G|Fa la la la la, la la la la
+G C|Follow me in merry measure
+G A7 D7|Fa la la, la la la, la la la
+G C|While I tell of Yuletide treasure
+G D7 G|Fa la la la la, la la la la
+
+# Verse 3
+G|Fast away the old year passes
+D7 G|Fa la la la la, la la la la
+G|Hail the new, ye lads and lasses
+D7 G|Fa la la la la, la la la la
+G C|Sing we joyous all together
+G A7 D7|Fa la la, la la la, la la la
+G C|Heedless of the wind and weather
+G D7 G|Fa la la la la, la la la la
+
+=== Joy to the World | D | holiday | 1719
+# Verse 1
+D|Joy to the world, the Lord is come
+A D|Let earth receive her King
+G D|Let every heart prepare Him room
+A D|And heaven and nature sing
+A D|And heaven and nature sing
+G A D|And heaven, and heaven and nature sing
+
+# Verse 2
+D|Joy to the world, the Saviour reigns
+A D|Let men their songs employ
+G D|While fields and floods, rocks, hills and plains
+A D|Repeat the sounding joy
+A D|Repeat the sounding joy
+G A D|Repeat, repeat the sounding joy
+
+# Verse 3
+D|He rules the world with truth and grace
+A D|And makes the nations prove
+G D|The glories of His righteousness
+A D|And wonders of His love
+A D|And wonders of His love
+G A D|And wonders, wonders of His love
+
+=== O Come, All Ye Faithful | G | holiday | 1751
+# Verse 1
+G|O come, all ye faithful, joyful and triumphant
+D G|O come ye, O come ye to Bethlehem
+G C|Come and behold Him, born the King of angels
+G D7 G|O come, let us adore Him
+G D7 G|O come, let us adore Him
+G D7 G|O come, let us adore Him
+D7 G|Christ the Lord
+
+# Verse 2
+G|Sing, choirs of angels, sing in exultation
+D G|Sing, all ye citizens of heaven above
+G C|Glory to God, in the highest
+G D7 G|O come, let us adore Him
+G D7 G|O come, let us adore Him
+G D7 G|O come, let us adore Him
+D7 G|Christ the Lord
+
+=== Hark! The Herald Angels Sing | G | holiday | 1739
+# Verse 1
+G|Hark! The herald angels sing
+D7 G|Glory to the newborn King
+G|Peace on earth and mercy mild
+D7 G|God and sinners reconciled
+C G|Joyful, all ye nations rise
+Em A7 D|Join the triumph of the skies
+G C|With angelic hosts proclaim
+G D7 G|Christ is born in Bethlehem
+G|Hark! The herald angels sing
+D7 G|Glory to the newborn King
+
+# Verse 2
+G|Christ, by highest heav'n adored
+D7 G|Christ, the everlasting Lord
+G|Late in time behold Him come
+D7 G|Offspring of a virgin's womb
+C G|Veiled in flesh the Godhead see
+Em A7 D|Hail the incarnate Deity
+G C|Pleased as man with men to dwell
+G D7 G|Jesus, our Emmanuel
+G|Hark! The herald angels sing
+D7 G|Glory to the newborn King
+
+=== Away in a Manger | G | holiday | 1885
+# Verse 1
+G|Away in a manger, no crib for a bed
+D G|The little Lord Jesus laid down His sweet head
+G|The stars in the bright sky looked down where He lay
+D G|The little Lord Jesus asleep on the hay
+
+# Verse 2
+G|The cattle are lowing, the baby awakes
+D G|But little Lord Jesus, no crying He makes
+G|I love Thee, Lord Jesus, look down from the sky
+D G|And stay by my cradle till morning is nigh
+
+# Verse 3
+G|Be near me, Lord Jesus, I ask Thee to stay
+D G|Close by me forever, and love me, I pray
+G|Bless all the dear children in Thy tender care
+D G|And fit us for heaven, to live with Thee there
+
+=== O Little Town of Bethlehem | G | holiday | 1868
+# Verse 1
+G|O little town of Bethlehem, how still we see thee lie
+C G|Above thy deep and dreamless sleep the silent stars go by
+G|Yet in thy dark streets shineth the everlasting Light
+C D7 G|The hopes and fears of all the years are met in thee tonight
+
+# Verse 2
+G|For Christ is born of Mary, and gathered all above
+C G|While mortals sleep, the angels keep their watch of wondering love
+G|O morning stars together proclaim the holy birth
+C D7 G|And praises sing to God the King, and peace to men on earth
+
+=== Go Tell It on the Mountain | G | spiritual | 1907
+# Chorus
+G|Go, tell it on the mountain
+C G|Over the hills and everywhere
+G|Go, tell it on the mountain
+D7 G|That Jesus Christ is born
+
+# Verse 1
+G|While shepherds kept their watching
+C G|O'er silent flocks by night
+G|Behold throughout the heavens
+D7 G|There shone a holy light
+
+# Chorus
+G|Go, tell it on the mountain
+C G|Over the hills and everywhere
+G|Go, tell it on the mountain
+D7 G|That Jesus Christ is born
+
+# Verse 2
+G|The shepherds feared and trembled
+C G|When lo! above the earth
+G|Rang out the angel chorus
+D7 G|That hailed our Saviour's birth
+
+=== The First Noel | G | holiday | 1823
+# Verse 1
+G|The first Noel the angel did say
+D G|Was to certain poor shepherds in fields as they lay
+C G|In fields where they lay keeping their sheep
+D G|On a cold winter's night that was so deep
+
+# Chorus
+G|Noel, Noel, Noel, Noel
+D G|Born is the King of Israel
+
+# Verse 2
+G|They looked up and saw a star
+D G|Shining in the east beyond them far
+C G|And to the earth it gave great light
+D G|And so it continued both day and night
+
+# Chorus
+G|Noel, Noel, Noel, Noel
+D G|Born is the King of Israel
+
+=== God Rest Ye Merry, Gentlemen | Am | holiday | 1700s
+# Verse 1
+Am|God rest ye merry, gentlemen, let nothing you dismay
+G Am|Remember Christ our Saviour was born on Christmas Day
+C|To save us all from Satan's power
+Am|When we were gone astray
+
+# Chorus
+Am G Am|O tidings of comfort and joy, comfort and joy
+Am G Am|O tidings of comfort and joy
+
+# Verse 2
+Am|In Bethlehem, in Jewry, this blessed babe was born
+G Am|And laid within a manger upon this blessed morn
+C|The which His mother Mary
+Am|Did nothing take in scorn
+
+# Chorus
+Am G Am|O tidings of comfort and joy, comfort and joy
+Am G Am|O tidings of comfort and joy
+
+=== We Three Kings | Em | holiday | 1857
+# Verse 1
+Em|We three kings of Orient are
+B7 Em|Bearing gifts we traverse afar
+G D|Field and fountain, moor and mountain
+Em B7 Em|Following yonder star
+
+# Chorus
+G D|O star of wonder, star of night
+Em B7|Star with royal beauty bright
+G D|Westward leading, still proceeding
+Em B7 Em|Guide us to thy perfect light
+
+# Verse 2
+Em|Born a king on Bethlehem's plain
+B7 Em|Gold I bring to crown Him again
+G D|King forever, ceasing never
+Em B7 Em|Over us all to reign
+
+=== Up on the Housetop | G | holiday | 1864
+# Verse 1
+G|Up on the housetop reindeer pause
+D7 G|Out jumps good old Santa Claus
+G|Down through the chimney with lots of toys
+D7 G|All for the little ones, Christmas joys
+
+# Chorus
+G|Ho, ho, ho! Who wouldn't go?
+D7 G|Ho, ho, ho! Who wouldn't go?
+G|Up on the housetop, click, click, click
+C D7 G|Down through the chimney with good Saint Nick
+
+# Verse 2
+G|First comes the stocking of little Nell
+D7 G|Oh dear Santa, fill it well
+G|Give her a dolly that laughs and cries
+D7 G|One that will open and shut her eyes
+
+=== Jolly Old Saint Nicholas | G | holiday | 1865
+G|Jolly old Saint Nicholas, lean your ear this way
+D7 G|Don't you tell a single soul what I'm going to say
+G|Christmas Eve is coming soon, now you dear old man
+D7 G|Whisper what you'll bring to me, tell me if you can
+
+G|When the clock is striking twelve, when I'm fast asleep
+D7 G|Down the chimney broad and black, with your pack you'll creep
+G|All the stockings you will find hanging in a row
+D7 G|Mine will be the shortest one, you'll be sure to know
+
+=== It Came Upon the Midnight Clear | G | holiday | 1849
+# Verse 1
+G|It came upon the midnight clear, that glorious song of old
+C G|From angels bending near the earth to touch their harps of gold
+G|Peace on the earth, good will to men, from heaven's all-gracious King
+C D7 G|The world in solemn stillness lay to hear the angels sing
+
+# Verse 2
+G|Still through the cloven skies they come with peaceful wings unfurled
+C G|And still their heavenly music floats o'er all the weary world
+G|Above its sad and lowly plains they bend on hovering wing
+C D7 G|And ever o'er its Babel sounds the blessed angels sing
+
+=== Angels We Have Heard on High | G | holiday | 1862
+# Verse 1
+G|Angels we have heard on high
+D G|Sweetly singing o'er the plains
+G|And the mountains in reply
+D G|Echoing their joyous strains
+
+# Chorus
+G C G|Gloria, in excelsis Deo
+G C G D G|Gloria, in excelsis Deo
+
+# Verse 2
+G|Shepherds, why this jubilee
+D G|Why your joyous strains prolong
+G|What the gladsome tidings be
+D G|Which inspire your heavenly song
+
+# Chorus
+G C G|Gloria, in excelsis Deo
+G C G D G|Gloria, in excelsis Deo
+
+=== O Holy Night | C | holiday | 1855
+# Verse 1
+C F C|O holy night, the stars are brightly shining
+C G7 C|It is the night of our dear Saviour's birth
+F C|Long lay the world in sin and error pining
+Am Em|Till He appeared and the soul felt its worth
+F C|A thrill of hope, the weary world rejoices
+Dm G7 C|For yonder breaks a new and glorious morn
+
+# Chorus
+G Em Am|Fall on your knees, O hear the angel voices
+C F C|O night divine, O night when Christ was born
+F C G7 C|O night, O holy night, O night divine
+
+# Verse 2
+C F C|Truly He taught us to love one another
+C G7 C|His law is love and His gospel is peace
+F C|Chains shall He break, for the slave is our brother
+Am Em|And in His name all oppression shall cease
+F C|Sweet hymns of joy in grateful chorus raise we
+Dm G7 C|Let all within us praise His holy name
+
+=== What Child Is This? | Em | holiday | 1865
+# Verse 1
+Em D|What child is this, who laid to rest
+Em B7|On Mary's lap is sleeping
+G D|Whom angels greet with anthems sweet
+Em B7 Em|While shepherds watch are keeping
+
+# Chorus
+G D|This, this is Christ the King
+Em B7|Whom shepherds guard and angels sing
+G D|Haste, haste to bring Him laud
+Em B7 Em|The babe, the son of Mary
+
+# Verse 2
+Em D|Why lies He in such mean estate
+Em B7|Where ox and ass are feeding
+G D|Good Christian, fear, for sinners here
+Em B7 Em|The silent Word is pleading
+
+=== O Christmas Tree | C | holiday | 1824
+C|O Christmas tree, O Christmas tree
+G7 C|How lovely are thy branches
+C|O Christmas tree, O Christmas tree
+G7 C|How lovely are thy branches
+F|In summer sun, in winter's snow
+C|A dress of green you always show
+C|O Christmas tree, O Christmas tree
+G7 C|How lovely are thy branches
+
+=== Here We Come A-Wassailing | Am | holiday | 1850
+# Verse 1
+Am C|Here we come a-wassailing among the leaves so green
+Am G|Here we come a-wandering so fair to be seen
+
+# Chorus
+C G|Love and joy come to you
+Am C|And to you your wassail too
+Am G|And God bless you and send you a happy New Year
+Am G Am|And God send you a happy New Year
+
+# Verse 2
+Am C|We are not daily beggars that beg from door to door
+Am G|But we are neighbors' children whom you have seen before
+
+=== I Saw Three Ships | G | holiday | 1666
+G|I saw three ships come sailing in
+D G|On Christmas Day, on Christmas Day
+G|I saw three ships come sailing in
+D G|On Christmas Day in the morning
+
+G|And what was in those ships all three
+D G|On Christmas Day, on Christmas Day
+G|And what was in those ships all three
+D G|On Christmas Day in the morning
+
+G|Our Saviour Christ and His lady
+D G|On Christmas Day, on Christmas Day
+G|Our Saviour Christ and His lady
+D G|On Christmas Day in the morning
+
+=== Over the River and Through the Wood | G | holiday | 1844
+G|Over the river and through the wood
+D7 G|To grandmother's house we go
+G|The horse knows the way to carry the sleigh
+D7 G|Through the white and drifted snow
+G|Over the river and through the wood
+D7 G|Oh, how the wind does blow
+C G|It stings the toes and bites the nose
+D7 G|As over the ground we go
+
+=== Good King Wenceslas | C | holiday | 1853
+# Verse 1
+C|Good King Wenceslas looked out on the feast of Stephen
+G C|When the snow lay round about, deep and crisp and even
+C|Brightly shone the moon that night, though the frost was cruel
+G C|When a poor man came in sight, gathering winter fuel
+
+# Verse 2
+C|Hither, page, and stand by me, if thou know'st it, telling
+G C|Yonder peasant, who is he, where and what his dwelling
+C|Sire, he lives a good league hence, underneath the mountain
+G C|Right against the forest fence, by Saint Agnes' fountain

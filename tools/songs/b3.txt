@@ -1,0 +1,616 @@
+=== Rock of Ages | G | hymn | 1776
+# Verse 1
+G|Rock of Ages, cleft for me
+D7 G|Let me hide myself in Thee
+G|Let the water and the blood
+D7 G|From Thy wounded side which flowed
+C G|Be of sin the double cure
+D7 G|Save from wrath and make me pure
+
+=== It Is Well with My Soul | D | hymn | 1873
+# Verse 1
+D|When peace like a river attendeth my way
+A D|When sorrows like sea billows roll
+D|Whatever my lot, Thou hast taught me to say
+G A D|It is well, it is well with my soul
+
+# Chorus
+D G D|It is well, with my soul
+A D|It is well, it is well with my soul
+
+=== Blessed Assurance | G | hymn | 1873
+# Verse 1
+G|Blessed assurance, Jesus is mine
+D G|Oh, what a foretaste of glory divine
+G|Heir of salvation, purchase of God
+D G|Born of His Spirit, washed in His blood
+
+# Chorus
+C G|This is my story, this is my song
+D G|Praising my Savior all the day long
+C G|This is my story, this is my song
+D G|Praising my Savior all the day long
+
+=== What a Friend We Have in Jesus | G | hymn | 1855
+# Verse 1
+G|What a friend we have in Jesus
+D7 G|All our sins and griefs to bear
+G|What a privilege to carry
+D7 G|Everything to God in prayer
+G C|Oh, what peace we often forfeit
+G D7|Oh, what needless pain we bear
+G C|All because we do not carry
+G D7 G|Everything to God in prayer
+
+=== Shall We Gather at the River | G | hymn | 1864
+# Verse 1
+G|Shall we gather at the river
+C G|Where bright angel feet have trod
+G|With its crystal tide forever
+D7 G|Flowing by the throne of God
+
+# Chorus
+G|Yes, we'll gather at the river
+C G|The beautiful, the beautiful river
+G|Gather with the saints at the river
+D7 G|That flows by the throne of God
+
+=== In the Sweet By and By | G | hymn | 1868
+# Verse 1
+G|There's a land that is fairer than day
+D7 G|And by faith we can see it afar
+G|For the Father waits over the way
+D7 G|To prepare us a dwelling place there
+
+# Chorus
+G C G|In the sweet by and by
+G D7 G|We shall meet on that beautiful shore
+G C G|In the sweet by and by
+G D7 G|We shall meet on that beautiful shore
+
+=== The Old Rugged Cross | G | hymn | 1913
+# Verse 1
+G|On a hill far away stood an old rugged cross
+D7 G|The emblem of suffering and shame
+G|And I love that old cross where the dearest and best
+D7 G|For a world of lost sinners was slain
+
+# Chorus
+G C G|So I'll cherish the old rugged cross
+D7 G|Till my trophies at last I lay down
+G C G|I will cling to the old rugged cross
+D7 G|And exchange it some day for a crown
+
+=== Leaning on the Everlasting Arms | G | hymn | 1887
+# Verse 1
+G|What a fellowship, what a joy divine
+D7 G|Leaning on the everlasting arms
+G|What a blessedness, what a peace is mine
+D7 G|Leaning on the everlasting arms
+
+# Chorus
+G C G|Leaning, leaning, safe and secure from all alarms
+G D7 G|Leaning, leaning, leaning on the everlasting arms
+
+=== Nearer, My God, to Thee | G | hymn | 1841
+G|Nearer, my God, to Thee, nearer to Thee
+D7 G|E'en though it be a cross that raiseth me
+G|Still all my song shall be
+D7 G|Nearer, my God, to Thee
+C G|Nearer, my God, to Thee
+D7 G|Nearer to Thee
+
+=== Just As I Am | G | hymn | 1835
+G|Just as I am, without one plea
+D7 G|But that Thy blood was shed for me
+G|And that Thou bidd'st me come to Thee
+D7 G|O Lamb of God, I come, I come
+
+=== Holy, Holy, Holy | D | hymn | 1826
+D|Holy, holy, holy, Lord God Almighty
+G D|Early in the morning our song shall rise to Thee
+D|Holy, holy, holy, merciful and mighty
+G A D|God in three persons, blessed Trinity
+
+=== Come Thou Fount of Every Blessing | D | hymn | 1758
+# Verse 1
+D|Come, Thou Fount of every blessing
+A D|Tune my heart to sing Thy grace
+D|Streams of mercy, never ceasing
+A D|Call for songs of loudest praise
+D G|Teach me some melodious sonnet
+D A|Sung by flaming tongues above
+D G|Praise the mount, I'm fixed upon it
+D A D|Mount of Thy redeeming love
+
+=== Be Thou My Vision | D | hymn | 1912
+# Verse 1
+D|Be Thou my vision, O Lord of my heart
+G D|Naught be all else to me, save that Thou art
+D|Thou my best thought, by day or by night
+G A D|Waking or sleeping, Thy presence my light
+
+# Verse 2
+D|Be Thou my wisdom, and Thou my true word
+G D|I ever with Thee and Thou with me, Lord
+D|Thou my great Father, I Thy true son
+G A D|Thou in me dwelling, and I with Thee one
+
+=== A Mighty Fortress Is Our God | G | hymn | 1529
+# Verse 1
+G|A mighty fortress is our God
+C G|A bulwark never failing
+G|Our helper He amid the flood
+D7 G|Of mortal ills prevailing
+G C|For still our ancient foe
+G D7|Doth seek to work us woe
+G C|His craft and power are great
+G D7 G|And armed with cruel hate, on earth is not his equal
+
+=== Battle Hymn of the Republic | G | Civil War | 1862
+# Verse 1
+G|Mine eyes have seen the glory of the coming of the Lord
+D7 G|He is trampling out the vintage where the grapes of wrath are stored
+G|He hath loosed the fateful lightning of His terrible swift sword
+D7 G|His truth is marching on
+
+# Chorus
+G C G|Glory, glory, hallelujah
+G D7|Glory, glory, hallelujah
+G C G|Glory, glory, hallelujah
+D7 G|His truth is marching on
+
+# Verse 2
+G|I have seen Him in the watch-fires of a hundred circling camps
+D7 G|They have builded Him an altar in the evening dews and damps
+G|I can read His righteous sentence by the dim and flaring lamps
+D7 G|His day is marching on
+
+=== When Johnny Comes Marching Home | Am | Civil War | 1863
+# Verse 1
+Am C|When Johnny comes marching home again, hurrah, hurrah
+Am E7|We'll give him a hearty welcome then, hurrah, hurrah
+Am C|The men will cheer and the boys will shout
+Am E7|The ladies, they will all turn out
+Am C Dm|And we'll all feel gay
+E7 Am|When Johnny comes marching home
+
+=== The Yellow Rose of Texas | G | Civil War | 1858
+# Verse 1
+G|There's a yellow rose in Texas that I am going to see
+D7 G|No other fellow knows her, nobody only me
+G|She cried so when I left her, it like to broke my heart
+D7 G|And if I ever find her, we never more will part
+
+# Chorus
+G C|She's the sweetest rose of color this soldier ever knew
+G D7|Her eyes are bright as diamonds, they sparkle like the dew
+G C|You may talk about your Clementine and sing of Rosalee
+G D7 G|But the yellow rose of Texas is the only girl for me
+
+=== Aura Lee | G | Civil War | 1861
+# Verse 1
+G C G|As the blackbird in the spring
+D7 G|'Neath the willow tree
+G C G|Sat and piped, I heard him sing
+D7 G|Singing Aura Lee
+
+# Chorus
+G C G|Aura Lee, Aura Lee, maid of golden hair
+D7 G|Sunshine came along with thee
+G C G|And swallows in the air
+
+=== Tenting on the Old Camp Ground | G | Civil War | 1863
+# Verse 1
+G|We're tenting tonight on the old camp ground
+D7 G|Give us a song to cheer
+G|Our weary hearts, a song of home
+D7 G|And friends we love so dear
+
+# Chorus
+G C G|Many are the hearts that are weary tonight
+D7 G|Wishing for the war to cease
+G C G|Many are the hearts looking for the right
+D7 G|To see the dawn of peace
+G C G|Tenting tonight, tenting tonight
+D7 G|Tenting on the old camp ground
+
+=== The Battle Cry of Freedom | G | Civil War | 1862
+# Verse 1
+G|Yes, we'll rally round the flag, boys, we'll rally once again
+D7 G|Shouting the battle cry of freedom
+G|We will rally from the hillside, we'll gather from the plain
+D7 G|Shouting the battle cry of freedom
+
+# Chorus
+G C G|The Union forever, hurrah, boys, hurrah
+D7 G|Down with the traitor, up with the star
+G C G|While we rally round the flag, boys, rally once again
+D7 G|Shouting the battle cry of freedom
+
+=== Lorena | G | Civil War | 1857
+G|The years creep slowly by, Lorena
+D7 G|The snow is on the grass again
+G|The sun's low down the sky, Lorena
+D7 G|The frost gleams where the flowers have been
+G C|But the heart throbs on as warmly now
+G D7|As when the summer days were nigh
+G C|Oh, the sun can never dip so low
+G D7 G|Adown affection's cloudless sky
+
+=== Scarborough Fair | Dm | folk | 1600s
+# Verse 1
+Dm|Are you going to Scarborough Fair
+C Dm|Parsley, sage, rosemary and thyme
+Dm|Remember me to one who lives there
+C Dm|She once was a true love of mine
+
+# Verse 2
+Dm|Tell her to make me a cambric shirt
+C Dm|Parsley, sage, rosemary and thyme
+Dm|Without any seam or needlework
+C Dm|Then she'll be a true love of mine
+
+# Verse 3
+Dm|Tell her to find me an acre of land
+C Dm|Parsley, sage, rosemary and thyme
+Dm|Between the salt water and the sea strand
+C Dm|Then she'll be a true love of mine
+
+=== Greensleeves | Am | folk | 1580
+# Verse 1
+Am G|Alas, my love, you do me wrong
+Am E7|To cast me off discourteously
+Am G|For I have loved you well and long
+Am E7 Am|Delighting in your company
+
+# Chorus
+C G|Greensleeves was all my joy
+Am E7|Greensleeves was my delight
+C G|Greensleeves was my heart of gold
+Am E7 Am|And who but my lady Greensleeves
+
+=== Barbara Allen | G | folk | 1650
+# Verse 1
+G|In Scarlet town where I was born
+D7 G|There was a fair maid dwelling
+G|Made every youth cry well-a-day
+D7 G|Her name was Barbara Allen
+
+# Verse 2
+G|'Twas in the merry month of May
+D7 G|When green buds all were swelling
+G|Sweet William on his death-bed lay
+D7 G|For love of Barbara Allen
+
+# Verse 3
+G|He sent his servant to the town
+D7 G|To the place where she was dwelling
+G|Saying you must come to my master dear
+D7 G|If your name be Barbara Allen
+
+=== The Water Is Wide | G | folk | 1700s
+# Verse 1
+G C G|The water is wide, I can't cross o'er
+G D7|And neither have I wings to fly
+G C G|Give me a boat that will carry two
+G D7 G|And both shall row, my love and I
+
+# Verse 2
+G C G|There is a ship and she sails the sea
+G D7|She's loaded deep as deep can be
+G C G|But not so deep as the love I'm in
+G D7 G|I know not if I sink or swim
+
+=== Whiskey in the Jar | Am | folk | 1800s
+# Verse 1
+Am|As I was going over the far famed Kerry mountains
+C G|I met with Captain Farrell and his money he was counting
+Am|I first produced my pistol and then produced my rapier
+C G|Saying stand and deliver for I am a bold deceiver
+
+# Chorus
+Am C G|Musha ring dum a doo dum a da
+Am C G|Whack for my daddy-o
+Am C G|Whack for my daddy-o
+Am G Am|There's whiskey in the jar-o
+
+=== Molly Malone | D | folk | 1883
+# Verse 1
+D|In Dublin's fair city, where the girls are so pretty
+A7 D|I first set my eyes on sweet Molly Malone
+D|As she wheeled her wheelbarrow through streets broad and narrow
+A7 D|Crying cockles and mussels, alive, alive, oh
+
+# Chorus
+D G D|Alive, alive, oh, alive, alive, oh
+A7 D|Crying cockles and mussels, alive, alive, oh
+
+=== The Wild Rover | G | folk | 1800s
+# Verse 1
+G|I've been a wild rover for many a year
+C G|And I've spent all my money on whiskey and beer
+G|But now I'm returning with gold in great store
+D7 G|And I never will play the wild rover no more
+
+# Chorus
+G C G|And it's no, nay, never, no, nay, never no more
+G D7 G|Will I play the wild rover, no never no more
+
+=== Skip to My Lou | G | folk | 1844
+# Verse 1
+G|Lost my partner, what'll I do
+D7|Lost my partner, what'll I do
+G|Lost my partner, what'll I do
+D7 G|Skip to my Lou, my darling
+
+# Chorus
+G|Lou, Lou, skip to my Lou
+D7|Lou, Lou, skip to my Lou
+G|Lou, Lou, skip to my Lou
+D7 G|Skip to my Lou, my darling
+
+# Verse 2
+G|I'll find another one, prettier than you
+D7|I'll find another one, prettier than you
+G|I'll find another one, prettier than you
+D7 G|Skip to my Lou, my darling
+
+=== She'll Be Coming 'Round the Mountain | G | folk | 1899
+# Verse 1
+G|She'll be coming 'round the mountain when she comes
+D7|She'll be coming 'round the mountain when she comes
+G C|She'll be coming 'round the mountain
+G D7|She'll be coming 'round the mountain
+G D7 G|She'll be coming 'round the mountain when she comes
+
+# Verse 2
+G|She'll be driving six white horses when she comes
+D7|She'll be driving six white horses when she comes
+G C|She'll be driving six white horses
+G D7|She'll be driving six white horses
+G D7 G|She'll be driving six white horses when she comes
+
+=== I've Been Working on the Railroad | G | folk | 1894
+# Verse 1
+G|I've been working on the railroad all the live-long day
+C G|I've been working on the railroad just to pass the time away
+G|Don't you hear the whistle blowing, rise up so early in the morn
+C D7|Don't you hear the captain shouting
+G D7 G|Dinah, blow your horn
+
+# Chorus
+G|Dinah, won't you blow, Dinah, won't you blow
+C|Dinah, won't you blow your horn
+G|Dinah, won't you blow, Dinah, won't you blow
+D7 G|Dinah, won't you blow your horn
+
+=== Old Joe Clark | A | folk | 1900s
+# Verse 1
+A|Old Joe Clark, he had a house, sixteen stories high
+G A|Every story in that house was filled with chicken pie
+
+# Chorus
+A|Fare thee well, old Joe Clark, fare thee well I say
+G A|Fare thee well, old Joe Clark, I'm a-going away
+
+=== Bury Me Not on the Lone Prairie | G | cowboy | 1850
+G|Oh, bury me not on the lone prairie
+C G|These words came low and mournfully
+G|From the pallid lips of a youth who lay
+D7 G|On his dying bed at the close of day
+
+=== Blow the Man Down | Am | shanty | 1800s
+Am|Oh, blow the man down, bullies, blow the man down
+E7 Am|To me way, hey, blow the man down
+Am|Oh, blow the man down in Liverpool town
+E7 Am|Give me some time to blow the man down
+
+=== South Australia | G | shanty | 1800s
+# Verse 1
+G|In South Australia I was born
+D7 G|Heave away, haul away
+G|South Australia, round Cape Horn
+D7 G|We're bound for South Australia
+
+# Chorus
+G|Haul away, you rolling kings
+D7 G|Heave away, haul away
+G|Haul away, you'll hear me sing
+D7 G|We're bound for South Australia
+
+=== Spanish Ladies | G | shanty | 1796
+# Verse 1
+G|Farewell and adieu to you, Spanish ladies
+D7 G|Farewell and adieu to you, ladies of Spain
+G|For we've received orders for to sail for old England
+D7 G|But we hope in a short time to see you again
+
+# Chorus
+G C G|We'll rant and we'll roar like true British sailors
+G D7 G|We'll rant and we'll roar across the salt seas
+G C G|Until we strike soundings in the Channel of old England
+D7 G|From Ushant to Scilly 'tis thirty-five leagues
+
+=== Take Me Out to the Ball Game | C | parlor | 1908
+# Verse 1
+C|Take me out to the ball game, take me out with the crowd
+G7 C|Buy me some peanuts and Cracker Jack, I don't care if I never get back
+C|Let me root, root, root for the home team
+G7 C|If they don't win it's a shame
+C F|For it's one, two, three strikes, you're out
+G7 C|At the old ball game
+
+=== Let Me Call You Sweetheart | C | parlor | 1910
+C|Let me call you sweetheart, I'm in love with you
+G7 C|Let me hear you whisper that you love me too
+C F|Keep the love-light glowing in your eyes so true
+G7 C|Let me call you sweetheart, I'm in love with you
+
+=== Shine On, Harvest Moon | C | parlor | 1908
+C|Shine on, shine on harvest moon, up in the sky
+G7 C|I ain't had no lovin' since January, February, June or July
+C F|Snow time ain't no time to stay outdoors and spoon
+G7 C|So shine on, shine on harvest moon, for me and my gal
+
+=== Down by the Old Mill Stream | G | parlor | 1910
+G|Down by the old mill stream
+D7 G|Where I first met you
+G C|With your eyes so blue, dressed in gingham too
+G D7|It was there I knew that you loved me true
+G C|You were sixteen, my village queen
+G D7 G|Down by the old mill stream
+
+=== Bill Bailey, Won't You Please Come Home | C | parlor | 1902
+C|Won't you come home, Bill Bailey, won't you come home
+G7 C|She moans the whole day long
+C|I'll do the cooking, honey, I'll pay the rent
+G7 C|I know I've done you wrong
+C F|Remember that rainy evening I drove you out
+C G7|With nothing but a fine tooth comb
+C F|I know I'm to blame, now ain't that a shame
+C G7 C|Bill Bailey, won't you please come home
+
+=== Daisy Bell | G | parlor | 1892
+G|Daisy, Daisy, give me your answer, do
+D7 G|I'm half crazy, all for the love of you
+G C|It won't be a stylish marriage, I can't afford a carriage
+G D7 G|But you'll look sweet upon the seat of a bicycle built for two
+
+=== The Star-Spangled Banner | C | patriotic | 1814
+C|Oh say can you see, by the dawn's early light
+G7 C|What so proudly we hailed at the twilight's last gleaming
+C|Whose broad stripes and bright stars through the perilous fight
+G7 C|O'er the ramparts we watched were so gallantly streaming
+F C|And the rockets' red glare, the bombs bursting in air
+G7 C|Gave proof through the night that our flag was still there
+F C|Oh say does that star-spangled banner yet wave
+G7 C|O'er the land of the free and the home of the brave
+
+=== America the Beautiful | G | patriotic | 1910
+G|Oh beautiful for spacious skies
+D7 G|For amber waves of grain
+G|For purple mountain majesties
+D7 G|Above the fruited plain
+C G|America, America, God shed His grace on thee
+G D7|And crown thy good with brotherhood
+G D7 G|From sea to shining sea
+
+=== My Country, 'Tis of Thee | G | patriotic | 1831
+G|My country, 'tis of thee
+D7 G|Sweet land of liberty
+G|Of thee I sing
+G D7|Land where my fathers died
+G|Land of the pilgrims' pride
+D7|From every mountainside
+G D7 G|Let freedom ring
+
+=== Old Dan Tucker | G | folk | 1843
+# Verse 1
+G|Old Dan Tucker was a fine old man
+D7 G|Washed his face in a frying pan
+G|Combed his hair with a wagon wheel
+D7 G|Died with a toothache in his heel
+
+# Chorus
+G|Get out of the way, old Dan Tucker
+D7 G|You're too late to come to supper
+
+=== Turkey in the Straw | G | folk | 1834
+# Verse 1
+G|As I was a-going on down the road
+D7 G|With a tired team and a heavy load
+G|I cracked my whip and the leader sprung
+D7 G|I says day-day to the wagon tongue
+
+# Chorus
+G|Turkey in the straw, turkey in the hay
+D7 G|Roll 'em up and twist 'em up a high tuckahaw
+G|And hit 'em up a tune called Turkey in the Straw
+
+=== Sweet Betsy from Pike | G | folk | 1858
+# Verse 1
+G|Oh, don't you remember sweet Betsy from Pike
+D7 G|Who crossed the wide mountains with her lover Ike
+G|With two yoke of oxen, a large yellow dog
+D7 G|A tall Shanghai rooster and one spotted hog
+
+# Chorus
+G|Singing too-ral-li, oo-ral-li, oo-ral-li-ay
+D7 G|Singing too-ral-li, oo-ral-li, oo-ral-li-ay
+
+=== The Erie Canal | Am | folk | 1905
+# Verse 1
+Am|I've got a mule, her name is Sal
+E7 Am|Fifteen miles on the Erie Canal
+Am|She's a good old worker and a good old pal
+E7 Am|Fifteen miles on the Erie Canal
+Am Dm|We've hauled some barges in our day
+Am E7|Filled with lumber, coal and hay
+Am Dm|And we know every inch of the way
+E7 Am|From Albany to Buffalo
+
+# Chorus
+C|Low bridge, everybody down
+G|Low bridge, for we're coming to a town
+C F|And you'll always know your neighbor
+C G C|You'll always know your pal if you've ever navigated on the Erie Canal
+
+=== Banks of the Ohio | G | folk | 1800s
+# Verse 1
+G|I asked my love to take a walk, to take a walk, just a little walk
+D7 G|Down beside where the waters flow, down by the banks of the Ohio
+
+# Chorus
+G|And only say that you'll be mine
+D7 G|In no other arms entwine
+G|Down beside where the waters flow
+D7 G|Down by the banks of the Ohio
+
+=== Rye Whiskey | G | folk | 1800s
+# Verse 1
+G|I'll eat when I'm hungry, I'll drink when I'm dry
+D7 G|And if the hard times don't kill me, I'll live till I die
+
+# Chorus
+G|Rye whiskey, rye whiskey, rye whiskey I cry
+D7 G|If I don't get rye whiskey, I surely will die
+
+=== Sourwood Mountain | A | folk | 1900s
+A|Chickens a-crowin' on Sourwood Mountain
+G A|Hey, ho, diddle-um day
+A|So many pretty girls I can't count 'em
+G A|Hey, ho, diddle-um day
+
+=== Keep on the Sunny Side | G | hymn | 1899
+# Verse 1
+G|There's a dark and a troubled side of life
+D7 G|There's a bright and a sunny side too
+G|Though we meet with the darkness and strife
+D7 G|The sunny side we also may view
+
+# Chorus
+G C|Keep on the sunny side, always on the sunny side
+G D7|Keep on the sunny side of life
+G C|It will help us every day, it will brighten all the way
+G D7 G|If we keep on the sunny side of life
+
+=== I Am a Pilgrim | G | spiritual | 1920s
+G|I am a pilgrim and a stranger
+D7 G|Traveling through this wearisome land
+G|I've got a home in that yonder city, good Lord
+D7 G|And it's not, not made by hand
+
+=== Twinkle, Twinkle, Little Star | G | folk | 1806
+G C G|Twinkle, twinkle, little star
+C G D7 G|How I wonder what you are
+G C G|Up above the world so high
+C G D7 G|Like a diamond in the sky
+G C G|Twinkle, twinkle, little star
+C G D7 G|How I wonder what you are
+
+=== Oh, Dear, What Can the Matter Be? | G | folk | 1792
+G|Oh dear, what can the matter be
+D7 G|Dear, dear, what can the matter be
+G|Oh dear, what can the matter be
+D7 G|Johnny's so long at the fair

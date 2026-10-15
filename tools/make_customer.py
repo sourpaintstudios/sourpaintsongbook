@@ -247,6 +247,41 @@ Will you be mine, dear, will you be mine
 Answer my question, will you be mine?"""),
 ]
 
+
+import glob, os
+def parse_songs(dirpath):
+    out = []
+    for f in sorted(glob.glob(os.path.join(dirpath, '*.txt'))):
+        cur = None
+        for raw in open(f, encoding='utf-8').read().split('\n'):
+            if raw.startswith('=== '):
+                if cur: out.append(cur)
+                title, key, typ, year = [x.strip() for x in raw[4:].split('|')]
+                slug = re.sub(r'[^a-z0-9]+', '-', title.lower()).strip('-')
+                cur = {"id": "pd-" + slug, "v": 1, "title": title, "artist": "Public domain",
+                       "key": key, "bpm": "", "category": None, "image": None, "_lines": []}
+            elif cur is not None:
+                if raw.startswith('#'):
+                    cur["_lines"].append(raw[1:].strip())
+                elif '|' in raw:
+                    ch, tx = raw.split('|', 1)
+                    ch = ch.strip()
+                    if ch:
+                        cur["_lines"].append(' '.join('[' + c + ']' for c in ch.split()))
+                    cur["_lines"].append(tx.strip())
+                else:
+                    cur["_lines"].append(raw.rstrip())
+        if cur: out.append(cur)
+    for c in out:
+        c["lyrics"] = '\n'.join(c.pop("_lines")).strip()
+    return out
+SONGS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'songs')
+have = {x["id"] for x in SONGS}
+for sg in parse_songs(SONGS_DIR) if os.path.isdir(SONGS_DIR) else []:
+    if sg["id"] not in have:
+        SONGS.append(sg); have.add(sg["id"])
+SONGS.sort(key=lambda x: x["title"].lower())
+
 # 1. separate storage key
 sub1("var STORE_KEY = 'spss_songbook_v1';", "var STORE_KEY = 'spss_songbook_customer_v1';")
 # 2. no built-in categories
@@ -278,5 +313,7 @@ sub1("  function renderHome() {",
   }
   function renderHome() {""")
 s = re.sub(r"var APP_VERSION_LABEL = 'Version (\d+)';", lambda m: "var APP_VERSION_LABEL = 'Songbook Starter " + m.group(1) + "';", s)
+sub1("    { h: 'Home', items: [\n",
+("    { h: 'Starter library', items: [\n      ['Built-in songs', 'This starter songbook comes with @@N@@ public-domain songs (hymns, folk, cowboy, spirituals, sea shanties, parlor songs, holiday carols) with chords. Open All songs to see them. Edit or delete any of them, and add your own with Add song.'],\n      ['Start your setlist', 'Tap New category or Start your setlist here to make your own groups. Use Song lists to build a gig order.']\n    ]},\n    { h: 'Home', items: [\n").replace('@@N@@', str(len(SONGS))))
 open(dest, 'w', encoding='utf-8').write(s)
 print('ok', len(s))
