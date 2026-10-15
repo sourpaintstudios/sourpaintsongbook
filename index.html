@@ -1598,6 +1598,14 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       if (parsed.settings && parsed.settings.sizeMode === undefined) {
         merged.settings.sizeMode = parsed.settings.fitTextMode ? 'fit' : 'large';
       }
+      // Every launch opens songs the standard way: Standard (STD) chord layout,
+      // Fit (expanded, all lines on screen) and no Magic Glass / Karaoke zoom.
+      // These can still be changed while the app is open.
+      merged.settings.chordLayout = 'standard';
+      merged.settings.sizeMode = 'fit';
+      merged.settings.sizeNudges = {};
+      merged.settings.magicGlass = false;
+      merged.settings.karaoke = false;
       return merged;
     } catch (e) {
       console.warn('Songbook: could not read saved library, starting fresh.', e);
@@ -3041,6 +3049,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['Slower / Faster', 'Always on screen under the TAP and HOLD buttons. Press and hold to ramp the scroll speed down or up while it is scrolling or stopped. Reset zeroes the speed; Top jumps to the start of the song.'],
       ['Fader + BPM', 'Drag the fader or type a number to set scroll speed.'],
       ['A− / A+', 'Smaller or larger text.'],
+      ['Opening a song', 'Every time the app opens, songs start in Standard (STD) chord layout, in Fit (the expanded button, every line on screen), with Magic Glass and Karaoke off. Change any of it from the song screen; it resets next launch.'],
       ['S / Fit / L', 'Three real text sizes. S is small, Fit is the biggest text that keeps every line on one row, L is larger than Fit (always at least 4 bigger). Tapping a button gives that size fresh, clearing any earlier A\u2212 / A+ or pinch change on it. A\u2212 / A+ and pinch still fine-tune from there.'],
       ['STD / SPS', 'Chord layout: STD puts chords above the line, SPS puts them beside the line.'],
       ['Reading colors, light/dark', 'Pick a color scheme or flip between light and dark.'],
@@ -7717,7 +7726,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 78';
+  var APP_VERSION_LABEL = 'Version 79';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
