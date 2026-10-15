@@ -3901,6 +3901,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     { h: 'Stage player', items: [
       ['TAP TO START', 'Tap along with the song (foot or finger). After 3 steady taps it locks the tempo, shows the BPM with a blinking beat dot, and starts scrolling. Taps faster than 240 BPM are ignored as bounces, one stray tap is filtered out, and the tempo stays between 30 and 200 BPM. Pause for 2.5 seconds to start a new count.'],
       ['HOLD TO RAMP', 'Press and hold to speed up or slow down smoothly. Reset and Top are on the ramp bar.'],
+      ['Scrolling on PC', 'Auto-scroll now moves smoothly at any speed on desktop browsers as well as phones. You can scroll by hand with the mouse wheel at any time and auto-scroll continues from where you stopped.'],
       ['STOP / RESUME', 'STOP pauses the scroll. RESUME picks up at the same speed. If the song already reached the end, RESUME starts it again from the top.'],
       ['Slower / Faster', 'Always on screen under the TAP and HOLD buttons. Press and hold to ramp the scroll speed down or up while it is scrolling or stopped. Reset zeroes the speed; Top jumps to the start of the song.'],
       ['Fader + BPM', 'Drag the fader or type a number to set scroll speed.'],
@@ -7027,15 +7028,23 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     if (viewport && viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 2) {
       viewport.scrollTop = 0;
     }
+    // Keep the scroll position as a float of our own. Browsers snap scrollTop
+    // to whole device pixels, so adding a fraction of a pixel each frame (which
+    // is what a slow speed is) used to be rounded away on PC screens and the
+    // lyrics never moved. We track the exact position and write it every frame;
+    // if the person scrolls by hand we notice the jump and pick up from there.
+    var pos = viewport ? viewport.scrollTop : 0;
+    var lastApplied = pos;
     function step(ts) {
       if (!playerAnimState.isPlaying) return;
       if (playerAnimState.lastFrameTime == null) playerAnimState.lastFrameTime = ts;
       var dt = Math.min(100, ts - playerAnimState.lastFrameTime) / 1000;
       playerAnimState.lastFrameTime = ts;
-      playerAnimState.accum += playerAnimState.speed * dt;
-      if (playerAnimState.accum >= 0.15 && viewport) {
-        viewport.scrollTop += playerAnimState.accum;
-        playerAnimState.accum = 0;
+      if (viewport) {
+        if (Math.abs(viewport.scrollTop - lastApplied) > 1.5) pos = viewport.scrollTop;  // manual scroll
+        pos += playerAnimState.speed * dt;
+        viewport.scrollTop = pos;
+        lastApplied = viewport.scrollTop;
         // Reaching the bottom pauses playback rather than idling forever —
         // the old build kept "scrolling" at speed with nothing left to move.
         if (viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 2) {
@@ -8588,7 +8597,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Songbook Starter 75';
+  var APP_VERSION_LABEL = 'Songbook Starter 76';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
