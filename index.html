@@ -1116,6 +1116,9 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
   box-shadow: 0 0 18px rgba(76,140,22,0.2), inset 0 0 14px rgba(76,140,22,0.06);
   animation: none;
 }
+.screen-player.is-magicglass .lyrics-body .lyric-line,
+.screen-player.is-magicglass .lyrics-body .lyric-cue-row { padding-top: calc((var(--mz, 1.6) - 1) * 0.85em); padding-bottom: calc((var(--mz, 1.6) - 1) * 0.85em); }
+.screen-player.is-magicglass .lyrics-body .lyric-line:empty { padding: 0; }
 .tray-chip {
   height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line, rgba(243,241,232,0.2));
   background: transparent; color: inherit; font-weight: 800; font-size: 13px; cursor: pointer;
@@ -2499,11 +2502,11 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      strip peaks (bright, glowing, magnified), and lines already sung cool
      through lime to dark hunter green. Rides on the normal scroll, so tap
      tempo / fader / Slower-Faster all drive it. No timestamps needed. */
-  var MAGIC_ZOOMS = [1.1, 1.2, 1.3, 1.4];
+  var MAGIC_ZOOMS = [1.3, 1.6, 1.9, 2.2];
   var magic = { raf: 0, items: [], sig: '', lineH: 40, light: false };
   function magicOn() { return !!(state.settings.magicGlass || state.settings.karaoke); }
   function karaokeOn() { return !!state.settings.karaoke; }
-  function magicZoom() { var z = Number(state.settings.magicZoom); return z >= 1 && z <= 1.6 ? z : 1.2; }
+  function magicZoom() { var z = Number(state.settings.magicZoom); return z >= 1.3 && z <= 2.5 ? z : 1.6; }
   function magicClamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function magicStop() { if (magic.raf) cancelAnimationFrame(magic.raf); magic.raf = 0; }
   function magicClear() {
@@ -2559,11 +2562,11 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     if (sig !== magic.sig) magicBuild();
     var H = vp.clientHeight, st = vp.scrollTop;
     var center = H * 0.36;
-    var sigma = Math.max(magic.lineH * 1.1, H * 0.07);
+    var sigma = Math.max(magic.lineH * 1.5, H * 0.1);
     var zoom = magicZoom();
     var strip = byId('magic-strip');
     if (strip) {
-      var h = magic.lineH * Math.min(zoom, 1.3) * 1.35;
+      var h = Math.min(magic.lineH * zoom * 1.1, H * 0.34);
       strip.style.height = Math.round(h) + 'px';
       strip.style.top = Math.round(center - h / 2) + 'px';
     }
@@ -2633,7 +2636,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     var screen = document.querySelector('.screen-player');
     var strip = byId('magic-strip');
     var on = magicOn();
-    if (screen) screen.classList.toggle('is-magic', on);
+    if (screen) { screen.classList.toggle('is-magic', on); screen.classList.toggle('is-magicglass', !!state.settings.magicGlass); screen.style.setProperty('--mz', String(magicZoom())); }
     if (strip) strip.hidden = !on;
     paintMagicButtons();
     magicApplyPad();
@@ -2657,7 +2660,9 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     var cur = magicZoom(), idx = 0;
     for (var i = 0; i < MAGIC_ZOOMS.length; i++) if (Math.abs(MAGIC_ZOOMS[i] - cur) < 0.01) idx = i;
     state.settings.magicZoom = MAGIC_ZOOMS[(idx + 1) % MAGIC_ZOOMS.length];
-    persist(); paintMagicButtons(); magicApplyPad();
+    persist(); paintMagicButtons();
+    var sc2 = document.querySelector('.screen-player'); if (sc2) sc2.style.setProperty('--mz', String(magicZoom()));
+    magicApplyPad();
   }
 
   /* ---------- Helpers ---------- */
@@ -2960,7 +2965,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['S / Fit / L', 'Small text, fit the whole song on screen, or large text.'],
       ['STD / SPS', 'Chord layout: STD puts chords above the line, SPS puts them beside the line.'],
       ['Reading colors, light/dark', 'Pick a color scheme or flip between light and dark.'],
-      ['Magic Glass (⋮ tray)', 'Lyrics scroll through a glowing reading strip. Coming lines are bright lemon, the line in the strip glows and grows, lines already sung fade to dark green. It follows your normal scroll speed (tap tempo, fader, Slower/Faster). Every lyric line grows as it crosses the strip, long and wrapped lines included (the text column is narrowed a little so nothing gets cut off). Tap Zoom in the tray to change how much the strip magnifies. The sun/moon button switches Magic Glass and Karaoke between dark and light.'],
+      ['Magic Glass (⋮ tray)', 'Lyrics scroll through a glowing reading strip. Coming lines are bright lemon, the line in the strip glows and grows, lines already sung fade to dark green. It follows your normal scroll speed (tap tempo, fader, Slower/Faster). Every lyric line grows as it crosses the strip, long and wrapped lines included (the text column is narrowed a little so nothing gets cut off). Tap Zoom in the tray to choose ×1.3, ×1.6 (default), ×1.9 or ×2.2 — the line in the strip is now much larger than its neighbors. The sun/moon button switches Magic Glass and Karaoke between dark and light.'],
       ['Karaoke (⋮ tray)', 'Lyrics scroll through the same reading strip. Upcoming lines are soft white, the line crossing the strip fills with yellow from left to right as it passes, and lines already sung turn dark green. It follows your normal scroll speed, no timing files needed. Magic Glass and Karaoke are separate options; turn either off to go back to plain scrolling.'],
       ['Glass mode', 'Transparent lyrics over an art background.'],
       ['Art mode', 'Flip through Sour Paint Studios looks and lock one in.'],
@@ -7574,7 +7579,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 72';
+  var APP_VERSION_LABEL = 'Version 73';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
