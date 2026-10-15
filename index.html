@@ -599,6 +599,10 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
   box-shadow: 0 0 0 2px rgba(212,255,63,0.18);
 }
 .btn-tap:active { transform: scale(0.97); }
+.btn-tap { position: relative; }
+.tap-pulse { display: none; width: 9px; height: 9px; border-radius: 50%; background: currentColor; flex: 0 0 auto; }
+.tap-pulse.on { display: inline-block; animation: tap-beat var(--beat, 0.5s) ease-in-out infinite; }
+@keyframes tap-beat { 0%, 100% { opacity: 0.25; transform: scale(0.7); } 12% { opacity: 1; transform: scale(1.25); } 45% { opacity: 0.3; transform: scale(0.8); } }
 .btn-tap .tap-icon svg { width: 18px; height: 18px; }
 .btn-tap[data-status="waiting"] { background: var(--yellow); color: #221f00; border-color: var(--yellow); }
 .btn-tap[data-status="success"] { background: var(--green-bright); color: #0d1a02; border-color: var(--green-bright); }
@@ -2955,8 +2959,9 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['Palette / folder / pencil / trash', 'Color the card, move it to a category, edit it, or delete it.']
     ]},
     { h: 'Stage player', items: [
-      ['TAP TO START', 'Starts auto-scroll. Tap along with the beat to set the speed.'],
+      ['TAP TO START', 'Tap along with the song (foot or finger). After 3 steady taps it locks the tempo, shows the BPM with a blinking beat dot, and starts scrolling. Taps faster than 240 BPM are ignored as bounces, one stray tap is filtered out, and the tempo stays between 30 and 200 BPM. Pause for 2.5 seconds to start a new count.'],
       ['HOLD TO RAMP', 'Press and hold to speed up or slow down smoothly. Reset and Top are on the ramp bar.'],
+      ['STOP / RESUME', 'STOP pauses the scroll. RESUME picks up at the same speed. If the song already reached the end, RESUME starts it again from the top.'],
       ['Slower / Faster', 'Always on screen under the TAP and HOLD buttons. Press and hold to ramp the scroll speed down or up while it is scrolling or stopped. Reset zeroes the speed; Top jumps to the start of the song.'],
       ['Fader + BPM', 'Drag the fader or type a number to set scroll speed.'],
       ['A− / A+', 'Smaller or larger text.'],
@@ -5098,6 +5103,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
             '<button class="btn btn-tap" id="tap-btn" data-status="idle">' +
               '<span class="tap-icon">' + tapSvg() + '</span>' +
               '<span class="tap-text" id="tap-text">TAP TO START</span>' +
+              '<span class="tap-pulse" id="tap-pulse" aria-hidden="true"></span>' +
             '</button>' +
             '<button class="btn btn-hold" id="hold-btn" data-status="ready">' +
               '<span class="hold-icon" id="hold-icon">' + holdSvg() + '</span>' +
@@ -5793,6 +5799,15 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     if (!btn) return;
     playerAnimState.holdStage = 'ready';
     paintHoldButton();
+    // Safety net: if a touch is cancelled or released off the button, the
+    // ramp still ends instead of sticking on.
+    if (!window.__rampRelease) {
+      window.__rampRelease = true;
+      var endRamp = function () { if (playerAnimState.holdRAF) finishHoldRamp(); };
+      document.addEventListener('pointerup', endRamp, true);
+      document.addEventListener('pointercancel', endRamp, true);
+      window.addEventListener('blur', endRamp);
+    }
 
     btn.addEventListener('pointerdown', function (e) {
       e.preventDefault();
@@ -5858,6 +5873,9 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   }
 
   function startHoldRamp(direction) {
+    // Never leave an earlier ramp loop running: a second press before the
+    // first was released used to orphan it, and it kept speeding up forever.
+    if (playerAnimState.holdRAF) { cancelAnimationFrame(playerAnimState.holdRAF); playerAnimState.holdRAF = null; }
     playerAnimState.holdStartTime = null;
     playerAnimState.holdStartSpeed = playerAnimState.speed;
     // Scroll live while held, in either direction, so the person can see
@@ -5925,64 +5943,83 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     if (rampRow) rampRow.hidden = false;  // Slower / Faster / Reset / Top are always available
   }
 
+  // Tap tempo, rebuilt in V75. Goals: match what a foot or finger is actually
+  // doing, and never run away on a burst of taps.
+  //  - A tap closer than 250 ms to the last one (faster than 240 BPM) is a
+  //    bounce or double-tap, not a beat: it is ignored.
+  //  - Nothing is committed until there are 3 taps with two similar gaps, so a
+  //    single sloppy first interval can't set the speed.
+  //  - The tempo is the average of the last few gaps after throwing out the odd
+  //    ones (a missed beat or a stutter), so one bad tap doesn't move it.
+  //  - Scroll tempo is held to 30-200 BPM so it can't be tapped into a sprint.
+  //  - A gap longer than 2.5 s starts a fresh count.
+  var TAP_MIN_GAP = 250, TAP_MAX_GAP = 2500, TAP_KEEP = 8;
+  var TAP_MIN_BPM = 30, TAP_MAX_BPM = 200;
+  function median(arr) {
+    var a = arr.slice().sort(function (x, y) { return x - y; });
+    var m = Math.floor(a.length / 2);
+    return a.length % 2 ? a[m] : (a[m - 1] + a[m]) / 2;
+  }
   function handleTap() {
     var now = Date.now();
     var taps = playerAnimState.taps;
     var last = taps[taps.length - 1];
     var gap = last ? now - last : Infinity;
 
-    // Tap never stops playback on its own — a long pause and then a tap just
-    // restarts the tempo-capture sequence (below), scrolling keeps going the
-    // whole time. Stopping is the HOLD/STOP button's job, not tap's; tap
-    // silently doubling as stop (based on a 3s gap guess) was unreliable and
-    // read as the control being broken.
-    //
-    // Generous window: pausing briefly between taps (e.g. a rest in the song)
-    // no longer wipes progress the way the old build did — only a long pause resets it.
-    if (taps.length === 0 || gap > 3000) {
+    if (last && gap < TAP_MIN_GAP) return;           // bounce / double-tap
+
+    clearTimeout(playerAnimState.tapTimeout);
+    if (!last || gap > TAP_MAX_GAP) {                // first tap of a new count
       playerAnimState.taps = [now];
-      setTapStatus('waiting');
-      clearTimeout(playerAnimState.tapTimeout);
+      setTapStatus('waiting', null, 2);
       playerAnimState.tapTimeout = setTimeout(function () {
         playerAnimState.taps = [];
-        setTapStatus('idle');
-      }, 3200);
+        if (playerAnimState.tapStatus !== 'success') setTapStatus('idle');
+      }, TAP_MAX_GAP + 200);
       return;
     }
 
     taps.push(now);
-    if (taps.length > 8) taps.shift();
+    if (taps.length > TAP_KEEP) taps.shift();
+    playerAnimState.tapTimeout = setTimeout(function () {
+      playerAnimState.taps = [];
+      setTapStatus(playerAnimState.isPlaying ? 'success' : 'idle');
+    }, TAP_MAX_GAP + 200);
 
     var gaps = [];
     for (var i = 1; i < taps.length; i++) gaps.push(taps[i] - taps[i - 1]);
-    // Clamp rather than discard — a burst tapped faster than the 200ms
-    // floor should still register (as the fastest supported tempo) instead
-    // of silently doing nothing, which read as the control being broken.
-    gaps = gaps.map(function (g) { return Math.max(200, Math.min(2000, g)); });
-    if (gaps.length === 0) { setTapStatus('waiting'); return; }
 
-    // Weighted average — most recent gaps count more, same shape as before,
-    // just applied to however many taps we actually have (2 through 7 gaps).
-    var weightsAll = [0.04, 0.06, 0.10, 0.14, 0.18, 0.22, 0.26];
-    var weights = weightsAll.slice(weightsAll.length - gaps.length);
-    var wsum = weights.reduce(function (a, b) { return a + b; }, 0);
-    weights = weights.map(function (w) { return w / wsum; });
-    var avgGap = 0;
-    for (var j = 0; j < gaps.length; j++) avgGap += gaps[j] * weights[j];
+    // Drop outlier gaps (missed beat, stutter) once there is enough to judge.
+    var kept = gaps;
+    if (gaps.length >= 3) {
+      var med = median(gaps);
+      kept = gaps.filter(function (g) { return g >= med * 0.7 && g <= med * 1.4; });
+      if (kept.length < 2) kept = gaps;
+    }
 
+    // Need two similar gaps before committing to a tempo.
+    if (kept.length < 2) { setTapStatus('waiting', null, 1); return; }
+    var lo = Math.min.apply(null, kept), hi = Math.max.apply(null, kept);
+    if (kept.length === 2 && hi > lo * 1.35) { setTapStatus('waiting', null, 1); return; }
+
+    // Weight recent gaps a little more, but keep it steady.
+    var total = 0, wsum = 0;
+    for (var j = 0; j < kept.length; j++) {
+      var w = 1 + j * 0.25;
+      total += kept[j] * w; wsum += w;
+    }
+    var avgGap = total / wsum;
     var bpm = Math.round(60000 / avgGap);
+    bpm = Math.max(TAP_MIN_BPM, Math.min(TAP_MAX_BPM, bpm));
     playerAnimState.tapBpm = bpm;
 
-    var newSpeed = 16 / (avgGap / 1000);
-    newSpeed = Math.max(0.5, Math.min(80, newSpeed));
+    var newSpeed = bpmToSpeed(bpm);
     playerAnimState.speed = newSpeed;
     state.settings.lastSpeed = newSpeed;
     persist();
     syncFaderVisual();
 
     setTapStatus('success', bpm);
-    clearTimeout(playerAnimState.tapTimeout);
-    playerAnimState.tapTimeout = setTimeout(function () { setTapStatus('waiting'); }, 550);
 
     // First successful tempo read starts playback automatically, same
     // convenience as before, but only fires once (checked via isPlaying).
@@ -5993,15 +6030,27 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     }
   }
 
-  function setTapStatus(statusName, bpm) {
+  function setTapStatus(statusName, bpm, tapsSoFar) {
     playerAnimState.tapStatus = statusName;
     var btn = byId('tap-btn');
     var txt = byId('tap-text');
     if (!btn || !txt) return;
     btn.setAttribute('data-status', statusName);
     if (statusName === 'idle') txt.textContent = 'TAP TO START';
-    else if (statusName === 'waiting') txt.textContent = 'tap again\u2026';
+    else if (statusName === 'waiting') txt.textContent = tapsSoFar === 2 ? 'keep tapping\u2026' : 'keep tapping\u2026';
     else if (statusName === 'success') txt.textContent = (bpm || playerAnimState.tapBpm) + ' BPM';
+    // Beat pulse: a dot that blinks at the tapped tempo so the person can see
+    // whether it matches their foot.
+    var pulse = byId('tap-pulse');
+    if (pulse) {
+      var b2 = bpm || playerAnimState.tapBpm;
+      if (statusName === 'success' && b2) {
+        pulse.style.setProperty('--beat', (60 / b2).toFixed(3) + 's');
+        pulse.classList.add('on');
+      } else {
+        pulse.classList.remove('on');
+      }
+    }
   }
 
   /* ---- Play / scroll loop (unified — no separate "fit" mode to fight with) ---- */
@@ -6016,6 +6065,12 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     playerAnimState.lastFrameTime = null;
     playerAnimState.accum = 0;
     var viewport = byId('lyrics-viewport');
+    // Resuming at the very end of a song used to stop again on the first frame
+    // (it was already at the bottom), which read as Resume being dead. Start
+    // over from the top instead.
+    if (viewport && viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 2) {
+      viewport.scrollTop = 0;
+    }
     function step(ts) {
       if (!playerAnimState.isPlaying) return;
       if (playerAnimState.lastFrameTime == null) playerAnimState.lastFrameTime = ts;
@@ -7577,7 +7632,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 74';
+  var APP_VERSION_LABEL = 'Version 75';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
