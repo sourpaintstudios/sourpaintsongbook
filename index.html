@@ -252,6 +252,12 @@ button {
   border: 1px solid var(--line);
 }
 /* ---------- Library ---------- */
+.search-wrap { position: relative; margin: 2px 0 14px; }
+.search-input { width: 100%; box-sizing: border-box; padding: 12px 42px 12px 16px; font-size: 16px; color: var(--text, #fff); background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.22); border-radius: 999px; outline: none; -webkit-appearance: none; appearance: none; }
+.search-input:focus { border-color: #93D83E; box-shadow: 0 0 0 3px rgba(147,216,62,0.22); }
+.search-input::-webkit-search-cancel-button { display: none; }
+.search-clear { display: none; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; align-items: center; justify-content: center; border: 0; border-radius: 50%; background: rgba(255,255,255,0.14); color: inherit; font-size: 20px; line-height: 1; cursor: pointer; }
+.search-count { margin: 0 2px 10px; font-size: 13px; opacity: 0.75; }
 .library-main { flex: 1; padding: 14px 16px 40px; max-width: 760px; width: 100%; margin: 0 auto; }
 .library-heading {
   display: flex; align-items: center; justify-content: space-between;
@@ -2679,6 +2685,74 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     return lines[0] || 'No lyrics yet';
   }
 
+  function songCardHtml(s) {
+        var permanent = isPermanentSong(s.id);
+        var catLabel = s.category ? categoryLabel(s.category) : null;
+        var colorPalette = s.colorId ? getArtPalette(s.colorId) : null;
+        return (
+          '<div class="song-card' + (colorPalette ? ' song-card-colored' : '') + '"' +
+            (colorPalette ? ' style="border-left-color:' + colorPalette.accent + '"' : '') +
+            ' data-action="open-song" data-id="' + s.id + '">' +
+            '<div class="song-card-top">' +
+              '<h3>' + escapeHtml(s.title || 'Untitled') + '</h3>' +
+              '<div class="song-card-menu">' +
+                '<button class="icon-btn" data-action="open-color-picker" data-id="' + s.id + '" aria-label="Set color for ' + escapeHtml(s.title) + '" title="Color">' + paletteSvg(14) + '</button>' +
+                '<button class="icon-btn" data-action="move-song" data-id="' + s.id + '" aria-label="Move ' + escapeHtml(s.title) + ' to a category" title="Move to category">' + folderSvg(14) + '</button>' +
+                '<button class="icon-btn" data-action="edit-song" data-id="' + s.id + '" aria-label="Edit ' + escapeHtml(s.title) + '" title="Edit">' + pencilSvg(14) + '</button>' +
+                '<button class="icon-btn icon-btn-danger" data-action="request-delete-song" data-id="' + s.id + '" aria-label="Delete ' + escapeHtml(s.title) + '" title="Delete">' + trashSvg(14) + '</button>' +
+              '</div>' +
+            '</div>' +
+            (s.artist ? '<p class="song-card-artist">' + escapeHtml(s.artist) + '</p>' : '') +
+            ((s.key || s.bpm || catLabel || permanent) ? '<div class="chip-row">' +
+              (s.key ? '<span class="chip">' + escapeHtml(s.key) + '</span>' : '') +
+              (s.bpm ? '<span class="chip">' + escapeHtml(s.bpm) + ' bpm</span>' : '') +
+              (catLabel ? '<span class="chip chip-muted">' + escapeHtml(catLabel) + '</span>' : '') +
+              (permanent ? '<span class="chip chip-muted">Built-in</span>' : '') +
+            '</div>' : '') +
+            '<p class="song-card-preview">' + escapeHtml(firstLyricLine(s.lyrics)) + '</p>' +
+          '</div>'
+        );
+  }
+
+  /* ---- Global search: every song, across all categories ---- */
+  var searchQuery = '';
+  function normSearch(t) { return String(t || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim(); }
+  function songMatchesQuery(s, q) {
+    var tokens = normSearch(q).split(' ').filter(Boolean);
+    if (!tokens.length) return true;
+    var hay = normSearch([s.title, s.artist, s.key, s.category ? categoryLabel(s.category) : '', s.lyrics].join(' '));
+    var head = normSearch([s.title, s.artist].join(' '));
+    return tokens.every(function (t) { return hay.indexOf(t) !== -1; }) ? (head.indexOf(tokens[0]) !== -1 ? 2 : 1) : 0;
+  }
+  function searchBoxHtml() {
+    if (arrangeMode || state.songs.length === 0) return '';
+    return '<div class="search-wrap">' +
+      '<input id="song-search" class="search-input" type="search" inputmode="search" enterkeyhint="search" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Search all songs" aria-label="Search all songs" value="' + escapeHtml(searchQuery) + '" />' +
+      '<button type="button" class="search-clear" data-action="clear-search" aria-label="Clear search">&times;</button>' +
+    '</div><div id="search-results" style="display:none"></div>';
+  }
+  function applySearch() {
+    var res = document.getElementById('search-results');
+    var wrap = document.getElementById('browse-wrap');
+    var box = document.getElementById('song-search');
+    if (!res || !wrap) return;
+    var q = searchQuery;
+    var clr = document.querySelector('.search-clear');
+    if (clr) clr.style.display = q ? 'flex' : 'none';
+    if (!normSearch(q)) { res.style.display = 'none'; res.innerHTML = ''; wrap.style.display = ''; return; }
+    var hits = state.songs.map(function (s) { return { s: s, r: songMatchesQuery(s, q) }; })
+      .filter(function (x) { return x.r; })
+      .sort(function (a, b) { return b.r - a.r || String(a.s.title).localeCompare(String(b.s.title)); })
+      .map(function (x) { return x.s; });
+    wrap.style.display = 'none';
+    res.style.display = '';
+    res.innerHTML = '<p class="search-count">' + hits.length + (hits.length === 1 ? ' song' : ' songs') + ' found</p>' +
+      (hits.length ? '<div class="song-grid">' + hits.map(function (x) { return songCardHtml(x); }).join('') + '</div>' : '<div class="empty-state"><p>No songs match &ldquo;' + escapeHtml(q) + '&rdquo;.</p></div>');
+  }
+  document.addEventListener('input', function (e) {
+    if (e.target && e.target.id === 'song-search') { searchQuery = e.target.value; applySearch(); }
+  });
+
   function findSong(id) {
     for (var i = 0; i < state.songs.length; i++) if (state.songs[i].id === id) return state.songs[i];
     return null;
@@ -2947,6 +3021,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   var HOWTO_SECTIONS = [
     { h: 'Home', items: [
       ['Opening intro', 'A 10-second animated intro plays when the app opens. Tap "Tap to skip" to jump past it, or "Tap for sound" to replay it with audio.'],
+      ['Search', 'Type in the Search box at the top of Home or any song list to find a song across every category at once. It matches the title, artist, key, category and words from the lyrics, and filters as you type. Tap the x to clear it.'],
       ['Category tiles', 'Tap a tile to open that group of songs.'],
       ['Add song', 'Type, paste, or import lyrics. Put chords in [brackets] like [G] or [Am7].'],
       ['Paint', 'Play guitar into the mic and watch it paint a picture live. Save it as an image or a time-lapse video.'],
@@ -3194,7 +3269,8 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
                 '<button class="btn btn-primary" data-action="new-song">' + plusSvg() + ' Add song</button>') +
             '</div></div>' : '') +
           (arrangeMode ? '<p class="arrange-hint">Use the arrows to move a category earlier or later.</p>' : '') +
-          body +
+          searchBoxHtml() +
+          '<div id="browse-wrap">' + body + '</div>' +
         '</main>' +
         moreMenuModalHtml() +
         howToModalHtml() +
@@ -3232,34 +3308,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       listHtml = '<div class="empty-state"><p>No songs in ' + escapeHtml(filterTitle) + ' yet.</p>' +
         '<button class="btn btn-primary" data-action="new-song">' + plusSvg() + ' Add song</button></div>';
     } else {
-      listHtml = '<div class="song-grid">' + songs.map(function (s) {
-        var permanent = isPermanentSong(s.id);
-        var catLabel = s.category ? categoryLabel(s.category) : null;
-        var colorPalette = s.colorId ? getArtPalette(s.colorId) : null;
-        return (
-          '<div class="song-card' + (colorPalette ? ' song-card-colored' : '') + '"' +
-            (colorPalette ? ' style="border-left-color:' + colorPalette.accent + '"' : '') +
-            ' data-action="open-song" data-id="' + s.id + '">' +
-            '<div class="song-card-top">' +
-              '<h3>' + escapeHtml(s.title || 'Untitled') + '</h3>' +
-              '<div class="song-card-menu">' +
-                '<button class="icon-btn" data-action="open-color-picker" data-id="' + s.id + '" aria-label="Set color for ' + escapeHtml(s.title) + '" title="Color">' + paletteSvg(14) + '</button>' +
-                '<button class="icon-btn" data-action="move-song" data-id="' + s.id + '" aria-label="Move ' + escapeHtml(s.title) + ' to a category" title="Move to category">' + folderSvg(14) + '</button>' +
-                '<button class="icon-btn" data-action="edit-song" data-id="' + s.id + '" aria-label="Edit ' + escapeHtml(s.title) + '" title="Edit">' + pencilSvg(14) + '</button>' +
-                '<button class="icon-btn icon-btn-danger" data-action="request-delete-song" data-id="' + s.id + '" aria-label="Delete ' + escapeHtml(s.title) + '" title="Delete">' + trashSvg(14) + '</button>' +
-              '</div>' +
-            '</div>' +
-            (s.artist ? '<p class="song-card-artist">' + escapeHtml(s.artist) + '</p>' : '') +
-            ((s.key || s.bpm || catLabel || permanent) ? '<div class="chip-row">' +
-              (s.key ? '<span class="chip">' + escapeHtml(s.key) + '</span>' : '') +
-              (s.bpm ? '<span class="chip">' + escapeHtml(s.bpm) + ' bpm</span>' : '') +
-              (catLabel ? '<span class="chip chip-muted">' + escapeHtml(catLabel) + '</span>' : '') +
-              (permanent ? '<span class="chip chip-muted">Built-in</span>' : '') +
-            '</div>' : '') +
-            '<p class="song-card-preview">' + escapeHtml(firstLyricLine(s.lyrics)) + '</p>' +
-          '</div>'
-        );
-      }).join('') + '</div>';
+      listHtml = '<div class="song-grid">' + songs.map(function (x) { return songCardHtml(x); }).join('') + '</div>';
     }
 
     root.innerHTML =
@@ -3290,7 +3339,8 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
               '<button class="btn btn-primary" data-action="new-song">' + plusSvg() + ' Add song</button>' +
             '</div>' +
           '</div>' +
-          listHtml +
+          searchBoxHtml() +
+          '<div id="browse-wrap">' + listHtml + '</div>' +
         '</main>' +
 
         deleteCategoryConfirmModalHtml() +
@@ -7485,6 +7535,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     else if (view.name === 'songlist') renderSongListDetail();
     else if (view.name === 'library') renderLibrary();
     else renderHome();
+    if (view.name === 'library' || view.name === 'home') applySearch();
   }
 
   /* ---------- Global click delegation ---------- */
@@ -7493,6 +7544,13 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     if (!el) return;
     var action = el.getAttribute('data-action');
     var id = el.getAttribute('data-id');
+
+    if (action === 'clear-search') {
+      searchQuery = '';
+      var sb = document.getElementById('song-search'); if (sb) { sb.value = ''; sb.focus(); }
+      applySearch();
+      return;
+    }
 
     if (action === 'new-song') {
       openEditorDraft(null);
@@ -7641,7 +7699,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 76';
+  var APP_VERSION_LABEL = 'Version 77';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
