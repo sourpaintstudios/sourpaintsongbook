@@ -280,6 +280,8 @@ have = {x["id"] for x in SONGS}
 for sg in parse_songs(SONGS_DIR) if os.path.isdir(SONGS_DIR) else []:
     if sg["id"] not in have:
         SONGS.append(sg); have.add(sg["id"])
+EXCLUDE = {'pd-he-s-got-the-whole-world-in-his-hands', 'pd-i-am-a-pilgrim'}
+SONGS = [x for x in SONGS if x['id'] not in EXCLUDE]
 SONGS.sort(key=lambda x: x["title"].lower())
 
 # 1. separate storage key
@@ -315,5 +317,13 @@ sub1("  function renderHome() {",
 s = re.sub(r"var APP_VERSION_LABEL = 'Version (\d+)';", lambda m: "var APP_VERSION_LABEL = 'Songbook Starter " + m.group(1) + "';", s)
 sub1("    { h: 'Home', items: [\n",
 ("    { h: 'Starter library', items: [\n      ['Built-in songs', 'This starter songbook comes with @@N@@ public-domain songs (hymns, folk, cowboy, spirituals, sea shanties, parlor songs, holiday carols) with chords. Open All songs to see them. Edit or delete any of them, and add your own with Add song.'],\n      ['Start your setlist', 'Tap New category or Start your setlist here to make your own groups. Use Song lists to build a gig order.']\n    ]},\n    { h: 'Home', items: [\n").replace('@@N@@', str(len(SONGS))))
+
+DISCLAIMER = "Songs in this starter library are traditional or public-domain works. Lyrics and chords are provided for reference and practice and may differ from other versions. Please verify accuracy before public or commercial performance where it matters."
+sub1("          body +\n        '</main>' +",
+     "          body +\n        '<p class=\"pd-note\">" + DISCLAIMER + "</p>' +\n        '</main>' +")
+sub1("          listHtml +\n        '</main>' +\n\n        deleteCategoryConfirmModalHtml() +",
+     "          listHtml +\n        '<p class=\"pd-note\">" + DISCLAIMER + "</p>' +\n        '</main>' +\n\n        deleteCategoryConfirmModalHtml() +")
+sub1("    'sourpaintstudios.com'\n  ];", "    '" + DISCLAIMER + "',\n    'sourpaintstudios.com'\n  ];")
+sub1("</style>\n</head>", ".pd-note { margin: 18px 4px 28px; font-size: 12px; line-height: 1.45; color: var(--text-dim); text-align: center; opacity: 0.85; }\n</style>\n</head>")
 open(dest, 'w', encoding='utf-8').write(s)
 print('ok', len(s))

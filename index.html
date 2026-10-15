@@ -1515,6 +1515,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
 .paint-finish { height: 38px; font-size: 13px; opacity: 0.85; }
 .paint-row { display: flex; gap: 10px; align-items: center; justify-content: center; width: 100%; }
 .paint-row .paint-big { width: auto; flex: 1; max-width: 220px; }
+.pd-note { margin: 18px 4px 28px; font-size: 12px; line-height: 1.45; color: var(--text-dim); text-align: center; opacity: 0.85; }
 </style>
 </head>
 <body>
@@ -2332,17 +2333,6 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
           "lyrics": "Verse 1\n[G]\nHark! The herald angels sing\n[D7] [G]\nGlory to the newborn King\n[G]\nPeace on earth and mercy mild\n[D7] [G]\nGod and sinners reconciled\n[C] [G]\nJoyful, all ye nations rise\n[Em] [A7] [D]\nJoin the triumph of the skies\n[G] [C]\nWith angelic hosts proclaim\n[G] [D7] [G]\nChrist is born in Bethlehem\n[G]\nHark! The herald angels sing\n[D7] [G]\nGlory to the newborn King\n\nVerse 2\n[G]\nChrist, by highest heav'n adored\n[D7] [G]\nChrist, the everlasting Lord\n[G]\nLate in time behold Him come\n[D7] [G]\nOffspring of a virgin's womb\n[C] [G]\nVeiled in flesh the Godhead see\n[Em] [A7] [D]\nHail the incarnate Deity\n[G] [C]\nPleased as man with men to dwell\n[G] [D7] [G]\nJesus, our Emmanuel\n[G]\nHark! The herald angels sing\n[D7] [G]\nGlory to the newborn King"
       },
       {
-          "id": "pd-he-s-got-the-whole-world-in-his-hands",
-          "v": 1,
-          "title": "He's Got the Whole World in His Hands",
-          "artist": "Public domain",
-          "key": "G",
-          "bpm": "",
-          "category": null,
-          "image": null,
-          "lyrics": "Verse 1\n[G]\nHe's got the whole world in His hands\n[D7]\nHe's got the whole wide world in His hands\n[G]\nHe's got the whole world in His hands\n[D7] [G]\nHe's got the whole world in His hands\n\nVerse 2\n[G]\nHe's got you and me, brother, in His hands\n[D7]\nHe's got you and me, sister, in His hands\n[G]\nHe's got you and me, brother, in His hands\n[D7] [G]\nHe's got the whole world in His hands"
-      },
-      {
           "id": "pd-here-we-come-a-wassailing",
           "v": 1,
           "title": "Here We Come A-Wassailing",
@@ -2374,17 +2364,6 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
           "category": null,
           "image": null,
           "lyrics": "Verse 1\n[G] [C] [G]\nOh give me a home where the buffalo roam\n[G] [D7]\nWhere the deer and the antelope play\n[G] [C] [G]\nWhere seldom is heard a discouraging word\n[G] [D7] [G]\nAnd the skies are not cloudy all day\n\nChorus\n[D7] [G]\nHome, home on the range\n[G] [C] [G]\nWhere the deer and the antelope play\n[G] [C] [G]\nWhere seldom is heard a discouraging word\n[G] [D7] [G]\nAnd the skies are not cloudy all day\n\nVerse 2\n[G] [C] [G]\nHow often at night when the heavens are bright\n[G] [D7]\nWith the light from the glittering stars\n[G] [C] [G]\nHave I stood here amazed and asked as I gazed\n[G] [D7] [G]\nIf their glory exceeds that of ours"
-      },
-      {
-          "id": "pd-i-am-a-pilgrim",
-          "v": 1,
-          "title": "I Am a Pilgrim",
-          "artist": "Public domain",
-          "key": "G",
-          "bpm": "",
-          "category": null,
-          "image": null,
-          "lyrics": "[G]\nI am a pilgrim and a stranger\n[D7] [G]\nTraveling through this wearisome land\n[G]\nI've got a home in that yonder city, good Lord\n[D7] [G]\nAnd it's not, not made by hand"
       },
       {
           "id": "pd-i-saw-three-ships",
@@ -3899,7 +3878,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      ============================================================ */
   var HOWTO_SECTIONS = [
     { h: 'Starter library', items: [
-      ['Built-in songs', 'This starter songbook comes with 116 public-domain songs (hymns, folk, cowboy, spirituals, sea shanties, parlor songs, holiday carols) with chords. Open All songs to see them. Edit or delete any of them, and add your own with Add song.'],
+      ['Built-in songs', 'This starter songbook comes with 114 public-domain songs (hymns, folk, cowboy, spirituals, sea shanties, parlor songs, holiday carols) with chords. Open All songs to see them. Edit or delete any of them, and add your own with Add song.'],
       ['Start your setlist', 'Tap New category or Start your setlist here to make your own groups. Use Song lists to build a gig order.']
     ]},
     { h: 'Home', items: [
@@ -3952,6 +3931,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   var ABOUT_TEXT = [
     'Sour Paint Studios Songbook is a stage-ready lyrics and chord reader for working musicians: auto-scroll with tap tempo, chord layouts, set lists, a tuner, and a guitar painter.',
     'Built by Daniel Lee Ruggeberg for Sour Paint Studios, Phoenix, AZ.',
+    'Songs in this starter library are traditional or public-domain works. Lyrics and chords are provided for reference and practice and may differ from other versions. Please verify accuracy before public or commercial performance where it matters.',
     'sourpaintstudios.com'
   ];
   function howToModalHtml() {
@@ -4163,6 +4143,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
             '</div></div>' : '') +
           (arrangeMode ? '<p class="arrange-hint">Use the arrows to move a category earlier or later.</p>' : '') +
           body +
+        '<p class="pd-note">Songs in this starter library are traditional or public-domain works. Lyrics and chords are provided for reference and practice and may differ from other versions. Please verify accuracy before public or commercial performance where it matters.</p>' +
         '</main>' +
         moreMenuModalHtml() +
         howToModalHtml() +
@@ -4259,6 +4240,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
             '</div>' +
           '</div>' +
           listHtml +
+        '<p class="pd-note">Songs in this starter library are traditional or public-domain works. Lyrics and chords are provided for reference and practice and may differ from other versions. Please verify accuracy before public or commercial performance where it matters.</p>' +
         '</main>' +
 
         deleteCategoryConfirmModalHtml() +
