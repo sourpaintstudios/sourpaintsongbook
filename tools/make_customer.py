@@ -277,6 +277,6 @@ sub1("  function renderHome() {",
            card('new-song', 'Add your<br>song here');
   }
   function renderHome() {""")
-s = re.sub(r"var APP_VERSION_LABEL = '[^']*';", "var APP_VERSION_LABEL = 'Songbook Starter 73';", s)
+s = re.sub(r"var APP_VERSION_LABEL = 'Version (\d+)';", lambda m: "var APP_VERSION_LABEL = 'Songbook Starter " + m.group(1) + "';", s)
 open(dest, 'w', encoding='utf-8').write(s)
 print('ok', len(s))
