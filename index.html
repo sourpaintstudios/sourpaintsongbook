@@ -3986,7 +3986,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['Slower / Faster', 'Always on screen under the TAP and HOLD buttons. Press and hold to ramp the scroll speed down or up while it is scrolling or stopped. Reset zeroes the speed; Top jumps to the start of the song.'],
       ['Fader + BPM', 'Drag the fader or type a number to set scroll speed.'],
       ['A− / A+', 'Smaller or larger text.'],
-      ['S / Fit / L', 'Small text, fit the whole song on screen, or large text.'],
+      ['S / Fit / L', 'Three real text sizes. S is small, Fit is the biggest text that keeps every line on one row, L is larger than Fit (always at least 4 bigger). Tapping a button gives that size fresh, clearing any earlier A\u2212 / A+ or pinch change on it. A\u2212 / A+ and pinch still fine-tune from there.'],
       ['STD / SPS', 'Chord layout: STD puts chords above the line, SPS puts them beside the line.'],
       ['Reading colors, light/dark', 'Pick a color scheme or flip between light and dark.'],
       ['Magic Glass (⋮ tray)', 'Lyrics scroll through a glowing reading strip. Coming lines are bright lemon, the line in the strip glows and grows, lines already sung fade to dark green. It follows your normal scroll speed (tap tempo, fader, Slower/Faster). Every lyric line grows as it crosses the strip, long and wrapped lines included (the text column is narrowed a little so nothing gets cut off). Tap Zoom in the tray to choose ×1.3, ×1.6 (default), ×1.9 or ×2.2 — the line in the strip is now much larger than its neighbors. The sun/moon button switches Magic Glass and Karaoke between dark and light.'],
@@ -6334,7 +6334,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   // with A-/A+ and by pinching the lyrics.
   var LYRICS_FONT_MIN = 14;
   var LYRICS_FONT_MAX = 48;
-  var PINCH_FONT_MIN = 12;
+  var PINCH_FONT_MIN = 10;
   var PINCH_FONT_MAX = 80;
 
   /* Three lyric-size presets, after Daniel's Grok build: Compact and Fit
@@ -6351,7 +6351,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   var SIZE_MODES = ['compact', 'fit', 'large'];
   var FIT_REF_SIZE = 20;
   var FIT_PRESETS = {
-    compact: { scale: 0.68, min: 10, max: 50 },
+    compact: { scale: 0.7, min: 10, max: 50 },
     fit: { scale: 1, min: 14, max: 72 }
   };
   function widestLyricLineAt(body, size) {
@@ -6394,9 +6394,18 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   }
   function sizeMode() { return state.settings.sizeMode || 'fit'; }
   var fitBaseSize = null;
+  var largeFloor = 0; // Large is always at least 4px bigger than Fit, so the three buttons never look the same.
+  var SIZE_RESET_V = 77;
+  function resetSizeOnce() {
+    if (state.settings.sizeResetV === SIZE_RESET_V) return;
+    state.settings.sizeResetV = SIZE_RESET_V;
+    state.settings.sizeNudges = {};
+    state.settings.lyricsFontSize = 26;
+    persist();
+  }
   function currentLyricsSize() {
     var mode = sizeMode();
-    if (mode === 'large') return state.settings.lyricsFontSize || 21;
+    if (mode === 'large') return Math.max(state.settings.lyricsFontSize || 26, largeFloor);
     var preset = FIT_PRESETS[mode] || FIT_PRESETS.fit;
     var base = fitBaseSize || preset.min;
     var nudge = (state.settings.sizeNudges && state.settings.sizeNudges[mode]) || 0;
@@ -6406,7 +6415,12 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     var body = byId('lyrics-body');
     if (!body) return;
     var mode = sizeMode();
+    resetSizeOnce();
     withScrollKept(function () {
+      if (mode === 'large') {
+        var fb = fitTextSizeForLines(FIT_PRESETS.fit.scale, FIT_PRESETS.fit.min, FIT_PRESETS.fit.max);
+        largeFloor = fb ? Math.min(PINCH_FONT_MAX, fb + 4) : 0;
+      }
       if (mode !== 'large') {
         var preset = FIT_PRESETS[mode] || FIT_PRESETS.fit;
         fitBaseSize = fitTextSizeForLines(preset.scale, preset.min, preset.max) || fitBaseSize || preset.min;
@@ -6438,7 +6452,11 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     persist();
   }
   function setSizeMode(mode) {
-    if (SIZE_MODES.indexOf(mode) === -1 || mode === sizeMode()) return;
+    if (SIZE_MODES.indexOf(mode) === -1) return;
+    // Tapping a size button always gives that button's real preset size
+    // (it clears any earlier A-/A+/pinch adjustment on that preset).
+    if (mode === 'large') state.settings.lyricsFontSize = 26;
+    else { if (!state.settings.sizeNudges) state.settings.sizeNudges = {}; state.settings.sizeNudges[mode] = 0; }
     state.settings.sizeMode = mode;
     persist();
     applyFontSize();
@@ -8663,7 +8681,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Songbook Starter 77';
+  var APP_VERSION_LABEL = 'Songbook Starter 78';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
