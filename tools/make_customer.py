@@ -280,6 +280,9 @@ have = {x["id"] for x in SONGS}
 for sg in parse_songs(SONGS_DIR) if os.path.isdir(SONGS_DIR) else []:
     if sg["id"] not in have:
         SONGS.append(sg); have.add(sg["id"])
+for x in SONGS:
+    x['category'] = 'public-domain'
+    x['v'] = 2
 EXCLUDE = {'pd-he-s-got-the-whole-world-in-his-hands', 'pd-i-am-a-pilgrim'}
 SONGS = [x for x in SONGS if x['id'] not in EXCLUDE]
 SONGS.sort(key=lambda x: x["title"].lower())
@@ -289,7 +292,7 @@ sub1("var STORE_KEY = 'spss_songbook_v1';", "var STORE_KEY = 'spss_songbook_cust
 # 2. no built-in categories
 a = s.index("  var SONG_CATEGORIES = [")
 b = s.index("];", a) + 2
-s = s[:a] + "  var CUSTOMER_BUILD = true;\n  var SONG_CATEGORIES = [];" + s[b:]
+s = s[:a] + "  var CUSTOMER_BUILD = true;\n  var SONG_CATEGORIES = [\n    { id: 'public-domain', label: 'Public Domain Songs', tabLabel: 'Public Domain Songs' }\n  ];" + s[b:]
 # 3. seed songs
 a = s.index("  var SEED_SONGS = [")
 b = s.index("\n  ];\n  function applySeedSongs", a) + 5
@@ -303,7 +306,7 @@ sub1("  function renderHome() {",
 """  // Customer build: until the person makes their own first category, three
   // blank starter cards invite them to start a setlist and add songs.
   function starterCardsHtml() {
-    if (arrangeMode || allCategories().length > 0) return '';
+    if (arrangeMode || allCategories().filter(function (c) { return c.id !== 'public-domain'; }).length > 0) return '';
     function card(action, text) {
       return '<button type="button" class="home-tile home-tile-add" data-action="' + action + '">' +
         '<span class="home-tile-add-icon">' + plusSvg(28) + '</span>' +
@@ -318,12 +321,19 @@ s = re.sub(r"var APP_VERSION_LABEL = 'Version (\d+)';", lambda m: "var APP_VERSI
 sub1("    { h: 'Home', items: [\n",
 ("    { h: 'Starter library', items: [\n      ['Built-in songs', 'This starter songbook comes with @@N@@ public-domain songs (hymns, folk, cowboy, spirituals, sea shanties, parlor songs, holiday carols) with chords. Open All songs to see them. Edit or delete any of them, and add your own with Add song.'],\n      ['Start your setlist', 'Tap New category or Start your setlist here to make your own groups. Use Song lists to build a gig order.']\n    ]},\n    { h: 'Home', items: [\n").replace('@@N@@', str(len(SONGS))))
 
+sub1("    'covers': { src: 'covers.jpg', focus: 'center 35%' }\n  };",
+     "    'covers': { src: 'covers.jpg', focus: 'center 35%' },\n    'public-domain': { src: 'public-domain.jpg', focus: 'center 22%' }\n  };")
+sub1("    'uncategorized': ['#8A8A80', '#1C1C19']\n  };",
+     "    'uncategorized': ['#8A8A80', '#1C1C19'],\n    'public-domain': ['#93D83E', '#1C2A10']\n  };")
+sub1("    'uncategorized': 'No category yet'\n  };",
+     "    'uncategorized': 'No category yet',\n    'public-domain': 'Chords included'\n  };")
+
 DISCLAIMER = "Songs in this starter library are traditional or public-domain works. Lyrics and chords are provided for reference and practice and may differ from other versions. Please verify accuracy before public or commercial performance where it matters."
 sub1("          body +\n        '</main>' +",
      "          body +\n        '<p class=\"pd-note\">" + DISCLAIMER + "</p>' +\n        '</main>' +")
 sub1("          listHtml +\n        '</main>' +\n\n        deleteCategoryConfirmModalHtml() +",
      "          listHtml +\n        '<p class=\"pd-note\">" + DISCLAIMER + "</p>' +\n        '</main>' +\n\n        deleteCategoryConfirmModalHtml() +")
 sub1("    'sourpaintstudios.com'\n  ];", "    '" + DISCLAIMER + "',\n    'sourpaintstudios.com'\n  ];")
-sub1("</style>\n</head>", ".pd-note { margin: 18px 4px 28px; font-size: 12px; line-height: 1.45; color: var(--text-dim); text-align: center; opacity: 0.85; }\n</style>\n</head>")
+sub1("</style>\n</head>", ".pd-note { margin: 18px 4px 28px; font-size: 12px; line-height: 1.45; color: var(--text-dim); text-align: center; opacity: 0.85; }\n.home-tile[data-filter=\"public-domain\"] .home-tile-name, .home-tile[data-filter=\"public-domain\"] .home-tile-sub { display: none; }\n.home-tile[data-filter=\"public-domain\"] .home-tile-label { background: none; }\n.home-tile[data-filter=\"public-domain\"] .home-tile-count { color: #1C1C19; text-shadow: none; }\n</style>\n</head>")
 open(dest, 'w', encoding='utf-8').write(s)
 print('ok', len(s))
