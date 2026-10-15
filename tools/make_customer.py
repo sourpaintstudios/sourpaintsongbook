@@ -329,10 +329,10 @@ sub1("    'uncategorized': 'No category yet'\n  };",
      "    'uncategorized': 'No category yet',\n    'public-domain': 'Chords included'\n  };")
 
 DISCLAIMER = "Songs in this starter library are traditional or public-domain works. Lyrics and chords are provided for reference and practice and may differ from other versions. Please verify accuracy before public or commercial performance where it matters."
-sub1("          body +\n        '</main>' +",
-     "          body +\n        '<p class=\"pd-note\">" + DISCLAIMER + "</p>' +\n        '</main>' +")
-sub1("          listHtml +\n        '</main>' +\n\n        deleteCategoryConfirmModalHtml() +",
-     "          listHtml +\n        '<p class=\"pd-note\">" + DISCLAIMER + "</p>' +\n        '</main>' +\n\n        deleteCategoryConfirmModalHtml() +")
+sub1("'<div id=\"browse-wrap\">' + body + '</div>' +\n        '</main>' +",
+     "'<div id=\"browse-wrap\">' + body + '</div>' +\n        '<p class=\"pd-note\">" + DISCLAIMER + "</p>' +\n        '</main>' +")
+sub1("'<div id=\"browse-wrap\">' + listHtml + '</div>' +\n        '</main>' +\n\n        deleteCategoryConfirmModalHtml() +",
+     "'<div id=\"browse-wrap\">' + listHtml + '</div>' +\n        '<p class=\"pd-note\">" + DISCLAIMER + "</p>' +\n        '</main>' +\n\n        deleteCategoryConfirmModalHtml() +")
 sub1("    'sourpaintstudios.com'\n  ];", "    '" + DISCLAIMER + "',\n    'sourpaintstudios.com'\n  ];")
 sub1("</style>\n</head>", ".pd-note { margin: 18px 4px 28px; font-size: 12px; line-height: 1.45; color: var(--text-dim); text-align: center; opacity: 0.85; }\n.home-tile[data-filter=\"public-domain\"] .home-tile-name, .home-tile[data-filter=\"public-domain\"] .home-tile-sub { display: none; }\n.home-tile[data-filter=\"public-domain\"] .home-tile-label { background: none; }\n.home-tile[data-filter=\"public-domain\"] .home-tile-count { color: #1C1C19; text-shadow: none; }\n</style>\n</head>")
 open(dest, 'w', encoding='utf-8').write(s)
