@@ -1130,6 +1130,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
 .screen-player.is-magicglass .lyrics-body .lyric-cue-row { padding-top: calc((var(--mz, 1.6) - 1) * 0.85em); padding-bottom: calc((var(--mz, 1.6) - 1) * 0.85em); }
 .screen-player.is-magicglass .lyrics-body .lyric-line:empty { padding: 0; }
 .magic-bar { display: flex; align-items: stretch; gap: 8px; padding: 6px 8px 4px; }
+.screen-player .magic-bar #magic-btn { flex: 2 1 0; font-size: 17px; }
 .screen-player .magic-bar .tray-chip { flex: 1 1 0; min-width: 0; height: 42px; padding: 0 8px; font-size: 15px; white-space: nowrap; }
 .screen-player .magic-bar #magic-zoom-btn { flex: 0 0 auto; padding: 0 12px; font-size: 13px; }
 @media (max-width: 370px) { .screen-player .magic-bar { gap: 5px; padding: 6px 5px 4px; } .screen-player .magic-bar .tray-chip { font-size: 13px; padding: 0 4px; } .screen-player .magic-bar #magic-zoom-btn { padding: 0 8px; font-size: 12px; } }
@@ -3053,12 +3054,11 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['Slower / Faster', 'Always on screen under the TAP and HOLD buttons. Press and hold to ramp the scroll speed down or up while it is scrolling or stopped. Reset zeroes the speed; Top jumps to the start of the song.'],
       ['Fader + BPM', 'Drag the fader or type a number to set scroll speed.'],
       ['A− / A+', 'Smaller or larger text.'],
-      ['Opening a song', 'Every time the app opens, songs start in Standard (STD) chord layout, in Fit (the expanded button, every line on screen), with Magic Glass and Karaoke off. Change any of it from the song screen; it resets next launch.'],
+      ['Opening a song', 'Every time the app opens, songs start in Standard (STD) chord layout, in Fit (the expanded button, every line on screen), with Magic Glass off. Change any of it from the song screen; it resets next launch.'],
       ['S / Fit / L', 'Three real text sizes. S is small, Fit is the biggest text that keeps every line on one row, L is larger than Fit (always at least 4 bigger). Tapping a button gives that size fresh, clearing any earlier A\u2212 / A+ or pinch change on it. A\u2212 / A+ and pinch still fine-tune from there.'],
       ['STD / SPS', 'Chord layout: STD puts chords above the line, SPS puts them beside the line.'],
       ['Reading colors, light/dark', 'Pick a color scheme or flip between light and dark.'],
-      ['Magic Glass (top buttons)', 'Lyrics scroll through a glowing reading strip. Coming lines are bright lemon, the line in the strip glows and grows, lines already sung fade to dark green. It follows your normal scroll speed (tap tempo, fader, Slower/Faster). Every lyric line grows as it crosses the strip, long and wrapped lines included (the text column is narrowed a little so nothing gets cut off). Tap Zoom (it appears beside Magic Glass when Magic Glass is on) to choose ×1.3, ×1.6 (default), ×1.9 or ×2.2 — the line in the strip is now much larger than its neighbors. The sun/moon button (in the ⋮ menu) switches Magic Glass and Karaoke between dark and light.'],
-      ['Karaoke (top buttons)', 'Lyrics scroll through the same reading strip. Upcoming lines are soft white, the line crossing the strip fills with yellow from left to right as it passes, and lines already sung turn dark green. It follows your normal scroll speed, no timing files needed. Magic Glass and Karaoke are separate options; turn either off to go back to plain scrolling.'],
+      ['Magic Glass (top buttons)', 'Lyrics scroll through a glowing reading strip. Coming lines are bright lemon, the line in the strip glows and grows, lines already sung fade to dark green. It follows your normal scroll speed (tap tempo, fader, Slower/Faster). Every lyric line grows as it crosses the strip, long and wrapped lines included (the text column is narrowed a little so nothing gets cut off). Tap Zoom (it appears beside Magic Glass when Magic Glass is on) to choose ×1.3, ×1.6 (default), ×1.9 or ×2.2 — the line in the strip is now much larger than its neighbors. The sun/moon button (in the ⋮ menu) switches Magic Glass between dark and light.'],
       ['Glass mode', 'Transparent lyrics over an art background.'],
       ['Art mode', 'Flip through Sour Paint Studios looks and lock one in.'],
       ['⋮ (three dots)', 'Opens the extra tools tray: art mode, reading colors, light/dark, glass mode, edit song, delete song. The top bar stays one thin row in every size.'],
@@ -5095,7 +5095,6 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
         '</header>' +
         '<div class="magic-bar" id="magic-bar">' +
             '<button class="tray-chip" id="magic-btn" data-action="toggle-magic-glass" title="Magic Glass: lyrics glow as they pass through a reading strip">&#10022; Magic Glass</button>' +
-            '<button class="tray-chip" id="karaoke-btn" data-action="toggle-karaoke" title="Karaoke: the line you are on fills in as it crosses the strip">&#9834; Karaoke</button>' +
             '<button class="tray-chip" id="magic-zoom-btn" data-action="cycle-magic-zoom" title="Reading-zone magnification" hidden>Zoom</button>' +
         '</div>' +
         '<div class="player-tools" id="player-tools" hidden>' +
@@ -7616,7 +7615,6 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     else if (action === 'open-song') { goPlayer(id); }
     else if (action === 'toggle-player-tools') { var pt = byId('player-tools'); if (pt) pt.hidden = !pt.hidden; }
     else if (action === 'toggle-magic-glass') { toggleMagicGlass(); }
-    else if (action === 'toggle-karaoke') { toggleKaraoke(); }
     else if (action === 'cycle-magic-zoom') { cycleMagicZoom(); }
     else if (action === 'edit-song') { openEditorDraft(id); goEditor(id); }
     else if (action === 'request-delete-song') { requestDeleteSong(id); }
@@ -7732,7 +7730,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 80';
+  var APP_VERSION_LABEL = 'Version 81';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
