@@ -4047,6 +4047,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   function matchesLibraryFilter(s, filterId) {
     if (filterId === 'all') return true;
     if (filterId === 'favorites') return !!s.favorite;
+    if (filterId.indexOf('fav:') === 0) return !!s.favorite && s.favFolder === filterId.slice(4);
     // A song whose category was deleted counts as Uncategorized, so it can
     // never end up invisible outside the All tab.
     if (filterId === 'uncategorized') return !isKnownCategory(s.category);
@@ -4054,6 +4055,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   }
   function libraryTabDefs() {
     return [{ id: 'all', label: 'All' }, { id: 'favorites', label: 'Favorites' }]
+      .concat(favFolders().map(function (f) { return { id: 'fav:' + f.id, label: f.name }; }))
       .concat(allCategories().map(function (c) { return { id: c.id, label: c.tabLabel }; }))
       .concat([{ id: 'uncategorized', label: 'Uncategorized' }]);
   }
@@ -4298,7 +4300,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['Opening intro', 'A 10-second animated intro plays when the app opens. Tap "Tap to skip" to jump past it, or "Tap for sound" to replay it with audio.'],
       ['Search', 'Type in the Search box at the top of Home or any song list to find a song across every category at once. It matches the title, artist, key, category and words from the lyrics, and filters as you type. Tap the x to clear it.'],
       ['Category tiles', 'Tap a tile to open that group of songs.'],
-      ['Favorites', 'The pink Favorites tile is your own short list: every song you have hearted, from any category. Heart the songs you reach for most so you never scroll through the full library.'],
+      ['Favorites', 'Tap the heart on any song. The first favorite goes into a pink Favorites folder on Home. After that, every new favorite asks where it belongs: pick a folder you already have, or type a name to start a new one (Hymns, Gig songs, Bedtime...). Each folder gets its own pink tile on Home. Open a folder and use the pencil to rename it or the trash to delete it (the songs stay in your songbook). Tap a filled heart again to remove a song from Favorites.'],
       ['Public Domain Songs', 'The Public Domain Songs tile holds 114 copyright-free songs with chords (hymns, folk, cowboy, spirituals, sea shanties, parlor songs, holiday carols). Chords and lyrics are for reference and may differ from other versions. Edit or delete any of them like your own songs.'],
 
       ['Add song', 'Type, paste, or import lyrics. Put chords in [brackets] like [G] or [Am7].'],
@@ -4309,7 +4311,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     ]},
     { h: 'Song cards', items: [
       ['Tap a card', 'Opens the song in the stage player.'],
-      ['Heart', 'Tap the heart on a song card (or in the player, beside Magic Glass) to make it a favorite. Tap again to remove it.'],
+      ['Heart', 'Tap the heart on a song card (or in the player, beside Magic Glass) to make it a favorite and choose its favorites folder. Tap a filled heart to remove it.'],
       ['Palette / folder / pencil / trash', 'Color the card, move it to a category, edit it, or delete it.']
     ]},
     { h: 'Stage player', items: [
@@ -4432,6 +4434,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     var pal = getArtPalette((state.settings.categoryColors || {})[id]);
     if (pal) return [pal.accent, pal.dark];
     if (HOME_TILE_DEFAULT_COLORS[id]) return HOME_TILE_DEFAULT_COLORS[id];
+    if (id.indexOf('fav:') === 0) return HOME_TILE_DEFAULT_COLORS.favorites;
     var h = 0;
     for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
     return HOME_TILE_FALLBACK[h % HOME_TILE_FALLBACK.length];
@@ -4475,7 +4478,9 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     var defs = orderedCategories().map(function (c) { return { id: c.id, label: c.tabLabel || c.label }; });
     var uncategorized = state.songs.filter(function (s) { return matchesLibraryFilter(s, 'uncategorized'); }).length;
     if (uncategorized > 0) defs.push({ id: 'uncategorized', label: 'Uncategorized' });
-    defs.push({ id: 'favorites', label: 'Favorites' });
+    var ff = favFolders();
+    if (ff.length === 0) defs.push({ id: 'favorites', label: 'Favorites' });
+    else ff.forEach(function (f) { defs.push({ id: 'fav:' + f.id, label: f.name, sub: 'Your picks' }); });
     defs.push({ id: 'all', label: 'All songs' });
     defs.forEach(function (d) {
       d.count = state.songs.filter(function (s) { return matchesLibraryFilter(s, d.id); }).length;
@@ -4504,7 +4509,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
         var label =
           '<span class="home-tile-label">' +
             '<span class="home-tile-name">' + escapeHtml(t.label) + '</span>' +
-            (HOME_TILE_SUBTITLES[t.id] ? '<span class="home-tile-sub">' + HOME_TILE_SUBTITLES[t.id] + '</span>' : '') +
+            ((t.sub || HOME_TILE_SUBTITLES[t.id]) ? '<span class="home-tile-sub">' + escapeHtml(t.sub || HOME_TILE_SUBTITLES[t.id]) + '</span>' : '') +
             '<span class="home-tile-count" aria-label="' + t.count + (t.count === 1 ? ' song' : ' songs') + '">' + t.count + '</span>' +
           '</span>';
         if (arrangeMode) {
@@ -4575,7 +4580,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     tabs.forEach(function (t) { t.count = allSongs.filter(function (s) { return matchesLibraryFilter(s, t.id); }).length; });
     var filter = state.settings.libraryFilter || 'all';
     if (!tabs.some(function (t) { return t.id === filter; })) filter = 'all';
-    var filterTitle = filter === 'all' ? 'All songs' : (filter === 'favorites' ? 'Favorites' : (filter === 'uncategorized' ? 'Uncategorized' : categoryLabel(filter)));
+    var filterTitle = filter === 'all' ? 'All songs' : (filter === 'favorites' ? 'Favorites' : (filter.indexOf('fav:') === 0 ? (favFolderName(filter.slice(4)) || 'Favorites') : (filter === 'uncategorized' ? 'Uncategorized' : categoryLabel(filter))));
 
     var songs = allSongs.filter(function (s) { return matchesLibraryFilter(s, filter); });
     var filterColors = tileColorsFor(filter);
@@ -4621,6 +4626,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
             '</h1>' +
             '<div class="library-heading-actions">' +
               (filter !== 'all' ? '<button class="btn btn-ghost btn-sm" type="button" data-action="open-category-color-picker" data-catid="' + filter + '">' + paletteSvg(16) + ' Color category</button>' : '') +
+              (filter.indexOf('fav:') === 0 ? '<button class="icon-btn" type="button" data-action="rename-fav-folder" data-folder="' + filter.slice(4) + '" aria-label="Rename this favorites folder" title="Rename folder">' + pencilSvg() + '</button><button class="icon-btn icon-btn-danger" type="button" data-action="delete-fav-folder" data-folder="' + filter.slice(4) + '" aria-label="Delete this favorites folder" title="Delete folder">' + trashSvg() + '</button>' : '') +
               (isKnownCategory(filter) ? '<button class="icon-btn" type="button" data-action="edit-category" data-catid="' + filter + '" aria-label="Edit this category: name and picture" title="Edit category">' + pencilSvg() + '</button>' : '') +
               (isKnownCategory(filter) ? '<button class="icon-btn icon-btn-danger" type="button" data-action="request-delete-category" data-catid="' + filter + '" aria-label="Delete this category" title="Delete category">' + trashSvg() + '</button>' : '') +
               '<button class="btn btn-primary" data-action="new-song">' + plusSvg() + ' Add song</button>' +
@@ -7470,6 +7476,156 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">' + paths + '</svg>';
   }
   function plusSvg(size) { return svg('<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>', size || 18); }
+  /* ---------- Favorites folders ----------
+     Each favorite lives in one favorites folder (settings.favFolders). The
+     first favorite goes into "Favorites" automatically; after that, every
+     new favorite asks which folder it belongs in, or to make a new one. */
+  function favFolders() {
+    var st = state.settings;
+    if (!st.favFolders) st.favFolders = [];
+    // Hearts saved before folders existed (no folder, or a deleted one) go
+    // into a default "Favorites" folder.
+    var orphan = false;
+    for (var i = 0; i < state.songs.length; i++) {
+      var sg = state.songs[i];
+      if (sg.favorite && !favFolderName(sg.favFolder)) { orphan = true; break; }
+    }
+    if (orphan) {
+      var def = null;
+      for (var j = 0; j < st.favFolders.length; j++) if (st.favFolders[j].id === 'fav-default') def = st.favFolders[j];
+      if (!def) { def = { id: 'fav-default', name: 'Favorites' }; st.favFolders.unshift(def); }
+      state.songs.forEach(function (x) { if (x.favorite && !favFolderName(x.favFolder)) x.favFolder = def.id; });
+      persist();
+    }
+    return st.favFolders;
+  }
+  function favFolderName(id) {
+    var list = (state.settings.favFolders || []);
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i].name;
+    return null;
+  }
+  function favFolderCount(id) {
+    return state.songs.filter(function (x) { return x.favorite && x.favFolder === id; }).length;
+  }
+  function afterFavChange(songId, message) {
+    persist();
+    if (view.name === 'player') {
+      var fs = findSong(songId);
+      var fb = byId('fav-btn');
+      if (fb && fs) { fb.classList.toggle('is-fav', !!fs.favorite); fb.innerHTML = heartSvg(20, !!fs.favorite); }
+    } else {
+      render();
+    }
+    if (message) toast(message);
+  }
+  function toggleFavorite(songId) {
+    var sg = findSong(songId);
+    if (!sg) return;
+    if (sg.favorite) {
+      sg.favorite = false; sg.favFolder = null;
+      afterFavChange(songId, 'Removed from Favorites.');
+      return;
+    }
+    var folders = favFolders();
+    if (folders.length === 0) {
+      folders.push({ id: 'fav-default', name: 'Favorites' });
+      sg.favorite = true; sg.favFolder = 'fav-default';
+      afterFavChange(songId, 'Added to Favorites.');
+      return;
+    }
+    showFavModal('pick', { songId: songId });
+  }
+  var favModalCtx = null;
+  function ensureFavModal() {
+    var m = byId('fav-modal');
+    if (m) return m;
+    m = document.createElement('div');
+    m.className = 'modal-backdrop';
+    m.id = 'fav-modal';
+    m.hidden = true;
+    document.body.appendChild(m);
+    return m;
+  }
+  function showFavModal(mode, ctx) {
+    favModalCtx = { mode: mode, ctx: ctx || {} };
+    var m = ensureFavModal();
+    var html = '<div class="modal-card">';
+    if (mode === 'pick') {
+      var sg = findSong(ctx.songId);
+      html += '<h2>Add to favorites</h2><p>Where should &ldquo;' + escapeHtml(sg ? sg.title : '') + '&rdquo; go?</p><div class="move-cat-list">' +
+        favFolders().map(function (f) {
+          return '<button type="button" class="move-cat-btn" data-action="fav-pick-folder" data-folder="' + f.id + '"><span>' + escapeHtml(f.name) + '</span><span>' + favFolderCount(f.id) + '</span></button>';
+        }).join('') + '</div>' +
+        '<p>Or start a new favorites folder for a different kind of favorite:</p>' +
+        '<input type="text" id="fav-name-input" class="name-prompt-input" placeholder="New folder name (e.g. Hymns, Bedtime, Gig songs)" />' +
+        '<div class="modal-actions"><button class="btn btn-ghost" data-action="fav-modal-cancel">Cancel</button>' +
+        '<button class="btn btn-primary" data-action="fav-create-folder">New folder</button></div>';
+    } else if (mode === 'rename') {
+      html += '<h2>Rename folder</h2><input type="text" id="fav-name-input" class="name-prompt-input" placeholder="Folder name" />' +
+        '<div class="modal-actions"><button class="btn btn-ghost" data-action="fav-modal-cancel">Cancel</button>' +
+        '<button class="btn btn-primary" data-action="fav-rename-save">Save</button></div>';
+    } else if (mode === 'delete') {
+      html += '<h2>Delete this folder?</h2><p>&ldquo;' + escapeHtml(favFolderName(ctx.folderId) || '') + '&rdquo; goes away and its songs are removed from Favorites. The songs themselves stay in your songbook.</p>' +
+        '<div class="modal-actions"><button class="btn btn-ghost" data-action="fav-modal-cancel">Cancel</button>' +
+        '<button class="btn btn-danger" data-action="fav-delete-confirm">Delete folder</button></div>';
+    }
+    html += '</div>';
+    m.innerHTML = html;
+    m.hidden = false;
+    var input = byId('fav-name-input');
+    if (input) {
+      if (mode === 'rename') input.value = favFolderName(ctx.folderId) || '';
+      input.onkeydown = function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); if (mode === 'rename') favRenameSave(); else favCreateFolder(); }
+      };
+      if (mode === 'rename') setTimeout(function () { input.focus(); input.select(); }, 50);
+    }
+  }
+  function closeFavModal() {
+    favModalCtx = null;
+    var m = byId('fav-modal');
+    if (m) m.hidden = true;
+  }
+  function favPickFolder(folderId) {
+    if (!favModalCtx || favModalCtx.mode !== 'pick') return;
+    var sg = findSong(favModalCtx.ctx.songId);
+    var id = favModalCtx.ctx.songId;
+    if (!sg || !favFolderName(folderId)) { closeFavModal(); return; }
+    sg.favorite = true; sg.favFolder = folderId;
+    var nm = favFolderName(folderId);
+    closeFavModal();
+    afterFavChange(id, 'Added to ' + nm + '.');
+  }
+  function favCreateFolder() {
+    if (!favModalCtx || favModalCtx.mode !== 'pick') return;
+    var input = byId('fav-name-input');
+    var name = input ? input.value.trim() : '';
+    if (!name) { if (input) input.focus(); return; }
+    var id = 'fav-' + uid();
+    favFolders().push({ id: id, name: name });
+    favPickFolder(id);
+  }
+  function favRenameSave() {
+    if (!favModalCtx || favModalCtx.mode !== 'rename') return;
+    var input = byId('fav-name-input');
+    var name = input ? input.value.trim() : '';
+    var fid = favModalCtx.ctx.folderId;
+    if (!name) { closeFavModal(); return; }
+    favFolders().forEach(function (f) { if (f.id === fid) f.name = name; });
+    closeFavModal();
+    persist();
+    render();
+  }
+  function favDeleteConfirm() {
+    if (!favModalCtx || favModalCtx.mode !== 'delete') return;
+    var fid = favModalCtx.ctx.folderId;
+    state.songs.forEach(function (x) { if (x.favFolder === fid) { x.favorite = false; x.favFolder = null; } });
+    state.settings.favFolders = favFolders().filter(function (f) { return f.id !== fid; });
+    if (state.settings.libraryFilter === 'fav:' + fid) state.settings.libraryFilter = 'all';
+    closeFavModal();
+    persist();
+    goHome();
+  }
   function heartSvg(size, filled) { return svg('<path d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.6 3.8 4.5 7 4.5c1.9 0 3.5 1 5 3 1.5-2 3.1-3 5-3 3.2 0 5.4 3.1 4.2 6.6-1.7 4.8-9.2 9.4-9.2 9.4z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" fill="' + (filled ? 'currentColor' : 'none') + '"/>', size); }
   function pencilSvg(size) { return svg('<path d="M4 20l1-4L16 5l3 3L8 19l-4 1z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>', size); }
   function trashSvg(size) { return svg('<path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>', size); }
@@ -8853,21 +9009,14 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     var action = el.getAttribute('data-action');
     var id = el.getAttribute('data-id');
 
-    if (action === 'toggle-favorite') {
-      var fs = findSong(id);
-      if (fs) {
-        fs.favorite = !fs.favorite;
-        persist();
-        if (view.name === 'player') {
-          var fb = byId('fav-btn');
-          if (fb) { fb.classList.toggle('is-fav', !!fs.favorite); fb.innerHTML = heartSvg(20, !!fs.favorite); }
-          toast(fs.favorite ? 'Added to Favorites.' : 'Removed from Favorites.');
-        } else {
-          render();
-        }
-      }
-      return;
-    }
+    if (action === 'toggle-favorite') { toggleFavorite(id); return; }
+    if (action === 'fav-pick-folder') { favPickFolder(el.getAttribute('data-folder')); return; }
+    if (action === 'fav-create-folder') { favCreateFolder(); return; }
+    if (action === 'fav-modal-cancel') { closeFavModal(); return; }
+    if (action === 'fav-rename-save') { favRenameSave(); return; }
+    if (action === 'fav-delete-confirm') { favDeleteConfirm(); return; }
+    if (action === 'rename-fav-folder') { showFavModal('rename', { folderId: el.getAttribute('data-folder') }); return; }
+    if (action === 'delete-fav-folder') { showFavModal('delete', { folderId: el.getAttribute('data-folder') }); return; }
 
     if (action === 'clear-search') {
       searchQuery = '';
@@ -9022,7 +9171,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 83';
+  var APP_VERSION_LABEL = 'Version 84';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
