@@ -321,11 +321,12 @@ s = re.sub(r"var APP_VERSION_LABEL = 'Version (\d+)';", lambda m: "var APP_VERSI
 sub1("    { h: 'Home', items: [\n",
 ("    { h: 'Starter library', items: [\n      ['Built-in songs', 'This starter songbook comes with @@N@@ public-domain songs (hymns, folk, cowboy, spirituals, sea shanties, parlor songs, holiday carols) with chords. Open All songs to see them. Edit or delete any of them, and add your own with Add song.'],\n      ['Start your setlist', 'Tap New category or Start your setlist here to make your own groups. Use Song lists to build a gig order.']\n    ]},\n    { h: 'Home', items: [\n").replace('@@N@@', str(len(SONGS))))
 
-sub1("    'covers': { src: 'covers.jpg', focus: 'center 35%' }\n  };",
+ALREADY_PD = "'public-domain': { src:" in s
+if not ALREADY_PD: sub1("    'covers': { src: 'covers.jpg', focus: 'center 35%' }\n  };",
      "    'covers': { src: 'covers.jpg', focus: 'center 35%' },\n    'public-domain': { src: 'public-domain.jpg', focus: 'center 22%' }\n  };")
-sub1("    'uncategorized': ['#8A8A80', '#1C1C19']\n  };",
+if not ALREADY_PD: sub1("    'uncategorized': ['#8A8A80', '#1C1C19']\n  };",
      "    'uncategorized': ['#8A8A80', '#1C1C19'],\n    'public-domain': ['#93D83E', '#1C2A10']\n  };")
-sub1("    'uncategorized': 'No category yet'\n  };",
+if not ALREADY_PD: sub1("    'uncategorized': 'No category yet'\n  };",
      "    'uncategorized': 'No category yet',\n    'public-domain': 'Chords included'\n  };")
 
 DISCLAIMER = "Songs in this starter library are traditional or public-domain works. Lyrics and chords are provided for reference and practice and may differ from other versions. Please verify accuracy before public or commercial performance where it matters."

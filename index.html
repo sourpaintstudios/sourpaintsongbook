@@ -1530,6 +1530,9 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
 .paint-finish { height: 38px; font-size: 13px; opacity: 0.85; }
 .paint-row { display: flex; gap: 10px; align-items: center; justify-content: center; width: 100%; }
 .paint-row .paint-big { width: auto; flex: 1; max-width: 220px; }
+.home-tile[data-filter="public-domain"] .home-tile-name, .home-tile[data-filter="public-domain"] .home-tile-sub { display: none; }
+.home-tile[data-filter="public-domain"] .home-tile-label { background: none; }
+.home-tile[data-filter="public-domain"] .home-tile-count { color: #1C1C19; text-shadow: none; }
 .pd-note { margin: 18px 4px 28px; font-size: 12px; line-height: 1.45; color: var(--text-dim); text-align: center; opacity: 0.85; }
 .home-tile[data-filter="public-domain"] .home-tile-name, .home-tile[data-filter="public-domain"] .home-tile-sub { display: none; }
 .home-tile[data-filter="public-domain"] .home-tile-label { background: none; }
@@ -3981,6 +3984,8 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['Opening intro', 'A 10-second animated intro plays when the app opens. Tap "Tap to skip" to jump past it, or "Tap for sound" to replay it with audio.'],
       ['Search', 'Type in the Search box at the top of Home or any song list to find a song across every category at once. It matches the title, artist, key, category and words from the lyrics, and filters as you type. Tap the x to clear it.'],
       ['Category tiles', 'Tap a tile to open that group of songs.'],
+      ['Public Domain Songs', 'The Public Domain Songs tile holds 114 copyright-free songs with chords (hymns, folk, cowboy, spirituals, sea shanties, parlor songs, holiday carols). Chords and lyrics are for reference and may differ from other versions. Edit or delete any of them like your own songs.'],
+
       ['Add song', 'Type, paste, or import lyrics. Put chords in [brackets] like [G] or [Am7].'],
       ['Paint', 'Play guitar into the mic and watch it paint a picture live. Save it as an image or a time-lapse video.'],
       ['Tuner', 'Chromatic and alternate-tuning guitar tuner with a neon needle.'],
@@ -8694,7 +8699,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Songbook Starter 81';
+  var APP_VERSION_LABEL = 'Songbook Starter 82';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
