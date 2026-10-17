@@ -289,6 +289,8 @@ button {
 .song-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; }
 .song-card-top h3 { font-size: 14.5px; font-weight: 700; line-height: 1.25; }
 .song-card-artist { margin: 1px 0 0; font-size: 11.5px; color: var(--text-dim); }
+.fav-btn.is-fav, .fav-chip.is-fav { color: #ff5c8a; }
+.screen-player .magic-bar .tray-chip.fav-chip { flex: 0 0 46px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
 .song-card-menu { display: flex; gap: 3px; flex-shrink: 0; }
 .song-card-menu .icon-btn { width: 25px; height: 25px; }
 .song-card-preview {
@@ -3967,6 +3969,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
             '<div class="song-card-top">' +
               '<h3>' + escapeHtml(s.title || 'Untitled') + '</h3>' +
               '<div class="song-card-menu">' +
+                '<button class="icon-btn fav-btn' + (s.favorite ? ' is-fav' : '') + '" data-action="toggle-favorite" data-id="' + s.id + '" aria-pressed="' + (s.favorite ? 'true' : 'false') + '" aria-label="' + (s.favorite ? 'Remove ' : 'Add ') + escapeHtml(s.title) + (s.favorite ? ' from favorites' : ' to favorites') + '" title="Favorite">' + heartSvg(14, !!s.favorite) + '</button>' +
                 '<button class="icon-btn" data-action="open-color-picker" data-id="' + s.id + '" aria-label="Set color for ' + escapeHtml(s.title) + '" title="Color">' + paletteSvg(14) + '</button>' +
                 '<button class="icon-btn" data-action="move-song" data-id="' + s.id + '" aria-label="Move ' + escapeHtml(s.title) + ' to a category" title="Move to category">' + folderSvg(14) + '</button>' +
                 '<button class="icon-btn" data-action="edit-song" data-id="' + s.id + '" aria-label="Edit ' + escapeHtml(s.title) + '" title="Edit">' + pencilSvg(14) + '</button>' +
@@ -4043,13 +4046,14 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   // song stays exactly where it was tagged; the tab just narrows the view.
   function matchesLibraryFilter(s, filterId) {
     if (filterId === 'all') return true;
+    if (filterId === 'favorites') return !!s.favorite;
     // A song whose category was deleted counts as Uncategorized, so it can
     // never end up invisible outside the All tab.
     if (filterId === 'uncategorized') return !isKnownCategory(s.category);
     return s.category === filterId;
   }
   function libraryTabDefs() {
-    return [{ id: 'all', label: 'All' }]
+    return [{ id: 'all', label: 'All' }, { id: 'favorites', label: 'Favorites' }]
       .concat(allCategories().map(function (c) { return { id: c.id, label: c.tabLabel }; }))
       .concat([{ id: 'uncategorized', label: 'Uncategorized' }]);
   }
@@ -4294,6 +4298,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['Opening intro', 'A 10-second animated intro plays when the app opens. Tap "Tap to skip" to jump past it, or "Tap for sound" to replay it with audio.'],
       ['Search', 'Type in the Search box at the top of Home or any song list to find a song across every category at once. It matches the title, artist, key, category and words from the lyrics, and filters as you type. Tap the x to clear it.'],
       ['Category tiles', 'Tap a tile to open that group of songs.'],
+      ['Favorites', 'The pink Favorites tile is your own short list: every song you have hearted, from any category. Heart the songs you reach for most so you never scroll through the full library.'],
       ['Public Domain Songs', 'The Public Domain Songs tile holds 114 copyright-free songs with chords (hymns, folk, cowboy, spirituals, sea shanties, parlor songs, holiday carols). Chords and lyrics are for reference and may differ from other versions. Edit or delete any of them like your own songs.'],
 
       ['Add song', 'Type, paste, or import lyrics. Put chords in [brackets] like [G] or [Am7].'],
@@ -4304,6 +4309,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     ]},
     { h: 'Song cards', items: [
       ['Tap a card', 'Opens the song in the stage player.'],
+      ['Heart', 'Tap the heart on a song card (or in the player, beside Magic Glass) to make it a favorite. Tap again to remove it.'],
       ['Palette / folder / pencil / trash', 'Color the card, move it to a category, edit it, or delete it.']
     ]},
     { h: 'Stage player', items: [
@@ -4411,6 +4417,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   }
   var HOME_TILE_DEFAULT_COLORS = {
     'all': ['#93D83E', '#1C2A10'],
+    'favorites': ['#E8527F', '#2A0E1A'],
     'daniel-lee-originals': ['#F0A030', '#2A1A08'],
     'jailhouse-payback': ['#E07AAE', '#2A1020'],
     'covers': ['#3E8FC4', '#0E1C2A'],
@@ -4433,6 +4440,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   // Lee" layout Daniel picked). Custom categories just show the name.
   var HOME_TILE_SUBTITLES = {
     'all': 'Every song',
+    'favorites': 'Your picks',
     'daniel-lee-originals': 'Daniel Lee',
     'jailhouse-payback': 'Band originals',
     'covers': 'Other writers',
@@ -4467,6 +4475,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     var defs = orderedCategories().map(function (c) { return { id: c.id, label: c.tabLabel || c.label }; });
     var uncategorized = state.songs.filter(function (s) { return matchesLibraryFilter(s, 'uncategorized'); }).length;
     if (uncategorized > 0) defs.push({ id: 'uncategorized', label: 'Uncategorized' });
+    defs.push({ id: 'favorites', label: 'Favorites' });
     defs.push({ id: 'all', label: 'All songs' });
     defs.forEach(function (d) {
       d.count = state.songs.filter(function (s) { return matchesLibraryFilter(s, d.id); }).length;
@@ -4566,7 +4575,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     tabs.forEach(function (t) { t.count = allSongs.filter(function (s) { return matchesLibraryFilter(s, t.id); }).length; });
     var filter = state.settings.libraryFilter || 'all';
     if (!tabs.some(function (t) { return t.id === filter; })) filter = 'all';
-    var filterTitle = filter === 'all' ? 'All songs' : (filter === 'uncategorized' ? 'Uncategorized' : categoryLabel(filter));
+    var filterTitle = filter === 'all' ? 'All songs' : (filter === 'favorites' ? 'Favorites' : (filter === 'uncategorized' ? 'Uncategorized' : categoryLabel(filter)));
 
     var songs = allSongs.filter(function (s) { return matchesLibraryFilter(s, filter); });
     var filterColors = tileColorsFor(filter);
@@ -4581,7 +4590,9 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
           '<button class="btn btn-primary btn-lg" data-action="new-song">Add your first song</button>' +
         '</div>';
     } else if (songs.length === 0) {
-      listHtml = '<div class="empty-state"><p>No songs in ' + escapeHtml(filterTitle) + ' yet.</p>' +
+      listHtml = filter === 'favorites' ?
+        '<div class="empty-state"><p>No favorites yet. Tap the heart on any song, or in the player, to add it here.</p></div>' :
+        '<div class="empty-state"><p>No songs in ' + escapeHtml(filterTitle) + ' yet.</p>' +
         '<button class="btn btn-primary" data-action="new-song">' + plusSvg() + ' Add song</button></div>';
     } else {
       listHtml = '<div class="song-grid">' + songs.map(function (x) { return songCardHtml(x); }).join('') + '</div>';
@@ -6358,6 +6369,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
         '</header>' +
         '<div class="magic-bar" id="magic-bar">' +
             '<button class="tray-chip" id="magic-btn" data-action="toggle-magic-glass" title="Magic Glass: lyrics glow as they pass through a reading strip">&#10022; Magic Glass</button>' +
+            '<button class="tray-chip fav-chip' + (findSong(view.songId) && findSong(view.songId).favorite ? ' is-fav' : '') + '" id="fav-btn" data-action="toggle-favorite" data-id="' + view.songId + '" aria-label="Favorite" title="Favorite">' + heartSvg(20, !!(findSong(view.songId) && findSong(view.songId).favorite)) + '</button>' +
             '<button class="tray-chip" id="magic-zoom-btn" data-action="cycle-magic-zoom" title="Reading-zone magnification" hidden>Zoom</button>' +
         '</div>' +
         '<div class="player-tools" id="player-tools" hidden>' +
@@ -7458,6 +7470,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">' + paths + '</svg>';
   }
   function plusSvg(size) { return svg('<path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>', size || 18); }
+  function heartSvg(size, filled) { return svg('<path d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.6 3.8 4.5 7 4.5c1.9 0 3.5 1 5 3 1.5-2 3.1-3 5-3 3.2 0 5.4 3.1 4.2 6.6-1.7 4.8-9.2 9.4-9.2 9.4z" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" fill="' + (filled ? 'currentColor' : 'none') + '"/>', size); }
   function pencilSvg(size) { return svg('<path d="M4 20l1-4L16 5l3 3L8 19l-4 1z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>', size); }
   function trashSvg(size) { return svg('<path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m-8 0l1 12a1 1 0 001 1h6a1 1 0 001-1l1-12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>', size); }
   function folderSvg(size) { return svg('<path d="M4 6a1 1 0 011-1h4.5l1.5 2H19a1 1 0 011 1v10a1 1 0 01-1 1H5a1 1 0 01-1-1V6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>', size); }
@@ -8840,6 +8853,22 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     var action = el.getAttribute('data-action');
     var id = el.getAttribute('data-id');
 
+    if (action === 'toggle-favorite') {
+      var fs = findSong(id);
+      if (fs) {
+        fs.favorite = !fs.favorite;
+        persist();
+        if (view.name === 'player') {
+          var fb = byId('fav-btn');
+          if (fb) { fb.classList.toggle('is-fav', !!fs.favorite); fb.innerHTML = heartSvg(20, !!fs.favorite); }
+          toast(fs.favorite ? 'Added to Favorites.' : 'Removed from Favorites.');
+        } else {
+          render();
+        }
+      }
+      return;
+    }
+
     if (action === 'clear-search') {
       searchQuery = '';
       var sb = document.getElementById('song-search'); if (sb) { sb.value = ''; sb.focus(); }
@@ -8993,7 +9022,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 82';
+  var APP_VERSION_LABEL = 'Version 83';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
