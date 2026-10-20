@@ -4338,7 +4338,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['Fader + BPM', 'Drag the fader or type a number to set scroll speed.'],
       ['A− / A+', 'Smaller or larger text.'],
       ['Opening a song', 'Every time the app opens, songs start in Standard (STD) chord layout, in Fit (the expanded button, every line on screen), with Magic Glass off. Change any of it from the song screen; it resets next launch.'],
-      ['XS / S / Fit / L / XL', 'Five real text sizes, smallest to largest. XS is tiny (fits very long songs), S is small, Fit is the biggest text that keeps every line on one row, L is larger than Fit, XL is the biggest. If one size does not suit a song, tap the next one. Tapping a button gives that size fresh, clearing any earlier A\u2212 / A+ or pinch change on it. A\u2212 / A+ and pinch still fine-tune from there.'],
+      ['S / Fit / L / XL', 'Four real text sizes, smallest to largest. S is small, Fit is the biggest text that keeps every line on one row, L is larger than Fit, XL is the biggest. If one size does not suit a song, tap another. Tapping a button gives that size fresh, clearing any earlier A\u2212 / A+ or pinch change on it. A\u2212 / A+ and pinch still fine-tune from there.'],
       ['STD / SPS', 'Chord layout: STD puts chords above the line, SPS puts them beside the line.'],
       ['Reading colors, light/dark', 'Pick a color scheme or flip between light and dark.'],
       ['Magic Glass (top buttons)', 'Lyrics scroll through a glowing reading strip. Coming lines are bright lemon, the line in the strip glows and grows, lines already sung fade to dark green. It follows your normal scroll speed (tap tempo, fader, Slower/Faster). Every lyric line grows as it crosses the strip, long and wrapped lines included (the text column is narrowed a little so nothing gets cut off). Tap Zoom (it appears beside Magic Glass when Magic Glass is on) to choose ×1.3, ×1.6 (default), ×1.9 or ×2.2 — the line in the strip is now much larger than its neighbors. The sun/moon button (in the ⋮ menu) switches Magic Glass between dark and light.'],
@@ -6380,7 +6380,6 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
             '<span class="font-size-readout" id="font-size-readout" aria-label="Text size"></span>' +
             '<button class="btn-layout-top" id="chord-layout-btn-top" data-action="toggle-chord-layout" aria-label="Toggle chord layout" title="Chord layout">Standard</button>' +
             '<div class="size-mode-group" role="group" aria-label="Lyrics size">' +
-              '<button class="size-mode-btn' + (sizeMode() === 'xs' ? ' size-mode-btn-active' : '') + '" data-action="set-size-mode" data-mode="xs" aria-label="Extra small size" title="Extra small">XS</button>' +
               '<button class="size-mode-btn' + (sizeMode() === 'compact' ? ' size-mode-btn-active' : '') + '" data-action="set-size-mode" data-mode="compact" aria-label="Compact size" title="Compact">S</button>' +
               '<button class="size-mode-btn' + (sizeMode() === 'fit' ? ' size-mode-btn-active' : '') + '" data-action="set-size-mode" data-mode="fit" aria-label="Fit to screen" title="Fit">' + fitScreenSvg(16) + '</button>' +
               '<button class="size-mode-btn' + (sizeMode() === 'large' ? ' size-mode-btn-active' : '') + '" data-action="set-size-mode" data-mode="large" aria-label="Large size" title="Large">L</button>' +
@@ -6696,12 +6695,11 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      pinching) nudge whichever preset is active without switching presets
      — each preset remembers its own nudge. Recomputed on resize/rotation
      and when a song opens. */
-  var SIZE_MODES = ['xs', 'compact', 'fit', 'large', 'xl'];
+  var SIZE_MODES = ['compact', 'fit', 'large', 'xl'];
   // Big modes use a plain font size (wraps normally); floor = Fit size + plus so the five buttons are always distinct.
   var BIG_MODES = { large: { key: 'lyricsFontSize', def: 26, plus: 4 }, xl: { key: 'xlFontSize', def: 40, plus: 16 } };
   var FIT_REF_SIZE = 20;
   var FIT_PRESETS = {
-    xs: { scale: 0.5, min: 7, max: 40 },
     compact: { scale: 0.7, min: 9, max: 50 },
     fit: { scale: 1, min: 14, max: 72 }
   };
@@ -6743,7 +6741,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       viewport.scrollTop = ratio * Math.max(0, viewport.scrollHeight - viewport.clientHeight);
     }
   }
-  function sizeMode() { return state.settings.sizeMode || 'fit'; }
+  function sizeMode() { var m = state.settings.sizeMode || 'fit'; return m === 'xs' ? 'compact' : m; }
   var fitBaseSize = null;
   var bigFloor = { large: 0, xl: 0 }; // Large is always at least 4px bigger than Fit, so the three buttons never look the same.
   var SIZE_RESET_V = 77;
@@ -6822,7 +6820,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     var screen = document.querySelector('.screen-player');
     if (screen) {
       screen.classList.add('is-stage');
-      screen.classList.toggle('is-size-compact', mode === 'compact' || mode === 'xs');
+      screen.classList.toggle('is-size-compact', mode === 'compact');
     }
   }
   function paintFontSizeReadout() {
@@ -9202,7 +9200,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 87';
+  var APP_VERSION_LABEL = 'Version 88';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
