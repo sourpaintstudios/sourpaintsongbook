@@ -3518,8 +3518,13 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       if (r.height < 2) continue;
       var range = document.createRange(); range.selectNodeContents(el);
       var tw = range.getBoundingClientRect().width || r.width;
-      items.push({ el: el, cy: (r.top + r.bottom) / 2 - br.top, w: tw, maxZoom: 3 });
+      var ecs = getComputedStyle(el);
+      var padH = (parseFloat(ecs.paddingTop) || 0) + (parseFloat(ecs.paddingBottom) || 0);
+      items.push({ el: el, cy: (r.top + r.bottom) / 2 - br.top, w: tw, maxZoom: 3, top: r.top - br.top, h: r.height, core: Math.max(1, r.height - padH), sc: 1, ty: 0 });
       hs += r.height; hn++;
+    }
+    for (var gi = 0; gi < items.length; gi++) {
+      items[gi].gap = gi + 1 < items.length ? items[gi + 1].top - (items[gi].top + items[gi].h) : 0;
     }
     magic.items = items;
     magic.lineH = hn ? hs / hn : 40;
@@ -3589,9 +3594,37 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       var s2 = it.el.style;
       s2.color = 'hsl(' + hue.toFixed(1) + ',' + sat.toFixed(0) + '%,' + lig.toFixed(1) + '%)';
       s2.opacity = op.toFixed(3);
+      it.sc = sc;
       s2.transformOrigin = 'left center';
-      s2.transform = sc > 1.002 ? 'scale(' + sc.toFixed(3) + ')' : '';
       s2.textShadow = glow > 0.03 ? '0 0 ' + (16 * p).toFixed(1) + 'px rgba(' + (magic.light ? '76,140,22' : '214,239,106') + ',' + glow.toFixed(2) + ')' : '';
+    }
+    // Never-overlap layout: stack the scaled lines so each keeps its own room, anchored at the strip.
+    var n = items.length;
+    if (n) {
+      var y0 = st + center, T = new Array(n + 1), Tc = 0, i2;
+      T[0] = items[0].top;
+      for (i2 = 0; i2 < n; i2++) {
+        var q = items[i2];
+        q.sh = Math.max(q.h, q.core * (1 + 1.1 * (q.sc - 1)));
+        q.T = T[i2];
+        T[i2 + 1] = T[i2] + q.sh + q.gap;
+      }
+      var Y = y0, m = -1;
+      for (i2 = 0; i2 < n; i2++) { if (items[i2].top <= y0) m = i2; else break; }
+      if (m < 0) Y = y0 + (T[0] - items[0].top);
+      else if (m === n - 1 && y0 >= items[m].top + items[m].h) Y = y0 + (T[n - 1] + items[m].sh - (items[m].top + items[m].h));
+      else {
+        var nxt = m + 1 < n ? items[m + 1].top : items[m].top + items[m].h + items[m].gap;
+        var span = Math.max(1, nxt - items[m].top);
+        Y = T[m] + magicClamp((y0 - items[m].top) / span, 0, 1) * (T[m + 1] - T[m]);
+      }
+      var C = y0 - Y;
+      for (i2 = 0; i2 < n; i2++) {
+        var w2 = items[i2];
+        var ty = (w2.T + w2.sh / 2 + C) - (w2.top + w2.h / 2);
+        var tr = (Math.abs(ty) > 0.05 ? 'translateY(' + ty.toFixed(2) + 'px) ' : '') + (w2.sc > 1.002 ? 'scale(' + w2.sc.toFixed(3) + ')' : '');
+        w2.el.style.transform = tr;
+      }
     }
     magic.raf = requestAnimationFrame(magicFrame);
   }
@@ -8895,7 +8928,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Songbook Starter 88';
+  var APP_VERSION_LABEL = 'Songbook Starter 89';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
