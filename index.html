@@ -724,6 +724,16 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
   margin: -8px 0 14px; line-height: 1.45;
 }
 
+/* Art-mode flip-through picker: a compact sheet with no dimming, so the whole screen previews live behind it */
+#art-wheel-modal:not([hidden]) { background: transparent; pointer-events: none; }
+#art-wheel-modal .modal-card { pointer-events: auto; padding: 14px 18px 16px; box-shadow: 0 -6px 24px rgba(0,0,0,0.45); border-top: 1.5px solid var(--green-bright); }
+#art-wheel-modal .modal-card h2 { font-size: 16px; margin-bottom: 2px; }
+#art-wheel-modal .art-wheel-sub { margin: 0 0 8px !important; font-size: 12.5px; }
+#art-wheel-modal .art-wheel-flipzone { margin-bottom: 8px; }
+#art-wheel-modal .art-wheel-flipcard { height: 70px; gap: 6px; }
+.art-wheel-status { margin: 0 0 8px !important; font-size: 13px !important; font-weight: 800; color: var(--text-dim); }
+.art-wheel-status.is-saved { color: var(--green-bright); }
+#art-wheel-modal .art-wheel-close { margin-top: 6px; height: 38px; }
 /* Art-mode flip-through picker */
 .art-wheel-card { padding-top: 24px; }
 .art-wheel-sub { margin-bottom: 18px !important; }
@@ -1134,11 +1144,11 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
 .screen-player.is-magicglass .lyrics-body .lyric-line,
 .screen-player.is-magicglass .lyrics-body .lyric-cue-row { padding-top: calc((var(--mz, 1.6) - 1) * 0.85em); padding-bottom: calc((var(--mz, 1.6) - 1) * 0.85em); }
 .screen-player.is-magicglass .lyrics-body .lyric-line:empty { padding: 0; }
-.magic-bar { display: flex; align-items: stretch; gap: 8px; padding: 6px 8px 4px; }
-.screen-player .magic-bar #magic-btn { flex: 2 1 0; font-size: 17px; }
-.screen-player .magic-bar .tray-chip { flex: 1 1 0; min-width: 0; height: 42px; padding: 0 8px; font-size: 15px; white-space: nowrap; }
-.screen-player .magic-bar #magic-zoom-btn, .screen-player .magic-bar #magic-size-btn { flex: 0 0 auto; padding: 0 9px; font-size: 12px; }
-@media (max-width: 370px) { .screen-player .magic-bar { gap: 5px; padding: 6px 5px 4px; } .screen-player .magic-bar .tray-chip { font-size: 13px; padding: 0 4px; } .screen-player .magic-bar #magic-zoom-btn { padding: 0 8px; font-size: 12px; } }
+.magic-bar { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; padding: 6px 8px 4px; }
+.screen-player .magic-bar #magic-btn { flex: 1 1 140px; min-width: 128px; font-size: 16px; }
+.screen-player .magic-bar .tray-chip { flex: 1 1 0; min-width: 0; height: 42px; padding: 0 8px; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.screen-player .magic-bar #magic-zoom-btn, .screen-player .magic-bar #magic-size-btn { flex: 1 1 40%; padding: 0 9px; font-size: 14px; }
+@media (max-width: 370px) { .screen-player .magic-bar { gap: 5px; padding: 6px 5px 4px; } .screen-player .magic-bar .tray-chip { font-size: 13px; padding: 0 4px; } .screen-player .magic-bar #magic-btn { min-width: 112px; font-size: 14px; } .screen-player .magic-bar .tray-chip.icon-chip { flex-basis: 40px; } }
 .tray-chip {
   height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line, rgba(243,241,232,0.2));
   background: transparent; color: inherit; font-weight: 800; font-size: 13px; cursor: pointer;
@@ -1808,6 +1818,12 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
            '<span style="background:' + p.light + '"></span>') :
           '<span class="art-wheel-swatch-default"></span>';
       }
+      var stEl = byId('art-wheel-status');
+      if (stEl) {
+        var saved = artWheelIndex === artWheelSavedIndex;
+        stEl.textContent = saved ? '\u2713 This is your saved look' : 'Previewing: tap Lock it in to keep this look';
+        stEl.classList.toggle('is-saved', saved);
+      }
       previewArtPalette(p ? p.id : null);
     }
 
@@ -1857,7 +1873,10 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     if (modal) modal.hidden = true;
   }
 
+  var artLiveId = null;
   function applyArtPalette(id) {
+    artLiveId = id || null;
+    try { if (document.getElementById('lyrics-viewport')) applyReadingMode(); } catch (e) {}
     var root = document.documentElement;
     if (!id) { root.style.removeProperty('--bg'); root.style.removeProperty('--bg-elevated');
       root.style.removeProperty('--text'); root.style.removeProperty('--text-dim');
@@ -6505,7 +6524,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
         '<div class="modal-backdrop" id="art-wheel-modal" hidden>' +
           '<div class="modal-card art-wheel-card">' +
             '<h2>Sour Paint Studios</h2>' +
-            '<p class="art-wheel-sub">Flip through and pick a look.</p>' +
+            '<p class="art-wheel-sub">Flip through: the whole screen previews each look live.</p>' +
             '<div class="art-wheel-flipzone">' +
               '<button type="button" class="icon-btn art-wheel-arrow" data-action="art-wheel-prev" aria-label="Previous look">' + chevronLeftSvg() + '</button>' +
               '<div class="art-wheel-card-frame">' +
@@ -6516,6 +6535,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
               '</div>' +
               '<button type="button" class="icon-btn art-wheel-arrow" data-action="art-wheel-next" aria-label="Next look">' + chevronRightSvg() + '</button>' +
             '</div>' +
+            '<p class="art-wheel-status" id="art-wheel-status"></p>' +
             '<div class="modal-actions art-wheel-actions">' +
               '<button class="btn btn-ghost" id="art-wheel-clear" data-action="art-wheel-clear">Default</button>' +
               '<button class="btn btn-primary" id="art-wheel-lock" data-action="art-wheel-lock">Lock it in</button>' +
@@ -6757,6 +6777,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     var mode = getReadingMode(state.settings.readingMode);
     var skin = songSkinPalette();
     if (skin && !readingOverride) mode = { bg: skin.dark, fg: skin.light, accent: skin.accent };
+    else if (artLiveId && !readingOverride && getArtPalette(artLiveId)) { var ap = getArtPalette(artLiveId); mode = { bg: ap.dark, fg: ap.light, accent: ap.accent }; }
     viewport.style.background = mode.bg;
     viewport.style.color = mode.fg;
     magic.light = isLightReadingMode(mode);
@@ -9430,7 +9451,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 92';
+  var APP_VERSION_LABEL = 'Version 93';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
