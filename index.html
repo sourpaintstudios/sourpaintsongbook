@@ -1137,7 +1137,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
 .magic-bar { display: flex; align-items: stretch; gap: 8px; padding: 6px 8px 4px; }
 .screen-player .magic-bar #magic-btn { flex: 2 1 0; font-size: 17px; }
 .screen-player .magic-bar .tray-chip { flex: 1 1 0; min-width: 0; height: 42px; padding: 0 8px; font-size: 15px; white-space: nowrap; }
-.screen-player .magic-bar #magic-zoom-btn { flex: 0 0 auto; padding: 0 12px; font-size: 13px; }
+.screen-player .magic-bar #magic-zoom-btn, .screen-player .magic-bar #magic-size-btn { flex: 0 0 auto; padding: 0 9px; font-size: 12px; }
 @media (max-width: 370px) { .screen-player .magic-bar { gap: 5px; padding: 6px 5px 4px; } .screen-player .magic-bar .tray-chip { font-size: 13px; padding: 0 4px; } .screen-player .magic-bar #magic-zoom-btn { padding: 0 8px; font-size: 12px; } }
 .tray-chip {
   height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line, rgba(243,241,232,0.2));
@@ -3473,6 +3473,9 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      through lime to dark hunter green. Rides on the normal scroll, so tap
      tempo / fader / Slower-Faster all drive it. No timestamps needed. */
   var MAGIC_ZOOMS = [1.3, 1.6, 1.9, 2.2];
+  var MAGIC_SIZES = [{ k: 0.7, n: 'S' }, { k: 1, n: 'M' }, { k: 1.45, n: 'L' }];
+  function magicSizeIdx() { var i = Number(state.settings.magicSize); return i >= 0 && i <= 2 && i === Math.floor(i) ? i : 1; }
+  function magicSizeK() { return MAGIC_SIZES[magicSizeIdx()].k; }
   var magic = { raf: 0, items: [], sig: '', lineH: 40, light: false };
   function magicOn() { return !!(state.settings.magicGlass || state.settings.karaoke); }
   function karaokeOn() { return !!state.settings.karaoke; }
@@ -3537,11 +3540,11 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     if (sig !== magic.sig) magicBuild();
     var H = vp.clientHeight, st = vp.scrollTop;
     var center = H * 0.36;
-    var sigma = Math.max(magic.lineH * 1.5, H * 0.1);
+    var sigma = Math.max(magic.lineH * 1.5, H * 0.1) * magicSizeK();
     var zoom = magicZoom();
     var strip = byId('magic-strip');
     if (strip) {
-      var h = Math.min(magic.lineH * zoom * 1.1, H * 0.34);
+      var h = Math.min(magic.lineH * zoom * 1.1 * magicSizeK(), H * 0.5);
       strip.style.height = Math.round(h) + 'px';
       strip.style.top = Math.round(center - h / 2) + 'px';
     }
@@ -3633,6 +3636,8 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     var kb = byId('karaoke-btn'); if (kb) kb.classList.toggle('is-on', karaokeOn());
     if (b) b.classList.toggle('is-on', !!state.settings.magicGlass);
     if (z) { z.hidden = !state.settings.magicGlass; z.textContent = 'Zoom \u00d7' + magicZoom().toFixed(1); }
+    var zs = byId('magic-size-btn');
+    if (zs) { zs.hidden = !state.settings.magicGlass; zs.textContent = 'Glass ' + MAGIC_SIZES[magicSizeIdx()].n; }
   }
   function magicInit() {
     magicStop(); magic.items = []; magic.sig = '';
@@ -3658,6 +3663,10 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     persist(); magicClear(); magicInit();
     if (!magicOn()) { applyReadingMode(); }
     toast(state.settings.karaoke ? 'Karaoke on.' : 'Karaoke off.');
+  }
+  function cycleMagicSize() {
+    state.settings.magicSize = (magicSizeIdx() + 1) % MAGIC_SIZES.length;
+    persist(); paintMagicButtons();
   }
   function cycleMagicZoom() {
     var cur = magicZoom(), idx = 0;
@@ -4053,7 +4062,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['S / Fit / L / XL', 'Four real text sizes, smallest to largest. S is small, Fit is the biggest text that keeps every line on one row, L is larger than Fit, XL is the biggest. If one size does not suit a song, tap another. Tapping a button gives that size fresh, clearing any earlier A\u2212 / A+ or pinch change on it. A\u2212 / A+ and pinch still fine-tune from there.'],
       ['STD / SPS', 'Chord layout: STD puts chords above the line, SPS puts them beside the line.'],
       ['Reading colors, light/dark', 'Pick a color scheme or flip between light and dark.'],
-      ['Magic Glass (top buttons)', 'Lyrics scroll through a glowing reading strip. Coming lines are bright lemon, the line in the strip glows and grows, lines already sung fade to dark green. It follows your normal scroll speed (tap tempo, fader, Slower/Faster). Every lyric line grows as it crosses the strip, long and wrapped lines included (the text column is narrowed a little so nothing gets cut off). Tap Zoom (it appears beside Magic Glass when Magic Glass is on) to choose ×1.3, ×1.6 (default), ×1.9 or ×2.2 — the line in the strip is now much larger than its neighbors. The sun/moon button (in the ⋮ menu) switches Magic Glass between dark and light.'],
+      ['Magic Glass (top buttons)', 'Lyrics scroll through a glowing reading strip. Coming lines are bright lemon, the line in the strip glows and grows, lines already sung fade to dark green. It follows your normal scroll speed (tap tempo, fader, Slower/Faster). Every lyric line grows as it crosses the strip, long and wrapped lines included (the text column is narrowed a little so nothing gets cut off). Tap Zoom (it appears beside Magic Glass when Magic Glass is on) to choose ×1.3, ×1.6 (default), ×1.9 or ×2.2 — the line in the strip is now much larger than its neighbors. Tap Glass to change the strip size: Glass S (slim, one line), Glass M (default) or Glass L (tall, several lines glow at once). The sun/moon button (in the ⋮ menu) switches Magic Glass between dark and light.'],
       ['Glass mode', 'Transparent lyrics over an art background.'],
       ['Art mode', 'Flip through Sour Paint Studios looks and lock one in.'],
       ['⋮ (three dots)', 'Opens the extra tools tray: art mode, reading colors, light/dark, glass mode, edit song, delete song. The top bar stays one thin row in every size.'],
@@ -6121,6 +6130,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
             '<button class="tray-chip" id="magic-btn" data-action="toggle-magic-glass" title="Magic Glass: lyrics glow as they pass through a reading strip">&#10022; Magic Glass</button>' +
             '<button class="tray-chip fav-chip' + (findSong(view.songId) && findSong(view.songId).favorite ? ' is-fav' : '') + '" id="fav-btn" data-action="toggle-favorite" data-id="' + view.songId + '" aria-label="Favorite" title="Favorite">' + heartSvg(20, !!(findSong(view.songId) && findSong(view.songId).favorite)) + '</button>' +
             '<button class="tray-chip" id="magic-zoom-btn" data-action="cycle-magic-zoom" title="Reading-zone magnification" hidden>Zoom</button>' +
+            '<button class="tray-chip" id="magic-size-btn" data-action="cycle-magic-size" title="Glass size: how tall the glowing strip is" hidden>Glass</button>' +
         '</div>' +
         '<div class="player-tools" id="player-tools" hidden>' +
             '<button class="btn-art-mode" data-action="open-art-wheel" aria-label="Sour Paint Studios art mode" title="Art mode">' + artModeSvg() + '</button>' +
@@ -8814,6 +8824,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     else if (action === 'toggle-player-tools') { var pt = byId('player-tools'); if (pt) pt.hidden = !pt.hidden; }
     else if (action === 'toggle-magic-glass') { toggleMagicGlass(); }
     else if (action === 'cycle-magic-zoom') { cycleMagicZoom(); }
+    else if (action === 'cycle-magic-size') { cycleMagicSize(); }
     else if (action === 'edit-song') { openEditorDraft(id); goEditor(id); }
     else if (action === 'request-delete-song') { requestDeleteSong(id); }
     else if (action === 'set-library-filter') { goCategory(el.getAttribute('data-filter')); }
@@ -8928,7 +8939,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Songbook Starter 89';
+  var APP_VERSION_LABEL = 'Songbook Starter 90';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
