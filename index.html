@@ -1079,7 +1079,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
 .screen-player .btn-fontsize-top { width: 34px; height: 34px; flex: 0 0 34px; }
 .screen-player .btn-layout-top { height: 34px; padding: 0 9px; font-size: 11px; }
 .screen-player .size-mode-group { height: 34px; }
-.screen-player .size-mode-btn { width: 30px; }
+.screen-player .size-mode-btn { width: 26px; font-size: 11px; }
 .screen-player .font-size-readout { min-width: 22px; font-size: 13px; }
 .screen-player.is-stage .topbar-player-row1 { flex: 1 1 0; min-width: 34px; }
 .screen-player .player-tools { padding: 4px 8px 6px; gap: 8px; }
@@ -1103,7 +1103,7 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
   .screen-player .topbar-player .icon-btn, .screen-player .btn-fontsize-top { width: 30px; height: 30px; flex: 0 0 30px; }
   .screen-player .btn-layout-top { height: 30px; padding: 0 6px; font-size: 10px; }
   .screen-player .size-mode-group { height: 30px; }
-  .screen-player .size-mode-btn { width: 26px; }
+  .screen-player .size-mode-btn { width: 22px; font-size: 10px; }
   .screen-player .font-size-readout { min-width: 18px; font-size: 12px; }
 }
 /* ---------- Magic Glass scroll mode ---------- */
@@ -3500,7 +3500,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       var extra = Math.max(0, (body.clientWidth - 2 * pl) * (1 - 1 / magicZoom()));
       body.style.paddingRight = (pl + extra).toFixed(1) + 'px';
     }
-    if (sizeMode() !== 'large') applyFontSize();
+    if (!BIG_MODES[sizeMode()]) applyFontSize();
   }
   function magicSig(body) { return body.scrollHeight + 'x' + body.clientWidth + 'x' + body.style.paddingRight + 'x' + (state.settings.sizeMode || '') + (state.settings.chordLayout || '') + (state.settings.fontSize || ''); }
   function magicBuild() {
@@ -4017,7 +4017,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['Fader + BPM', 'Drag the fader or type a number to set scroll speed.'],
       ['A− / A+', 'Smaller or larger text.'],
       ['Opening a song', 'Every time the app opens, songs start in Standard (STD) chord layout, in Fit (the expanded button, every line on screen), with Magic Glass off. Change any of it from the song screen; it resets next launch.'],
-      ['S / Fit / L', 'Three real text sizes. S is small, Fit is the biggest text that keeps every line on one row, L is larger than Fit (always at least 4 bigger). Tapping a button gives that size fresh, clearing any earlier A\u2212 / A+ or pinch change on it. A\u2212 / A+ and pinch still fine-tune from there.'],
+      ['XS / S / Fit / L / XL', 'Five real text sizes, smallest to largest. XS is tiny (fits very long songs), S is small, Fit is the biggest text that keeps every line on one row, L is larger than Fit, XL is the biggest. If one size does not suit a song, tap the next one. Tapping a button gives that size fresh, clearing any earlier A\u2212 / A+ or pinch change on it. A\u2212 / A+ and pinch still fine-tune from there.'],
       ['STD / SPS', 'Chord layout: STD puts chords above the line, SPS puts them beside the line.'],
       ['Reading colors, light/dark', 'Pick a color scheme or flip between light and dark.'],
       ['Magic Glass (top buttons)', 'Lyrics scroll through a glowing reading strip. Coming lines are bright lemon, the line in the strip glows and grows, lines already sung fade to dark green. It follows your normal scroll speed (tap tempo, fader, Slower/Faster). Every lyric line grows as it crosses the strip, long and wrapped lines included (the text column is narrowed a little so nothing gets cut off). Tap Zoom (it appears beside Magic Glass when Magic Glass is on) to choose ×1.3, ×1.6 (default), ×1.9 or ×2.2 — the line in the strip is now much larger than its neighbors. The sun/moon button (in the ⋮ menu) switches Magic Glass between dark and light.'],
@@ -6075,9 +6075,11 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
             '<span class="font-size-readout" id="font-size-readout" aria-label="Text size"></span>' +
             '<button class="btn-layout-top" id="chord-layout-btn-top" data-action="toggle-chord-layout" aria-label="Toggle chord layout" title="Chord layout">Standard</button>' +
             '<div class="size-mode-group" role="group" aria-label="Lyrics size">' +
+              '<button class="size-mode-btn' + (sizeMode() === 'xs' ? ' size-mode-btn-active' : '') + '" data-action="set-size-mode" data-mode="xs" aria-label="Extra small size" title="Extra small">XS</button>' +
               '<button class="size-mode-btn' + (sizeMode() === 'compact' ? ' size-mode-btn-active' : '') + '" data-action="set-size-mode" data-mode="compact" aria-label="Compact size" title="Compact">S</button>' +
               '<button class="size-mode-btn' + (sizeMode() === 'fit' ? ' size-mode-btn-active' : '') + '" data-action="set-size-mode" data-mode="fit" aria-label="Fit to screen" title="Fit">' + fitScreenSvg(16) + '</button>' +
               '<button class="size-mode-btn' + (sizeMode() === 'large' ? ' size-mode-btn-active' : '') + '" data-action="set-size-mode" data-mode="large" aria-label="Large size" title="Large">L</button>' +
+              '<button class="size-mode-btn' + (sizeMode() === 'xl' ? ' size-mode-btn-active' : '') + '" data-action="set-size-mode" data-mode="xl" aria-label="Extra large size" title="Extra large">XL</button>' +
             '</div>' +
             '<button class="btn-fontsize-top" data-action="inc-font-size" aria-label="Larger text" title="Larger text">A+</button>' +
             '<button class="icon-btn player-tools-btn" data-action="toggle-player-tools" aria-label="More tools" title="More tools">&#8942;</button>' +
@@ -6389,10 +6391,13 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      pinching) nudge whichever preset is active without switching presets
      — each preset remembers its own nudge. Recomputed on resize/rotation
      and when a song opens. */
-  var SIZE_MODES = ['compact', 'fit', 'large'];
+  var SIZE_MODES = ['xs', 'compact', 'fit', 'large', 'xl'];
+  // Big modes use a plain font size (wraps normally); floor = Fit size + plus so the five buttons are always distinct.
+  var BIG_MODES = { large: { key: 'lyricsFontSize', def: 26, plus: 4 }, xl: { key: 'xlFontSize', def: 40, plus: 16 } };
   var FIT_REF_SIZE = 20;
   var FIT_PRESETS = {
-    compact: { scale: 0.7, min: 10, max: 50 },
+    xs: { scale: 0.5, min: 7, max: 40 },
+    compact: { scale: 0.7, min: 9, max: 50 },
     fit: { scale: 1, min: 14, max: 72 }
   };
   function widestLyricLineAt(body, size) {
@@ -6435,7 +6440,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   }
   function sizeMode() { return state.settings.sizeMode || 'fit'; }
   var fitBaseSize = null;
-  var largeFloor = 0; // Large is always at least 4px bigger than Fit, so the three buttons never look the same.
+  var bigFloor = { large: 0, xl: 0 }; // Large is always at least 4px bigger than Fit, so the three buttons never look the same.
   var SIZE_RESET_V = 77;
   function resetSizeOnce() {
     if (state.settings.sizeResetV === SIZE_RESET_V) return;
@@ -6446,7 +6451,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   }
   function currentLyricsSize() {
     var mode = sizeMode();
-    if (mode === 'large') return Math.max(state.settings.lyricsFontSize || 26, largeFloor);
+    if (BIG_MODES[mode]) return Math.max(state.settings[BIG_MODES[mode].key] || BIG_MODES[mode].def, bigFloor[mode] || 0);
     var preset = FIT_PRESETS[mode] || FIT_PRESETS.fit;
     var base = fitBaseSize || preset.min;
     var nudge = (state.settings.sizeNudges && state.settings.sizeNudges[mode]) || 0;
@@ -6458,11 +6463,11 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     var mode = sizeMode();
     resetSizeOnce();
     withScrollKept(function () {
-      if (mode === 'large') {
+      if (BIG_MODES[mode]) {
         var fb = fitTextSizeForLines(FIT_PRESETS.fit.scale, FIT_PRESETS.fit.min, FIT_PRESETS.fit.max);
-        largeFloor = fb ? Math.min(PINCH_FONT_MAX, fb + 4) : 0;
+        bigFloor[mode] = fb ? Math.min(PINCH_FONT_MAX, fb + BIG_MODES[mode].plus) : 0;
       }
-      if (mode !== 'large') {
+      if (!BIG_MODES[mode]) {
         var preset = FIT_PRESETS[mode] || FIT_PRESETS.fit;
         fitBaseSize = fitTextSizeForLines(preset.scale, preset.min, preset.max) || fitBaseSize || preset.min;
       }
@@ -6473,8 +6478,8 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   function setLyricsSize(size) {
     size = Math.round(size);
     var mode = sizeMode();
-    if (mode === 'large') {
-      state.settings.lyricsFontSize = Math.max(PINCH_FONT_MIN, Math.min(PINCH_FONT_MAX, size));
+    if (BIG_MODES[mode]) {
+      state.settings[BIG_MODES[mode].key] = Math.max(PINCH_FONT_MIN, Math.min(PINCH_FONT_MAX, size));
     } else {
       var preset = FIT_PRESETS[mode] || FIT_PRESETS.fit;
       var base = fitBaseSize || preset.min;
@@ -6488,7 +6493,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   }
   function adjustFontSize(delta) {
     var next = currentLyricsSize() + delta;
-    if (sizeMode() === 'large') next = Math.max(LYRICS_FONT_MIN, Math.min(LYRICS_FONT_MAX, next));
+    if (BIG_MODES[sizeMode()]) next = Math.max(LYRICS_FONT_MIN, Math.min(LYRICS_FONT_MAX, next));
     setLyricsSize(next);
     persist();
   }
@@ -6496,7 +6501,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     if (SIZE_MODES.indexOf(mode) === -1) return;
     // Tapping a size button always gives that button's real preset size
     // (it clears any earlier A-/A+/pinch adjustment on that preset).
-    if (mode === 'large') state.settings.lyricsFontSize = 26;
+    if (BIG_MODES[mode]) state.settings[BIG_MODES[mode].key] = BIG_MODES[mode].def;
     else { if (!state.settings.sizeNudges) state.settings.sizeNudges = {}; state.settings.sizeNudges[mode] = 0; }
     state.settings.sizeMode = mode;
     persist();
@@ -6512,7 +6517,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     var screen = document.querySelector('.screen-player');
     if (screen) {
       screen.classList.add('is-stage');
-      screen.classList.toggle('is-size-compact', mode === 'compact');
+      screen.classList.toggle('is-size-compact', mode === 'compact' || mode === 'xs');
     }
   }
   function paintFontSizeReadout() {
@@ -6522,7 +6527,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
   var fitResizeTimer = null;
   window.addEventListener('resize', function () {
     if (state.settings.magicGlass && byId('lyrics-body')) { var mb = byId('lyrics-body'); mb.style.paddingRight = ''; var mp = parseFloat(getComputedStyle(mb).paddingLeft) || 16; mb.style.paddingRight = (mp + Math.max(0, (mb.clientWidth - 2 * mp) * (1 - 1 / magicZoom()))).toFixed(1) + 'px'; }
-    if (sizeMode() === 'large' || !byId('lyrics-body')) return;
+    if (BIG_MODES[sizeMode()] || !byId('lyrics-body')) return;
     clearTimeout(fitResizeTimer);
     fitResizeTimer = setTimeout(applyFontSize, 120);
   });
@@ -8892,7 +8897,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Songbook Starter 86';
+  var APP_VERSION_LABEL = 'Songbook Starter 87';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
