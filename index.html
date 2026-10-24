@@ -1206,6 +1206,32 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
 .lock-row .btn { padding: 6px 12px; font-size: 13px; }
 .lock-row.is-active .lock-row-info b { color: var(--green-bright); }
 
+/* ---------- Numbered song slots (3D block badge) ---------- */
+.song-card-slot { position: relative; padding-left: 62px; }
+.slot-badge {
+  position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+  width: 42px; height: 46px; border-radius: 11px; border: none; cursor: pointer;
+  font-family: 'Sour Display','Sour Body',sans-serif; font-weight: 900; font-size: 18px; letter-spacing: -0.02em;
+  color: #0d1a02; text-shadow: 0 1px 0 rgba(255,255,255,0.45);
+  background: linear-gradient(155deg, var(--green-bright) 0%, color-mix(in srgb, var(--green-bright) 60%, #000) 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255,255,255,0.55),
+    inset 0 -3px 5px rgba(0,0,0,0.38),
+    inset 2px 0 3px rgba(255,255,255,0.18),
+    0 4px 0 color-mix(in srgb, var(--green-bright) 38%, #000),
+    0 7px 10px rgba(0,0,0,0.5);
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+.slot-badge:active {
+  transform: translateY(calc(-50% + 3px));
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.4), 0 1px 0 color-mix(in srgb, var(--green-bright) 38%, #000), 0 2px 4px rgba(0,0,0,0.5);
+}
+.song-card.song-flash { animation: song-flash 1.8s ease-out; }
+@keyframes song-flash {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  25% { box-shadow: 0 0 0 3px var(--green-bright), 0 0 22px var(--green-bright); }
+}
+
 /* ---------- Arrange categories / backup / restore ---------- */
 .arrange-hint { margin: -6px 0 14px; font-size: 13px; color: rgba(243,241,232,0.75); }
 .home-tile-arranging { cursor: default; }
@@ -3774,14 +3800,15 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     return lines[0] || 'No lyrics yet';
   }
 
-  function songCardHtml(s) {
+  function songCardHtml(s, slot) {
         var permanent = isPermanentSong(s.id);
         var catLabel = s.category ? categoryLabel(s.category) : null;
         var colorPalette = s.colorId ? getArtPalette(s.colorId) : null;
         return (
-          '<div class="song-card' + (colorPalette ? ' song-card-colored' : '') + '"' +
+          '<div class="song-card' + (colorPalette ? ' song-card-colored' : '') + (slot ? ' song-card-slot' : '') + '"' +
             (colorPalette ? ' style="border-left-color:' + colorPalette.accent + '"' : '') +
             ' data-action="open-song" data-id="' + s.id + '">' +
+            (slot ? '<button type="button" class="slot-badge" data-action="slot-move" data-id="' + s.id + '" aria-label="Slot ' + slot + '. Tap to move this song to another slot" title="Slot ' + slot + ': tap to move">' + slot + '</button>' : '') +
             '<div class="song-card-top">' +
               '<h3>' + escapeHtml(s.title || 'Untitled') + '</h3>' +
               '<div class="song-card-menu">' +
@@ -3802,6 +3829,83 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
             '<p class="song-card-preview">' + escapeHtml(firstLyricLine(s.lyrics)) + '</p>' +
           '</div>'
         );
+  }
+
+  /* ---- Song slots: stable numbered order, tap the number to move a song ---- */
+  var flashSongId = null;
+  function flashSongCard() {
+    var id = flashSongId; flashSongId = null;
+    if (!id) return;
+    setTimeout(function () {
+      var cards = document.querySelectorAll('.song-card[data-id]');
+      for (var i = 0; i < cards.length; i++) {
+        if (cards[i].getAttribute('data-id') === id) {
+          try { cards[i].scrollIntoView({ block: 'center' }); } catch (e) {}
+          cards[i].classList.add('song-flash');
+          (function (c) { setTimeout(function () { c.classList.remove('song-flash'); }, 1900); })(cards[i]);
+          break;
+        }
+      }
+    }, 40);
+  }
+  function visibleSongsNow() {
+    var f = state.settings.libraryFilter || 'all';
+    return state.songs.filter(function (x) { return matchesLibraryFilter(x, f); });
+  }
+  var slotCtx = null;
+  function ensureSlotModal() {
+    var m = byId('slot-modal');
+    if (m) return m;
+    m = document.createElement('div');
+    m.className = 'modal-backdrop';
+    m.id = 'slot-modal';
+    m.hidden = true;
+    document.body.appendChild(m);
+    return m;
+  }
+  function closeSlotModal() { var m = byId('slot-modal'); if (m) { m.hidden = true; m.innerHTML = ''; } slotCtx = null; }
+  function openSlotModal(id) {
+    var list = visibleSongsNow();
+    var pos = -1;
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) pos = i;
+    if (pos < 0) return;
+    slotCtx = { id: id };
+    var m = ensureSlotModal();
+    m.innerHTML = '<div class="modal-card"><h2>Move song</h2><p>&ldquo;' + escapeHtml(list[pos].title || 'Untitled') + '&rdquo; is in slot <b>' + (pos + 1) + '</b> of ' + list.length + '. Which slot should it go to?</p>' +
+      '<input type="number" id="slot-input" class="name-prompt-input" min="1" max="' + list.length + '" value="' + (pos + 1) + '" inputmode="numeric" />' +
+      '<div class="modal-actions" style="margin-top:12px"><button class="btn btn-ghost" data-action="slot-up">&#9650; Up one</button><button class="btn btn-ghost" data-action="slot-down">&#9660; Down one</button></div>' +
+      '<div class="modal-actions" style="margin-top:10px"><button class="btn btn-ghost" data-action="slot-cancel">Cancel</button><button class="btn btn-primary" data-action="slot-go">Move</button></div></div>';
+    m.hidden = false;
+    var inp = byId('slot-input');
+    if (inp) { inp.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); slotGo(); } }; try { inp.focus(); inp.select(); } catch (e) {} }
+  }
+  function moveSongToSlot(id, slotNo) {
+    var list = visibleSongsNow();
+    var pos = -1;
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) pos = i;
+    if (pos < 0) return;
+    var to = Math.max(1, Math.min(list.length, Math.round(slotNo) || (pos + 1))) - 1;
+    if (to === pos) { closeSlotModal(); return; }
+    var target = list[to];
+    var song = state.songs.splice(state.songs.indexOf(list[pos]), 1)[0];
+    var ti = state.songs.indexOf(target);
+    state.songs.splice(to > pos ? ti + 1 : ti, 0, song);
+    persist();
+    flashSongId = id;
+    closeSlotModal();
+    toast('Moved to slot ' + (to + 1) + '.');
+    renderLibrary();
+  }
+  function slotGo() {
+    if (!slotCtx) return;
+    var inp = byId('slot-input');
+    moveSongToSlot(slotCtx.id, inp ? Number(inp.value) : 0);
+  }
+  function slotStep(d) {
+    if (!slotCtx) return;
+    var list = visibleSongsNow(), pos = 0;
+    for (var i = 0; i < list.length; i++) if (list[i].id === slotCtx.id) pos = i;
+    moveSongToSlot(slotCtx.id, pos + 1 + d);
   }
 
   /* ---- Global search: every song, across all categories ---- */
@@ -4147,6 +4251,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['S / Fit / L / XL', 'Four real text sizes, smallest to largest. S is small, Fit is the biggest text that keeps every line on one row, L is larger than Fit, XL is the biggest. If one size does not suit a song, tap another. Tapping a button gives that size fresh, clearing any earlier A\u2212 / A+ or pinch change on it. A\u2212 / A+ and pinch still fine-tune from there.'],
       ['Lock (padlock button)', 'Set a song up the way you like it (speed, text size, colors, layout, Magic Glass), then tap the padlock and Save & lock. That song is now frozen: the fader, tap, size, color and Magic Glass controls turn gray so nothing changes by accident, and it comes back exactly like that every time you open it. START/STOP still work. Each song has its own lock. To try something different: open the padlock, Unlock, change things, Save & lock again. Every save is kept as a Setup (up to 4 per song); tap Use to switch between them, or the X to delete one.'],
       ['Full screen (words only)', 'The corners button next to the padlock hides every menu and shows only the words. Two small glass buttons float at the top: Back (returns the controls) and Start / Pause / Continue for the scroll. You can still scroll the words by hand. Lock first, then go Full, for a clean stage view.'],
+      ['Song slots', 'Every song in the library has a numbered slot (the 3D block on the left). Songs never jump around: editing a song keeps it in its slot, and the list scrolls to it and flashes it. New songs go to the end. To reorder, tap the number: type the slot you want, or tap Up one / Down one. The numbers follow the list you are looking at (All, a category, or a favorites folder).'],
       ['STD / SPS', 'Chord layout: STD puts chords above the line, SPS puts them beside the line.'],
       ['Reading colors, light/dark', 'Pick a color scheme or flip between light and dark.'],
       ['Magic Glass (top buttons)', 'Lyrics scroll through a glowing reading strip. Coming lines are bright lemon, the line in the strip glows and grows, lines already sung fade to dark green. It follows your normal scroll speed (tap tempo, fader, Slower/Faster). Every lyric line grows as it crosses the strip, long and wrapped lines included (the text column is narrowed a little so nothing gets cut off). Turning Magic Glass on mid-song keeps your place: the line at the middle of the screen moves into the glass. Tap Zoom (it appears beside Magic Glass when Magic Glass is on) to choose ×1.3, ×1.6 (default), ×1.9, ×2.2, ×2.6 or ×3.0 — the line in the strip is now much larger than its neighbors. Tap Glass to change the strip size: Glass S (slim, one line), Glass M (default) or Glass L (tall, several lines glow at once). The sun/moon button (in the ⋮ menu) switches Magic Glass between dark and light.'],
@@ -4412,7 +4517,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
 
   function renderLibrary() {
     lastListView = 'library';
-    var allSongs = state.songs.slice().sort(function (a, b) { return b.updatedAt - a.updatedAt; });
+    var allSongs = state.songs.slice();   // stable order: songs never jump around; each shows its slot number
 
     var tabs = libraryTabDefs();
     tabs.forEach(function (t) { t.count = allSongs.filter(function (s) { return matchesLibraryFilter(s, t.id); }).length; });
@@ -4438,7 +4543,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
         '<div class="empty-state"><p>No songs in ' + escapeHtml(filterTitle) + ' yet.</p>' +
         '<button class="btn btn-primary" data-action="new-song">' + plusSvg() + ' Add song</button></div>';
     } else {
-      listHtml = '<div class="song-grid">' + songs.map(function (x) { return songCardHtml(x); }).join('') + '</div>';
+      listHtml = '<div class="song-grid">' + songs.map(function (x, i) { return songCardHtml(x, i + 1); }).join('') + '</div>';
     }
 
     root.innerHTML =
@@ -4483,6 +4588,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
         moveCategoryModalHtml() +
         namePromptModalHtml() +
       '</div>';
+    flashSongCard();
   }
 
   /* ---- Edit a category: its name and the picture on its home tile.
@@ -5096,6 +5202,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       return;
     }
     var now = Date.now();
+    var savedSongId = d.id || null;
     var chordTag = autoTagChordLines(d.lyrics);
     var chordSplit = splitInlineChordLines(chordTag.text);
     var lyricsToSave = chordSplit.text;
@@ -5112,8 +5219,9 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
         existing.updatedAt = now;
       }
     } else {
+      savedSongId = uid();
       state.songs.push({
-        id: uid(),
+        id: savedSongId,
         title: d.title.trim(),
         artist: (d.artist || '').trim(),
         key: d.key.trim(),
@@ -5126,6 +5234,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       });
     }
     persist();
+    flashSongId = savedSongId;
     editorDraft = null;
     var noteParts = [];
     if (chordTag.taggedCount > 0) {
@@ -9003,6 +9112,11 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     var id = el.getAttribute('data-id');
 
     if (action === 'toggle-favorite') { toggleFavorite(id); return; }
+    if (action === 'slot-move') { openSlotModal(el.getAttribute('data-id')); return; }
+    if (action === 'slot-cancel') { closeSlotModal(); return; }
+    if (action === 'slot-go') { slotGo(); return; }
+    if (action === 'slot-up') { slotStep(-1); return; }
+    if (action === 'slot-down') { slotStep(1); return; }
     if (action === 'open-lock') { showLockModal(); return; }
     if (action === 'lock-close') { closeLockModal(); return; }
     if (action === 'lock-save') { lockSave(); return; }
@@ -9174,7 +9288,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Songbook Starter 94';
+  var APP_VERSION_LABEL = 'Songbook Starter 95';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
