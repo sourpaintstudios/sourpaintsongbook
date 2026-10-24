@@ -4032,11 +4032,36 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     magicApplyPad();
     if (on) { applyReadingMode(); magic.raf = requestAnimationFrame(magicFrame); }
   }
+  // Keep the reader's place: remember the lyric line at a screen height, run the change,
+  // then scroll so that same line sits in the glass (36% down the screen).
+  function withMagicAnchor(fn, beforeFrac) {
+    var vp = byId('lyrics-viewport');
+    var nodes = vp ? vp.querySelectorAll('.lyric-line, .lyric-cue-row') : [];
+    if (!vp || !nodes.length) { fn(); return; }
+    var vr = vp.getBoundingClientRect();
+    var y = vr.top + vp.clientHeight * beforeFrac, best = null, bd = 1e9;
+    for (var i = 0; i < nodes.length; i++) {
+      if (!nodes[i].textContent.trim()) continue;
+      var r0 = nodes[i].getBoundingClientRect();
+      if (r0.height < 2) continue;
+      var d = Math.abs((r0.top + r0.bottom) / 2 - y);
+      if (d < bd) { bd = d; best = nodes[i]; }
+    }
+    fn();
+    if (!best) return;
+    for (var j = 0; j < nodes.length; j++) nodes[j].style.transform = '';
+    var vr2 = vp.getBoundingClientRect();
+    var r1 = best.getBoundingClientRect();
+    vp.scrollTop += (r1.top + r1.bottom) / 2 - (vr2.top + vp.clientHeight * 0.36);
+  }
   function toggleMagicGlass() {
-    state.settings.magicGlass = !state.settings.magicGlass;
-    if (state.settings.magicGlass) state.settings.karaoke = false;
-    persist(); magicClear(); magicInit();
-    if (!magicOn()) { applyReadingMode(); }
+    var turningOn = !state.settings.magicGlass;
+    withMagicAnchor(function () {
+      state.settings.magicGlass = !state.settings.magicGlass;
+      if (state.settings.magicGlass) state.settings.karaoke = false;
+      persist(); magicClear(); magicInit();
+      if (!magicOn()) { applyReadingMode(); }
+    }, turningOn ? 0.5 : 0.36);
     toast(state.settings.magicGlass ? 'Magic Glass on.' : 'Magic Glass off.');
   }
   function toggleKaraoke() {
@@ -4055,8 +4080,11 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
     for (var i = 0; i < MAGIC_ZOOMS.length; i++) if (Math.abs(MAGIC_ZOOMS[i] - cur) < 0.01) idx = i;
     state.settings.magicZoom = MAGIC_ZOOMS[(idx + 1) % MAGIC_ZOOMS.length];
     persist(); paintMagicButtons();
-    var sc2 = document.querySelector('.screen-player'); if (sc2) sc2.style.setProperty('--mz', String(magicZoom()));
-    magicApplyPad();
+    var sc2 = document.querySelector('.screen-player');
+    withMagicAnchor(function () {
+      if (sc2) sc2.style.setProperty('--mz', String(magicZoom()));
+      magicApplyPad();
+    }, 0.36);
   }
 
   /* ---------- Helpers ---------- */
@@ -4442,7 +4470,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
       ['Full screen (words only)', 'The corners button next to the padlock hides every menu and shows only the words. Two small glass buttons float at the top: Back (returns the controls) and Start / Pause / Continue for the scroll. You can still scroll the words by hand. Lock first, then go Full, for a clean stage view.'],
       ['STD / SPS', 'Chord layout: STD puts chords above the line, SPS puts them beside the line.'],
       ['Reading colors, light/dark', 'Pick a color scheme or flip between light and dark.'],
-      ['Magic Glass (top buttons)', 'Lyrics scroll through a glowing reading strip. Coming lines are bright lemon, the line in the strip glows and grows, lines already sung fade to dark green. It follows your normal scroll speed (tap tempo, fader, Slower/Faster). Every lyric line grows as it crosses the strip, long and wrapped lines included (the text column is narrowed a little so nothing gets cut off). Tap Zoom (it appears beside Magic Glass when Magic Glass is on) to choose ×1.3, ×1.6 (default), ×1.9, ×2.2, ×2.6 or ×3.0 — the line in the strip is now much larger than its neighbors. Tap Glass to change the strip size: Glass S (slim, one line), Glass M (default) or Glass L (tall, several lines glow at once). The sun/moon button (in the ⋮ menu) switches Magic Glass between dark and light.'],
+      ['Magic Glass (top buttons)', 'Lyrics scroll through a glowing reading strip. Coming lines are bright lemon, the line in the strip glows and grows, lines already sung fade to dark green. It follows your normal scroll speed (tap tempo, fader, Slower/Faster). Every lyric line grows as it crosses the strip, long and wrapped lines included (the text column is narrowed a little so nothing gets cut off). Turning Magic Glass on mid-song keeps your place: the line at the middle of the screen moves into the glass. Tap Zoom (it appears beside Magic Glass when Magic Glass is on) to choose ×1.3, ×1.6 (default), ×1.9, ×2.2, ×2.6 or ×3.0 — the line in the strip is now much larger than its neighbors. Tap Glass to change the strip size: Glass S (slim, one line), Glass M (default) or Glass L (tall, several lines glow at once). The sun/moon button (in the ⋮ menu) switches Magic Glass between dark and light.'],
       ['Glass mode', 'Transparent lyrics over an art background.'],
       ['Art mode', 'Flip through Sour Paint Studios looks and lock one in.'],
       ['⋮ (three dots)', 'Opens the extra tools tray: art mode, reading colors, light/dark, glass mode, edit song, delete song. The top bar stays one thin row in every size.'],
@@ -9451,7 +9479,7 @@ html[data-skin="drip"] .chord { color: #D4FF3A; text-shadow: 0 0 8px rgba(212,25
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 93';
+  var APP_VERSION_LABEL = 'Version 94';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
