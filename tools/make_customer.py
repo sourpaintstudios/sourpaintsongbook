@@ -318,6 +318,7 @@ sub1("  function renderHome() {",
   }
   function renderHome() {""")
 s = re.sub(r"var APP_VERSION_LABEL = 'Version (\d+)';", lambda m: "var APP_VERSION_LABEL = 'Songbook Starter " + m.group(1) + "';", s)
+s = re.sub(r"'Version (\d+)\.',", lambda m: "'Songbook Starter " + m.group(1) + ".',", s)
 sub1("    { h: 'Home', items: [\n",
 ("    { h: 'Starter library', items: [\n      ['Built-in songs', 'This starter songbook comes with @@N@@ public-domain songs (hymns, folk, cowboy, spirituals, sea shanties, parlor songs, holiday carols) with chords. Open All songs to see them. Edit or delete any of them, and add your own with Add song.'],\n      ['Start your setlist', 'Tap New category or Start your setlist here to make your own groups. Use Song lists to build a gig order.']\n    ]},\n    { h: 'Home', items: [\n").replace('@@N@@', str(len(SONGS))))
 
