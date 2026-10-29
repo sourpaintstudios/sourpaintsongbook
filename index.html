@@ -1238,6 +1238,34 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
   25% { box-shadow: 0 0 0 3px var(--green-bright), 0 0 22px var(--green-bright); }
 }
 
+/* Full mode: transparent glass speed slider on the right edge */
+.full-glass { display: none; }
+.screen-player.is-full .full-glass {
+  display: block; position: absolute; right: 6px; top: 64px; bottom: 20px; width: 34px; z-index: 9;
+  border-radius: 18px; touch-action: none; cursor: pointer;
+  background: linear-gradient(90deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
+  border: 1px solid rgba(255,255,255,0.28);
+  box-shadow: inset 0 0 12px rgba(255,255,255,0.08), 0 0 14px rgba(0,0,0,0.25);
+  backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
+}
+.full-glass-fill {
+  position: absolute; left: 3px; right: 3px; bottom: 3px; height: 40%; border-radius: 14px; pointer-events: none;
+  background: linear-gradient(to top, rgba(214,239,106,0.55), rgba(214,239,106,0.14));
+  box-shadow: 0 0 12px rgba(214,239,106,0.35), inset 0 1px 0 rgba(255,255,255,0.35);
+}
+.full-glass-thumb {
+  position: absolute; left: 50%; bottom: 40%; transform: translate(-50%, 50%);
+  width: 46px; height: 30px; border-radius: 15px; pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.42), rgba(255,255,255,0.14));
+  border: 1px solid rgba(255,255,255,0.7);
+  box-shadow: 0 0 14px rgba(214,239,106,0.55), inset 0 1px 0 rgba(255,255,255,0.7);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  font-family: 'Sour Display','Sour Body',sans-serif; font-weight: 800; font-size: 12px; color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+}
+.screen-player.is-locked .full-glass { pointer-events: none; opacity: 0.35; }
+
 /* ---------- Arrange categories / backup / restore ---------- */
 .arrange-hint { margin: -6px 0 14px; font-size: 13px; color: rgba(243,241,232,0.75); }
 .home-tile-arranging { cursor: default; }
@@ -4794,7 +4822,7 @@ html, body { overscroll-behavior: none; }
       ['Opening a song', 'Every time the app opens, songs start in Standard (STD) chord layout, in Fit (the expanded button, every line on screen), with Magic Glass off. Change any of it from the song screen; it resets next launch. The one exception: if the app reopens your place after a reload, it keeps the choices you had.'],
       ['S / Fit / L / XL', 'Four real text sizes, smallest to largest. S is small, Fit is the biggest text that keeps every line on one row, L is larger than Fit, XL is the biggest. If one size does not suit a song, tap another. Tapping a button gives that size fresh, clearing any earlier A\u2212 / A+ or pinch change on it. A\u2212 / A+ and pinch still fine-tune from there.'],
       ['Lock (padlock button)', 'Set a song up the way you like it (speed, text size, colors, layout, Magic Glass), then tap the padlock and Save & lock. That song is now frozen: the fader, tap, size, color and Magic Glass controls turn gray so nothing changes by accident, and it comes back exactly like that every time you open it. START/STOP still work. Each song has its own lock. To try something different: open the padlock, Unlock, change things, Save & lock again. Every save is kept as a Setup (up to 4 per song); tap Use to switch between them, or the X to delete one.'],
-      ['Full screen (words only)', 'The corners button next to the padlock hides every menu and shows only the words. Two small glass buttons float at the top: Back (returns the controls) and Start / Pause / Continue for the scroll. You can still scroll the words by hand. Lock first, then go Full, for a clean stage view.'],
+      ['Full screen (words only)', 'The corners button next to the padlock hides every menu and shows only the words. Two small glass buttons float at the top: Back (returns the controls) and Start / Pause / Continue for the scroll. A see-through glass slider on the right edge sets the scroll speed (the number is the BPM): drag it up for faster, down for slower. You can still scroll the words by hand and pinch to zoom. Lock first, then go Full, for a clean stage view.'],
       ['Song slots', 'Every song in the library has a numbered slot (the 3D block on the left). Songs never jump around: editing a song keeps it in its slot, and the list scrolls to it and flashes it. New songs go to the end. To reorder, tap the number: type the slot you want, or tap Up one / Down one. The numbers follow the list you are looking at (All, a category, or a favorites folder).'],
       ['STD / SPS', 'Chord layout: STD puts chords above the line, SPS puts them beside the line.'],
       ['Reading colors, light/dark', 'Pick a color scheme or flip between light and dark.'],
@@ -6911,6 +6939,7 @@ html, body { overscroll-behavior: none; }
         '<div class="player-body">' +
           '<div class="full-bar"><button type="button" data-action="exit-full" aria-label="Back to controls">' + backSvg() + '<span>Back</span></button>' +
             '<button type="button" id="full-play" data-action="full-toggle-play"><span id="full-play-text">Start</span></button></div>' +
+          '<div class="full-glass" id="full-glass" role="slider" aria-label="Scroll speed" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100"><div class="full-glass-fill" id="full-glass-fill"></div><div class="full-glass-thumb" id="full-glass-thumb"><span id="full-glass-bpm">0</span></div></div>' +
           '<div class="magic-strip" id="magic-strip" hidden></div>' +
           '<div class="lyrics-viewport" id="lyrics-viewport">' +
             '<div class="lyrics-body" id="lyrics-body">' + lyricsHtml + '</div>' +
@@ -6972,6 +7001,7 @@ html, body { overscroll-behavior: none; }
     magicInit();
     paintLockButtons();
     setupFader(speedToFaderPct(playerAnimState.speed));
+    setupFullGlass();
     setupBpmInput();
 
     var tapBtn = byId('tap-btn');
@@ -7057,7 +7087,36 @@ html, body { overscroll-behavior: none; }
     });
   }
 
+  function paintFullGlass() {
+    var f = byId('full-glass-fill'), t = byId('full-glass-thumb'), n = byId('full-glass-bpm'), g = byId('full-glass');
+    if (!f || !t) return;
+    var pct = speedToFaderPct(playerAnimState.speed);
+    f.style.height = 'max(0px, calc(' + pct + '% - 3px))';
+    t.style.bottom = pct + '%';
+    if (n) n.textContent = String(Math.round(speedToBpm(playerAnimState.speed)));
+    if (g) g.setAttribute('aria-valuenow', String(Math.round(pct)));
+  }
+  function setupFullGlass() {
+    var g = byId('full-glass');
+    if (!g) return;
+    var dragging = false;
+    function setY(clientY) {
+      if (isSongLocked(view.songId)) return;
+      var rect = g.getBoundingClientRect();
+      var pct = Math.max(0, Math.min(100, ((rect.bottom - clientY) / rect.height) * 100));
+      playerAnimState.speed = faderPctToSpeed(pct);
+      state.settings.lastSpeed = playerAnimState.speed;
+      persist();
+      syncFaderVisual();
+    }
+    g.addEventListener('pointerdown', function (e) { dragging = true; try { g.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); setY(e.clientY); });
+    g.addEventListener('pointermove', function (e) { if (dragging) { e.preventDefault(); setY(e.clientY); } });
+    g.addEventListener('pointerup', function () { dragging = false; });
+    g.addEventListener('pointercancel', function () { dragging = false; });
+    paintFullGlass();
+  }
   function syncFaderVisual() {
+    paintFullGlass();
     var track = byId('fader-track');
     if (!track) return;
     var pct = speedToFaderPct(playerAnimState.speed);
@@ -9849,7 +9908,7 @@ html, body { overscroll-behavior: none; }
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 96';
+  var APP_VERSION_LABEL = 'Version 97';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
