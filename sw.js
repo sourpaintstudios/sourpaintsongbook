@@ -4,7 +4,7 @@
    - Images / scripts: saved copy first, fetched once then kept.
    - Video/audio range requests are left to the network (the intro falls back to the still card).
    RELEASE RULE: change VERSION on every release so old saved files are cleared. */
-var VERSION = 'v97';
+var VERSION = 'v98';
 var CACHE = 'spss-songbook-' + VERSION;
 var PAGE_KEY = './';
 var NAV_TIMEOUT_MS = 2500;
