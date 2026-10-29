@@ -1190,6 +1190,9 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
 .screen-player .magic-bar .tray-chip.icon-chip { flex: 0 0 44px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
 .full-bar { display: none; }
 .screen-player.is-full .full-bar { display: flex; justify-content: space-between; gap: 8px; position: absolute; top: 8px; left: 8px; right: 8px; z-index: 9; pointer-events: none; }
+.full-right { display: flex; gap: 8px; pointer-events: none; }
+.full-bar button.full-icon { width: 38px; padding: 0; justify-content: center; }
+.full-bar button.is-on { border-color: var(--green-bright); box-shadow: 0 0 12px rgba(214,239,106,0.55); color: var(--green-bright); }
 .full-bar button {
   pointer-events: auto; height: 38px; padding: 0 16px; border-radius: 999px; cursor: pointer;
   display: inline-flex; align-items: center; gap: 6px;
@@ -4501,7 +4504,7 @@ html, body { overscroll-behavior: none; }
       ['Opening a song', 'Every time the app opens, songs start in Standard (STD) chord layout, in Fit (the expanded button, every line on screen), with Magic Glass off. Change any of it from the song screen; it resets next launch. The one exception: if the app reopens your place after a reload, it keeps the choices you had.'],
       ['S / Fit / L / XL', 'Four real text sizes, smallest to largest. S is small, Fit is the biggest text that keeps every line on one row, L is larger than Fit, XL is the biggest. If one size does not suit a song, tap another. Tapping a button gives that size fresh, clearing any earlier A\u2212 / A+ or pinch change on it. A\u2212 / A+ and pinch still fine-tune from there.'],
       ['Lock (padlock button)', 'Set a song up the way you like it (speed, text size, colors, layout, Magic Glass), then tap the padlock and Save & lock. That song is now frozen: the fader, tap, size, color and Magic Glass controls turn gray so nothing changes by accident, and it comes back exactly like that every time you open it. START/STOP still work. Each song has its own lock. To try something different: open the padlock, Unlock, change things, Save & lock again. Every save is kept as a Setup (up to 4 per song); tap Use to switch between them, or the X to delete one.'],
-      ['Full screen (words only)', 'The corners button next to the padlock hides every menu and shows only the words. Two small glass buttons float at the top: Back (returns the controls) and Start / Pause / Continue for the scroll. A see-through glass slider on the right edge sets the scroll speed (the number is the BPM): drag it up for faster, down for slower. You can still scroll the words by hand and pinch to zoom. Lock first, then go Full, for a clean stage view.'],
+      ['Full screen (words only)', 'The corners button next to the padlock hides every menu and shows only the words. Small glass buttons float at the top: Back (returns the controls) on the left, and Start / Pause / Continue plus a padlock on the right. Tap the padlock to lock the song speed and settings right where they are (tap again to unlock); a locked song comes back the same next time. A see-through glass slider on the right edge sets the scroll speed (the number is the BPM): drag it up for faster, down for slower. You can still scroll the words by hand and pinch to zoom. Lock first, then go Full, for a clean stage view.'],
       ['Song slots', 'Every song in the library has a numbered slot (the 3D block on the left). Songs never jump around: editing a song keeps it in its slot, and the list scrolls to it and flashes it. New songs go to the end. To reorder, tap the number: type the slot you want, or tap Up one / Down one. The numbers follow the list you are looking at (All, a category, or a favorites folder).'],
       ['STD / SPS', 'Chord layout: STD puts chords above the line, SPS puts them beside the line.'],
       ['Reading colors, light/dark', 'Pick a color scheme or flip between light and dark.'],
@@ -6633,7 +6636,8 @@ html, body { overscroll-behavior: none; }
 
         '<div class="player-body">' +
           '<div class="full-bar"><button type="button" data-action="exit-full" aria-label="Back to controls">' + backSvg() + '<span>Back</span></button>' +
-            '<button type="button" id="full-play" data-action="full-toggle-play"><span id="full-play-text">Start</span></button></div>' +
+            '<div class="full-right"><button type="button" id="full-play" data-action="full-toggle-play"><span id="full-play-text">Start</span></button>' +
+            '<button type="button" id="full-lock" class="full-icon" data-action="full-lock-toggle" aria-label="Lock speed and settings for this song" title="Lock this song\'s speed and settings">' + lockSvg(20, false) + '</button></div></div>' +
           '<div class="full-glass" id="full-glass" role="slider" aria-label="Scroll speed" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100"><div class="full-glass-fill" id="full-glass-fill"></div><div class="full-glass-thumb" id="full-glass-thumb"><span id="full-glass-bpm">0</span></div></div>' +
           '<div class="magic-strip" id="magic-strip" hidden></div>' +
           '<div class="lyrics-viewport" id="lyrics-viewport">' +
@@ -7577,6 +7581,8 @@ html, body { overscroll-behavior: none; }
     var on = isSongLocked(view.songId);
     if (scr) scr.classList.toggle('is-locked', on);
     var b = byId('lock-btn');
+    var fl = byId('full-lock');
+    if (fl) { fl.classList.toggle('is-on', on); fl.innerHTML = lockSvg(20, on); fl.title = on ? 'Locked: tap to unlock' : 'Lock this song\'s speed and settings'; }
     if (b) { b.classList.toggle('is-on', on); b.innerHTML = lockSvg(20, on); b.title = on ? 'Locked: tap to unlock or manage saved setups' : 'Lock this song\'s settings'; }
   }
   function ensureLockModal() {
@@ -7617,20 +7623,20 @@ html, body { overscroll-behavior: none; }
     m.innerHTML = html;
     m.hidden = false;
   }
-  function lockSave() {
+  function lockSave(quiet) {
     var su = songSetups(view.songId);
     if (su.slots.length >= LOCK_MAX) { toast('Delete a saved setup first.'); return; }
     su.counter = (su.counter || su.slots.length) + 1;
     su.slots.push({ name: 'Setup ' + su.counter, snap: takeSnap() });
     su.active = su.slots.length - 1;
     su.locked = true;
-    persist(); paintLockButtons(); showLockModal();
+    persist(); paintLockButtons(); if (!quiet) showLockModal();
     toast('Saved and locked.');
   }
-  function lockUnlock() {
+  function lockUnlock(quiet) {
     var su = songSetups(view.songId);
     su.locked = false;
-    persist(); paintLockButtons(); showLockModal();
+    persist(); paintLockButtons(); if (!quiet) showLockModal();
     toast('Unlocked.');
   }
   function lockUse(i) {
@@ -7661,6 +7667,13 @@ html, body { overscroll-behavior: none; }
     if (scr) scr.classList.toggle('is-full', playerFull);
     if (!BIG_MODES[sizeMode()]) applyFontSize();
     paintFullPlay();
+  }
+  // One-tap lock from Full mode: lock = save the current speed/settings as a setup and freeze them.
+  function fullLockToggle() {
+    var su = songSetups(view.songId);
+    if (isSongLocked(view.songId)) { lockUnlock(true); return; }
+    if (su.slots.length >= LOCK_MAX) { su.slots.pop(); }   // list full: replace the newest save
+    lockSave(true);
   }
   function fullTogglePlay() {
     if (playerAnimState.holdStage === 'scrolling') stopHoldScroll(); else quickStart();
@@ -9413,6 +9426,7 @@ html, body { overscroll-behavior: none; }
     if (action === 'enter-full') { setFull(true); return; }
     if (action === 'exit-full') { setFull(false); return; }
     if (action === 'full-toggle-play') { fullTogglePlay(); return; }
+    if (action === 'full-lock-toggle') { fullLockToggle(); return; }
     if (action === 'fav-pick-folder') { favPickFolder(el.getAttribute('data-folder')); return; }
     if (action === 'fav-create-folder') { favCreateFolder(); return; }
     if (action === 'fav-modal-cancel') { closeFavModal(); return; }
@@ -9603,7 +9617,7 @@ html, body { overscroll-behavior: none; }
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Songbook Starter 97';
+  var APP_VERSION_LABEL = 'Songbook Starter 98';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
