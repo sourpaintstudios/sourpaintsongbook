@@ -277,6 +277,12 @@ button {
 .library-heading-actions { display: flex; align-items: center; gap: 8px; }
 
 .song-grid { display: grid; grid-template-columns: 1fr; gap: 7px; }
+.artist-group { margin: 0 0 12px; }
+.artist-head { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 12px; margin: 0 0 7px; background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 10px; color: var(--text); font: inherit; font-weight: 700; text-align: left; cursor: pointer; }
+.artist-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.artist-count { font-size: 12px; font-weight: 600; color: var(--text-dim); }
+.artist-caret { color: var(--text-dim); transition: transform .15s; }
+.artist-head.is-shut .artist-caret { transform: rotate(-90deg); }
 @media (min-width: 560px) { .song-grid { grid-template-columns: 1fr 1fr; } }
 
 .song-card {
@@ -4822,6 +4828,7 @@ html, body { overscroll-behavior: none; }
     { h: 'Song cards', items: [
       ['Tap a card', 'Opens the song in the stage player.'],
       ['Heart', 'Tap the heart on a song card (or in the player, beside Magic Glass) to make it a favorite and choose its favorites folder. Tap a filled heart to remove it.'],
+      ['Covers by artist', 'Inside Covers, songs are grouped under their artist (A to Z). Tap an artist heading to fold or open that group. The artist comes from the Artist box on each song, so fill it in when you add a cover. Songs with no artist sit last under No artist.'],
       ['Palette / folder / pencil / trash', 'Color the card, move it to a category, edit it, or delete it.']
     ]},
     { h: 'Stage player', items: [
@@ -5090,6 +5097,37 @@ html, body { overscroll-behavior: none; }
       '</div>';
   }
 
+  /* Covers are grouped under their artist: one heading per artist (A to Z,
+     songs with no artist last), tap a heading to fold it. Grouping reads the
+     artist field, so it needs nothing extra from the user. No slot numbers
+     here, since the order is by artist. */
+  function coversByArtistHtml(songs) {
+    var groups = {}, order = [];
+    songs.forEach(function (x) {
+      var label = String(x.artist || '').trim();
+      var key = label.toLowerCase();
+      if (!groups[key]) { groups[key] = { key: key, label: label || 'No artist', songs: [] }; order.push(key); }
+      groups[key].songs.push(x);
+    });
+    order.sort(function (a, b) {
+      if (a === '') return 1;
+      if (b === '') return -1;
+      return a < b ? -1 : (a > b ? 1 : 0);
+    });
+    var folded = state.settings.coverCollapsed || {};
+    return order.map(function (k) {
+      var g = groups[k], shut = !!folded[k];
+      return '<div class="artist-group">' +
+        '<button type="button" class="artist-head' + (shut ? ' is-shut' : '') + '" data-action="toggle-artist" data-artist="' + escapeHtml(k) + '" aria-expanded="' + (shut ? 'false' : 'true') + '">' +
+          '<span class="artist-name">' + escapeHtml(g.label) + '</span>' +
+          '<span class="artist-count">' + g.songs.length + '</span>' +
+          '<span class="artist-caret" aria-hidden="true">&#9662;</span>' +
+        '</button>' +
+        (shut ? '' : '<div class="song-grid">' + g.songs.map(function (x) { return songCardHtml(x); }).join('') + '</div>') +
+      '</div>';
+    }).join('');
+  }
+
   function renderLibrary() {
     lastListView = 'library';
     var allSongs = state.songs.slice();   // stable order: songs never jump around; each shows its slot number
@@ -5118,7 +5156,8 @@ html, body { overscroll-behavior: none; }
         '<div class="empty-state"><p>No songs in ' + escapeHtml(filterTitle) + ' yet.</p>' +
         '<button class="btn btn-primary" data-action="new-song">' + plusSvg() + ' Add song</button></div>';
     } else {
-      listHtml = '<div class="song-grid">' + songs.map(function (x, i) { return songCardHtml(x, i + 1); }).join('') + '</div>';
+      listHtml = filter === 'covers' ? coversByArtistHtml(songs) :
+        '<div class="song-grid">' + songs.map(function (x, i) { return songCardHtml(x, i + 1); }).join('') + '</div>';
     }
 
     root.innerHTML =
@@ -9728,6 +9767,14 @@ html, body { overscroll-behavior: none; }
     var id = el.getAttribute('data-id');
 
     if (action === 'toggle-favorite') { toggleFavorite(id); return; }
+    if (action === 'toggle-artist') {
+      var ak = el.getAttribute('data-artist') || '';
+      if (!state.settings.coverCollapsed) state.settings.coverCollapsed = {};
+      if (state.settings.coverCollapsed[ak]) delete state.settings.coverCollapsed[ak]; else state.settings.coverCollapsed[ak] = true;
+      persist();
+      renderLibrary();
+      return;
+    }
     if (action === 'slot-move') { openSlotModal(el.getAttribute('data-id')); return; }
     if (action === 'slot-cancel') { closeSlotModal(); return; }
     if (action === 'slot-go') { slotGo(); return; }
@@ -9933,7 +9980,7 @@ html, body { overscroll-behavior: none; }
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 100';
+  var APP_VERSION_LABEL = 'Version 101';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
