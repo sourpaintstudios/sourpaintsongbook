@@ -1,6 +1,6 @@
 {
   "name": "Sour Paint Studios Songbook Starter",
-  "short_name": "Songbook",
+  "short_name": "SPS Starter",
   "description": "Blank songbook starter: lyrics and chord reader with auto-scroll, tap tempo and set lists.",
   "start_url": "./",
   "scope": "./",

@@ -337,5 +337,6 @@ sub1("'<div id=\"browse-wrap\">' + listHtml + '</div>' +\n        '</main>' +\n\
      "'<div id=\"browse-wrap\">' + listHtml + '</div>' +\n        '<p class=\"pd-note\">" + DISCLAIMER + "</p>' +\n        '</main>' +\n\n        deleteCategoryConfirmModalHtml() +")
 sub1("    'sourpaintstudios.com'\n  ];", "    '" + DISCLAIMER + "',\n    'sourpaintstudios.com'\n  ];")
 sub1("</style>\n</head>", ".pd-note { margin: 18px 4px 28px; font-size: 12px; line-height: 1.45; color: var(--text-dim); text-align: center; opacity: 0.85; }\n.home-tile[data-filter=\"public-domain\"] .home-tile-name, .home-tile[data-filter=\"public-domain\"] .home-tile-sub { display: none; }\n.home-tile[data-filter=\"public-domain\"] .home-tile-label { background: none; }\n.home-tile[data-filter=\"public-domain\"] .home-tile-count { color: #1C1C19; text-shadow: none; }\n</style>\n</head>")
+sub1('<meta name="apple-mobile-web-app-title" content="Songbook">', '<meta name="apple-mobile-web-app-title" content="SPS Starter">')
 open(dest, 'w', encoding='utf-8').write(s)
 print('ok', len(s))
