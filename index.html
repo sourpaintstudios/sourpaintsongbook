@@ -4605,6 +4605,23 @@ html, body { overscroll-behavior: none; }
       });
     });
   }
+  // Share backup: opens the phone's share menu so the backup can go straight to Drive.
+  function shareBackup() {
+    var json = backupPayload();
+    var name = backupFilename();
+    try {
+      var file = new File([json], name, { type: 'application/json' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: 'Songbook backup' }).then(function () {
+          toast('Backup shared - ' + state.songs.length + ' songs.');
+        }).catch(function (err) {
+          if (!err || err.name !== 'AbortError') backupLibrary();
+        });
+        return;
+      }
+    } catch (e) {}
+    backupLibrary();
+  }
   // Fallback when this view can't save files: the backup as text to copy
   // into a note or email, which Restore accepts pasted back in.
   function backupTextModalHtml() {
@@ -5100,6 +5117,7 @@ html, body { overscroll-behavior: none; }
             '<button type="button" class="move-cat-btn" data-action="open-howto" data-tab="about"><span>About</span></button>' +
             '<button type="button" class="move-cat-btn" data-action="more-backup"><span>Back up library</span></button>' +
             '<button type="button" class="move-cat-btn" data-action="more-import"><span>Import songs</span></button>' +
+            '<button type="button" class="move-cat-btn" data-action="more-share-backup"><span>Share backup (to Drive)</span></button>' +
             '<button type="button" class="move-cat-btn" data-action="more-restore"><span>Restore from backup</span></button>' +
             '<button type="button" class="move-cat-btn" data-action="more-arrange"><span>Arrange categories</span></button>' +
           '</div>' +
@@ -5128,7 +5146,8 @@ html, body { overscroll-behavior: none; }
       ['Paint', 'Play guitar into the mic and watch it paint a picture live. Save it as an image or a time-lapse video.'],
       ['Tuner', 'Chromatic and alternate-tuning guitar tuner with a neon needle.'],
       ['Song lists', 'Build set lists and open them in order for a gig.'],
-      ['⋮ menu', 'Back up your library, restore a backup, import songs, or rearrange categories.'],
+      ['⋮ menu', 'Back up your library, share the backup to Google Drive, restore a backup, import songs, or rearrange categories.'],
+      ['Share backup (to Drive)', 'Open the ⋮ menu and tap Share backup (to Drive). Your phone opens its share menu: pick Drive and save. Do this after each batch of imported songs. If your phone cannot share files, it falls back to the normal backup.'],
       ['Import songs', 'Open the ⋮ menu and tap Import songs. Paste song sheets one after another (each paste becomes its own song), or pick a text file from your phone or Drive. The app strips web links, credits, tab lines and chord diagrams, finds the title, artist and key, lines the chords up, and shows a review list. Fix any title or artist, untick songs you do not want, pick a category, and tap Import. Songs already in your songbook are unticked. Everything stays on this device; keep your own master file as a backup.']
     ]},
     { h: 'Song cards', items: [
@@ -10127,6 +10146,7 @@ html, body { overscroll-behavior: none; }
     else if (action === 'howto-tab') { showHowToTab(el.getAttribute('data-tab')); }
     else if (action === 'howto-close') { setModal('howto-modal', false); }
     else if (action === 'more-backup') { setModal('more-menu-modal', false); backupLibrary(); }
+    else if (action === 'more-share-backup') { setModal('more-menu-modal', false); shareBackup(); }
     else if (action === 'more-import') { setModal('more-menu-modal', false); openSongsImport(); }
     else if (action === 'songs-import-cancel') { setModal('songs-import-modal', false); }
     else if (action === 'songs-import-read') { siRead(); }
@@ -10293,7 +10313,7 @@ html, body { overscroll-behavior: none; }
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 105';
+  var APP_VERSION_LABEL = 'Version 106';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
