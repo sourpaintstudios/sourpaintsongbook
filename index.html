@@ -683,6 +683,9 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
 
 /* Move-to-category modal: a plain vertical list of category buttons, the
    current one highlighted the same way an active library tab is. */
+.move-mode-row { display: flex; gap: 6px; margin: 4px 0 10px; }
+.move-mode-btn { flex: 1; padding: 10px 4px; font-size: 14px; }
+.move-mode-btn.move-mode-on { background: var(--accent, #c8f542); color: #101010; border-color: transparent; font-weight: 700; }
 .move-cat-list { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 20px; text-align: left; }
 .move-cat-btn {
   height: 48px; padding: 0 16px; border-radius: 12px;
@@ -4704,7 +4707,7 @@ html, body { overscroll-behavior: none; }
     }
     var added = 0, updated = 0;
     var idIndex = {}, titleIndex = {};
-    state.songs.forEach(function (s, i) { idIndex[s.id] = i; titleIndex[songTitleKey(s)] = i; });
+    state.songs.forEach(function (s, i) { idIndex[s.id] = i; titleIndex[songTitleKey(s) + '|' + (s.category || '')] = i; });
     incoming.songs.forEach(function (raw) {
       if (!raw || !raw.title) return;
       var s = Object.assign({}, raw);
@@ -4713,7 +4716,7 @@ html, body { overscroll-behavior: none; }
       s.key = String(s.key || ''); s.bpm = String(s.bpm || ''); s.artist = String(s.artist || '');
       s.updatedAt = Number(s.updatedAt) || Date.now();
       s.createdAt = Number(s.createdAt) || s.updatedAt;
-      var idx = (s.id && idIndex[s.id] != null) ? idIndex[s.id] : titleIndex[songTitleKey(s)];
+      var idx = (s.id && idIndex[s.id] != null) ? idIndex[s.id] : titleIndex[songTitleKey(s) + '|' + (s.category || '')];
       if (idx != null) {
         var cur = state.songs[idx];
         if (s.updatedAt > (cur.updatedAt || 0)) {
@@ -4725,7 +4728,7 @@ html, body { overscroll-behavior: none; }
         if (!s.id) s.id = uid();
         state.songs.push(s);
         idIndex[s.id] = state.songs.length - 1;
-        titleIndex[songTitleKey(s)] = state.songs.length - 1;
+        titleIndex[songTitleKey(s) + '|' + (s.category || '')] = state.songs.length - 1;
         added++;
       }
     });
@@ -5154,7 +5157,7 @@ html, body { overscroll-behavior: none; }
       ['Tap a card', 'Opens the song in the stage player.'],
       ['Heart', 'Tap the heart on a song card (or in the player, beside Magic Glass) to make it a favorite and choose its favorites folder. Tap a filled heart to remove it.'],
       ['Covers by artist', 'Inside Covers, songs are grouped under their artist (A to Z). Tap an artist heading to fold or open that group. The artist comes from the Artist box on each song, so fill it in when you add a cover. Songs with no artist sit last under No artist.'],
-      ['Palette / folder / pencil / trash', 'Color the card, move it to a category, edit it, or delete it.']
+      ['Palette / folder / pencil / trash', 'Color the card, edit it, or delete it. The folder button opens Move, Copy to and Song list: Move changes its category, Copy to makes a second copy of the song in another category (the original stays), and Song list adds it to a gig or setlist (tap again to remove). Song lists can also be changed from inside Song lists.']
     ]},
     { h: 'Stage player', items: [
       ['START', 'Tap START and the lyrics begin scrolling at an easy speed right away. No tapping needed. Then set the speed your way: drag the fader on the right, type a BPM, hold Slower / Faster, or use Tap Tempo.'],
@@ -5746,7 +5749,12 @@ html, body { overscroll-behavior: none; }
     return (
       '<div class="modal-backdrop" id="move-category-modal" hidden>' +
         '<div class="modal-card">' +
-          '<h2>Move to category</h2>' +
+          '<h2 id="move-category-title">Move, copy or add</h2>' +
+          '<div class="move-mode-row">' +
+            '<button type="button" class="btn btn-ghost move-mode-btn" data-action="move-mode" data-mode="move" id="move-mode-move">Move</button>' +
+            '<button type="button" class="btn btn-ghost move-mode-btn" data-action="move-mode" data-mode="copy" id="move-mode-copy">Copy to</button>' +
+            '<button type="button" class="btn btn-ghost move-mode-btn" data-action="move-mode" data-mode="list" id="move-mode-list">Song list</button>' +
+          '</div>' +
           '<p id="move-category-text">Choose a category.</p>' +
           '<div class="move-cat-list" id="move-category-list"></div>' +
           '<div class="modal-actions">' +
@@ -6248,27 +6256,87 @@ html, body { overscroll-behavior: none; }
   }
 
   var pendingMoveId = null;
+  var moveMode = 'move';
   function requestMoveSong(id) {
     var s = findSong(id);
     if (!s) return;
     pendingMoveId = id;
-    var textEl = byId('move-category-text');
-    if (textEl) textEl.textContent = 'Move "' + s.title + '" to:';
-    var listEl = byId('move-category-list');
-    if (listEl) {
-      var options = [{ id: '', label: 'Uncategorized' }].concat(allCategories());
-      var current = s.category || '';
-      listEl.innerHTML = options.map(function (opt) {
-        var active = opt.id === current;
-        return '<button type="button" class="move-cat-btn' + (active ? ' move-cat-btn-active' : '') +
-          '" data-action="pick-move-category" data-cat="' + opt.id + '">' +
-          '<span>' + escapeHtml(opt.label) + '</span>' +
-          (active ? checkSvg() : '') +
-        '</button>';
-      }).join('');
-    }
+    moveMode = 'move';
+    renderMoveModal();
     var modal = byId('move-category-modal');
     if (modal) modal.hidden = false;
+  }
+  function setMoveMode(mode) {
+    moveMode = (mode === 'copy' || mode === 'list') ? mode : 'move';
+    renderMoveModal();
+  }
+  function renderMoveModal() {
+    var s = findSong(pendingMoveId);
+    if (!s) return;
+    ['move', 'copy', 'list'].forEach(function (m) {
+      var b = byId('move-mode-' + m);
+      if (b) b.classList.toggle('move-mode-on', moveMode === m);
+    });
+    var textEl = byId('move-category-text');
+    var listEl = byId('move-category-list');
+    if (!listEl) return;
+    var title = s.title || 'Untitled';
+    if (moveMode === 'list') {
+      if (textEl) textEl.textContent = 'Add "' + title + '" to a song list (tap again to remove):';
+      var lists = (state.songLists || []).slice().sort(function (a, b) { return (a.name || '').localeCompare(b.name || ''); });
+      if (!lists.length) {
+        listEl.innerHTML = '<p>No song lists yet. Open Song lists on Home to make one, then come back.</p>';
+        return;
+      }
+      listEl.innerHTML = lists.map(function (l) {
+        var inc = l.songIds.indexOf(s.id) !== -1;
+        return '<button type="button" class="move-cat-btn' + (inc ? ' move-cat-btn-active' : '') +
+          '" data-action="pick-songlist-for-song" data-listid="' + l.id + '">' +
+          '<span>' + escapeHtml(l.name || 'Song list') + '</span>' + (inc ? checkSvg() : '') + '</button>';
+      }).join('');
+      return;
+    }
+    var options = [{ id: '', label: 'Uncategorized' }].concat(allCategories());
+    var current = s.category || '';
+    if (textEl) textEl.textContent = moveMode === 'copy'
+      ? 'Copy "' + title + '" to (the original stays where it is):'
+      : 'Move "' + title + '" to:';
+    listEl.innerHTML = options.map(function (opt) {
+      var active = opt.id === current;
+      var act = moveMode === 'copy' ? 'pick-copy-category' : 'pick-move-category';
+      return '<button type="button" class="move-cat-btn' + (active ? ' move-cat-btn-active' : '') +
+        '" data-action="' + act + '" data-cat="' + opt.id + '">' +
+        '<span>' + escapeHtml(opt.label) + '</span>' +
+        (active ? checkSvg() : '') +
+      '</button>';
+    }).join('');
+  }
+  function pickCopyCategory(catId) {
+    var s = findSong(pendingMoveId);
+    if (!s) { cancelMoveSong(); return; }
+    if ((s.category || '') === (catId || '')) { toast('It is already in ' + (catId ? categoryLabel(catId) : 'Uncategorized') + '. Pick another category.'); return; }
+    var now = Date.now();
+    var c = JSON.parse(JSON.stringify(s));
+    c.id = uid();
+    c.category = catId || null;
+    c.createdAt = now; c.updatedAt = now;
+    delete c.v; delete c.favorite; delete c.favFolder;
+    state.songs.push(c);
+    persist();
+    cancelMoveSong();
+    toast('Copied to ' + (catId ? categoryLabel(catId) : 'Uncategorized') + '.');
+    render();
+  }
+  function pickSonglistForSong(listId) {
+    var s = findSong(pendingMoveId);
+    var list = findSongList(listId);
+    if (!s || !list) return;
+    var idx = list.songIds.indexOf(s.id);
+    if (idx === -1) { list.songIds.push(s.id); toast('Added to ' + (list.name || 'song list') + '.'); }
+    else { list.songIds.splice(idx, 1); toast('Removed from ' + (list.name || 'song list') + '.'); }
+    list.updatedAt = Date.now();
+    persist();
+    renderMoveModal();
   }
   function cancelMoveSong() {
     pendingMoveId = null;
@@ -10178,6 +10246,9 @@ html, body { overscroll-behavior: none; }
     else if (action === 'confirm-delete-song') { confirmDeleteSong(); }
     else if (action === 'move-song') { requestMoveSong(id); }
     else if (action === 'cancel-move-song') { cancelMoveSong(); }
+    else if (action === 'move-mode') { setMoveMode(el.getAttribute('data-mode')); }
+    else if (action === 'pick-copy-category') { pickCopyCategory(el.getAttribute('data-cat')); }
+    else if (action === 'pick-songlist-for-song') { pickSonglistForSong(el.getAttribute('data-listid')); }
     else if (action === 'pick-move-category') { pickMoveCategory(el.getAttribute('data-cat')); }
     else if (action === 'new-category') { openNamePrompt('new-category', 'Add category', ''); }
     else if (action === 'open-color-picker') { openColorPicker({ type: 'song', songId: id }); }
@@ -10313,7 +10384,7 @@ html, body { overscroll-behavior: none; }
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 108';
+  var APP_VERSION_LABEL = 'Version 109';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
