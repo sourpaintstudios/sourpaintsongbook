@@ -4,11 +4,11 @@
    - Images / scripts: saved copy first, fetched once then kept.
    - Video/audio range requests are left to the network (the intro falls back to the still card).
    RELEASE RULE: change VERSION on every release so old saved files are cleared. */
-var VERSION = 'v106';
+var VERSION = 'v107';
 var CACHE = 'spss-songbook-' + VERSION;
 var PAGE_KEY = './';
 var NAV_TIMEOUT_MS = 2500;
-var EXTRAS = ['manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'art-splash-poster.jpg',
+var EXTRAS = ['manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png', 'art-splash-poster.jpg',
   'art-covers.jpg', 'art-jailhouse.jpg', 'art-originals.jpg', 'art-public-domain.jpg'];
 
 self.addEventListener('install', function (e) {
