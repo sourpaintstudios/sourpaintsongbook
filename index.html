@@ -277,6 +277,12 @@ button {
 .library-heading-actions { display: flex; align-items: center; gap: 8px; }
 
 .song-grid { display: grid; grid-template-columns: 1fr; gap: 7px; }
+.artist-group { margin: 0 0 12px; }
+.artist-head { display: flex; align-items: center; gap: 8px; width: 100%; padding: 9px 12px; margin: 0 0 7px; background: var(--bg-elevated); border: 1px solid var(--line); border-radius: 10px; color: var(--text); font: inherit; font-weight: 700; text-align: left; cursor: pointer; }
+.artist-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.artist-count { font-size: 12px; font-weight: 600; color: var(--text-dim); }
+.artist-caret { color: var(--text-dim); transition: transform .15s; }
+.artist-head.is-shut .artist-caret { transform: rotate(-90deg); }
 @media (min-width: 560px) { .song-grid { grid-template-columns: 1fr 1fr; } }
 
 .song-card {
@@ -818,6 +824,13 @@ input:focus, textarea:focus, select:focus { outline: 2px solid var(--green); out
   margin: 2px 4px 4px; font-size: 12.5px; color: var(--text-dim);
   line-height: 1.45; text-align: left;
 }
+.songs-import-card { max-height: 88vh; overflow-y: auto; }
+.songs-import-card select, .songs-import-card .si-item input[type=text] { width: 100%; box-sizing: border-box; margin: 4px 0; padding: 8px; font: inherit; border-radius: 8px; border: 1px solid rgba(128,128,128,.5); background: transparent; color: inherit; }
+.si-item { border: 1px solid rgba(128,128,128,.4); border-radius: 12px; padding: 10px; margin: 8px 0; }
+.si-item .si-need { border-color: #e44; }
+.si-dup { display: block; color: #e8a33d; font-size: 13px; }
+.si-item details { margin-top: 6px; }
+.si-item .si-body { width: 100%; box-sizing: border-box; font-family: monospace; font-size: 13px; }
 .import-review-card { text-align: left; max-width: 520px; padding-bottom: 24px; }
 .import-review-card h2 { text-align: center; }
 .import-review-card textarea {
@@ -4300,6 +4313,23 @@ html, body { overscroll-behavior: none; }
       });
     });
   }
+  // Share backup: opens the phone's share menu so the backup can go straight to Drive.
+  function shareBackup() {
+    var json = backupPayload();
+    var name = backupFilename();
+    try {
+      var file = new File([json], name, { type: 'application/json' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: 'Songbook backup' }).then(function () {
+          toast('Backup shared - ' + state.songs.length + ' songs.');
+        }).catch(function (err) {
+          if (!err || err.name !== 'AbortError') backupLibrary();
+        });
+        return;
+      }
+    } catch (e) {}
+    backupLibrary();
+  }
   // Fallback when this view can't save files: the backup as text to copy
   // into a note or email, which Restore accepts pasted back in.
   function backupTextModalHtml() {
@@ -4444,6 +4474,347 @@ html, body { overscroll-behavior: none; }
     render();
   }
 
+  /* ---------- Import songs: paste or pick a file holding many song sheets ----------
+     Nothing here is uploaded or baked into the app. The person pastes (or
+     picks a text file from the phone or Drive), the app cleans each sheet on
+     the device, shows a review list, and saves the chosen songs into this
+     phone's own storage. */
+  var SI_SECTION_WORDS = 'intro|verse|chorus|pre[- ]?chorus|bridge|instrumental|interlude|outro|solo|link|refrain|break|hook|coda|middle 8|ending|harmonica|riff|tag|lead|bridge';
+  var SI_LABEL_BRACKET_RE = new RegExp('^[\\[\\(]\\s*((?:' + SI_SECTION_WORDS + ')[^\\]\\)]{0,28})\\s*[\\]\\)]\\s*:?\\s*$', 'i');
+  var SI_LABEL_PLAIN_RE = new RegExp('^((?:' + SI_SECTION_WORDS + ')(?:\\s*\\d{1,2}|\\s*(?:ver|version)\\s*\\w{1,3}|\\s*[ab])?)\\s*:?\\s*$', 'i');
+  var SI_URL_RE = /(https?:\/\/|www\.|spotify:|youtube\.com|wikipedia)|\S+@\S+\.\S+/i;
+  var SI_META_RE = /^\s*(tabbed by|tabber\b|transcri\w*|written by|words (?:and|&) music|submitted|from:|date:|subject:|album:|tuning\b|year:|released\b|key signature|time signature|developed by|e-?mail\b|question|comments?\b|set\d+\s*$|source:|video:|\*+\s*alternates?)/i;
+  var SI_SMALL_WORDS = { a: 1, an: 1, the: 1, of: 1, in: 1, on: 1, at: 1, by: 1, to: 1, for: 1, and: 1, or: 1, but: 1, with: 1 };
+  var SI_ROMAN = { i: 1, ii: 2, iii: 3, iv: 4, v: 5, vi: 6, vii: 7, viii: 8, ix: 9, x: 10 };
+
+  function siTitleCase(s) {
+    s = String(s || '').trim();
+    if (!s || /[a-z]/.test(s)) return s;
+    return s.toLowerCase().split(/\s+/).map(function (w, i) {
+      if (i > 0 && SI_SMALL_WORDS[w]) return w;
+      return w.charAt(0).toUpperCase() + w.slice(1);
+    }).join(' ');
+  }
+
+  function siChordTokens(line) {
+    var t = String(line || '').replace(/[()]/g, ' ').replace(/\*+/g, ' ').trim();
+    if (!t) return null;
+    var parts = t.split(/[\s\\,|]+/).filter(Boolean), out = [];
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i];
+      if (/^(x\d+|\d+x|\.{2,}|…+|-+|\/|%|:+|n\.?c\.?)$/i.test(p)) continue;
+      if (CHORD_TOKEN_RE.test(p)) out.push(p); else return null;
+    }
+    return out.length ? out : null;
+  }
+
+  function siIsTabLine(line) {
+    return /^\s*[eEBGDAa]\|[-\d\/\\hpbrsx~^()|*\s.vwt=]+$/.test(line) ||
+      /^\s*\|[-\d\/\\hpbrsx~^()*\s.]{4,}\|?\s*$/.test(line) && /-{2,}/.test(line);
+  }
+
+  function siIsFingering(line) {
+    var parts = String(line || '').trim().split(/[\s…:.\-]+/).filter(Boolean);
+    if (parts.length < 2 || !/^[A-G][#b]?[\w#+\/*()]*$/.test(parts[0])) return false;
+    var rest = parts.slice(1), n = 0;
+    for (var i = 0; i < rest.length; i++) {
+      var r = rest[i];
+      if (/^\(.*\)$/.test(r)) continue;
+      if (/^[x\d]{1,2}$/i.test(r)) { n += 1; continue; }
+      if (/^[x\d]{6}$/i.test(r)) { n += 6; continue; }
+      return false;
+    }
+    return n >= 6;
+  }
+
+  function siLabel(line) {
+    var t = String(line || '').trim();
+    var m = t.match(SI_LABEL_BRACKET_RE) || t.match(SI_LABEL_PLAIN_RE);
+    if (!m) return null;
+    var inner = m[1].replace(/\s+/g, ' ').replace(/:$/, '').trim();
+    return inner.charAt(0).toUpperCase() + inner.slice(1);
+  }
+
+  function siKeyGuess(text) {
+    var lines = String(text || '').split('\n');
+    for (var i = 0; i < lines.length; i++) {
+      var toks = siChordTokens(lines[i].replace(/[\[\]]/g, ' '));
+      if (!toks || !toks.length) continue;
+      var m = toks[0].match(/^([A-G][#b]?)(m(?!aj)|min)?/);
+      if (m) return m[1] + (m[2] ? 'm' : '');
+    }
+    return '';
+  }
+
+  function siParseOne(seg) {
+    var lines = String(seg || '').split(/\r?\n/).map(function (l) { return l.replace(/\s+$/, ''); });
+    var cut = -1;
+    for (var a = 0; a < lines.length; a++) if (/^\s*\*{1,3}\s*alternates?\b/i.test(lines[a])) { cut = a; break; }
+    if (cut >= 0) lines = lines.slice(0, cut);
+
+    var title = '', artist = '', key = '', capo = 0;
+    var kept = [];
+    for (var i = 0; i < lines.length; i++) {
+      var ln = lines[i], tr = ln.trim();
+      if (!tr) { kept.push(''); continue; }
+      if (/^#/.test(tr)) continue;
+      var cp = tr.match(/^\{\s*(title|t|artist|key|capo)\s*:\s*(.*?)\s*\}$/i);
+      if (cp) {
+        var f = cp[1].toLowerCase();
+        if (f === 'title' || f === 't') title = title || cp[2];
+        else if (f === 'artist') artist = artist || cp[2];
+        else if (f === 'key') key = key || cp[2];
+        else if (f === 'capo') capo = capo || parseInt(cp[2], 10) || 0;
+        continue;
+      }
+      if (/^\{.*\}$/.test(tr)) continue;
+      var ex = tr.match(/^(title|song)\s*[:\-]\s*(.+)$/i);
+      if (ex) { title = title || ex[2].trim(); continue; }
+      ex = tr.match(/^(artist|performed by|by)\s*:\s*(.+)$/i);
+      if (ex) { artist = artist || ex[2].trim(); continue; }
+      ex = tr.match(/^key\s*:\s*([A-G][#b]?m?)\s*$/i);
+      if (ex) { key = key || ex[1]; continue; }
+      if (!/\bno capo\b/i.test(tr)) {
+        var cm = tr.match(/\bcapo\b\s*(?:on|at)?\s*(?:the\s*)?(?:fret\s*)?[:\-]?\s*(\d{1,2}|[ivx]{1,4})\b/i);
+        if (cm && !capo) capo = /^\d+$/.test(cm[1]) ? parseInt(cm[1], 10) : (SI_ROMAN[cm[1].toLowerCase()] || 0);
+        if (cm && tr.length < 60 && !/\[/.test(tr)) continue;
+      }
+      kept.push(ln);
+    }
+
+    // Drop links, credits, tab staves, fingering lists, legends.
+    var clean = [];
+    for (var j = 0; j < kept.length; j++) {
+      var l = kept[j], t2 = l.trim();
+      if (!t2) { clean.push(''); continue; }
+      if (SI_URL_RE.test(t2) || SI_META_RE.test(t2)) continue;
+      if (siIsTabLine(l)) {
+        while (clean.length && clean[clean.length - 1] === '') clean.pop();
+        if (clean.length && siChordTokens(clean[clean.length - 1]) && !/\[/.test(clean[clean.length - 1])) clean.pop();
+        continue;
+      }
+      if (siIsFingering(l)) continue;
+      if (/^[\W_]{3,}$/.test(t2)) continue;
+      if (/^\|?\s*[hpb\/\\~]\s+(hammer|pull|bend|slide|vibrato)/i.test(t2)) continue;
+      if (/^[\[\(]?\s*chord(s| diagrams?)( used)?\s*[\]\)]?:?$/i.test(t2)) continue;
+      if (/\bbpm\b/i.test(t2) && t2.length < 40) continue;
+      if (/^\(?\s*(repeat|fade|play\b|\d+\s*x\b|x\s*\d+)/i.test(t2) && !siLabel(t2)) continue;
+      clean.push(l);
+    }
+
+    // Title / artist from the top lines when no explicit fields.
+    var firstReal = 0;
+    while (firstReal < clean.length && !clean[firstReal].trim()) firstReal++;
+    function isHeaderish(s) {
+      var x = String(s || '').trim();
+      return x && !siLabel(x) && !siChordTokens(x) && !/\[/.test(x) && x.length <= 70 && !/[,;]$/.test(x) && !/^\(.*\)$/.test(x);
+    }
+    var headUsed = 0;
+    if (!title && isHeaderish(clean[firstReal])) {
+      var h = clean[firstReal].trim(), sp = h.match(/^(.+?)\s+(?:-|–|—)\s+(.+)$/), bm = h.match(/^(.+?)\s+by\s+(.+)$/i);
+      if (sp) { artist = artist || siTitleCase(sp[1]); title = sp[2]; }
+      else if (bm) { title = bm[1]; artist = artist || bm[2]; }
+      else title = h;
+      headUsed = firstReal + 1;
+      var nxt = headUsed;
+      while (nxt < clean.length && !clean[nxt].trim()) nxt++;
+      if (!artist && nxt < clean.length && nxt - headUsed <= 1 && isHeaderish(clean[nxt])) {
+        var cand = clean[nxt].trim().replace(/\s*[,(\-]?\s*\b(19|20)\d{2}\b.*$/, '').replace(/^by\s+/i, '').trim();
+        if (cand && cand.split(/\s+/).length <= 5 && /^[A-Za-z0-9 .&'’,-]+$/.test(cand) && cand.indexOf('  ') === -1) { artist = cand; headUsed = nxt + 1; }
+      }
+    }
+    title = String(title || '').replace(/\s+chords?\s*\**\s*$/i, '').replace(/\s*\*+\s*$/, '').replace(/^["“]|["”]$/g, '').replace(/\s*\(.*?\)\s*$/, '').trim();
+    title = siTitleCase(title);
+    artist = siTitleCase(String(artist || '').replace(/\s*\b(19|20)\d{2}\b.*$/, '').replace(/\s*\(.*?\)\s*$/, '').trim());
+
+    // Normalize body: section labels, chord lines.
+    var body = [];
+    for (var k = headUsed; k < clean.length; k++) {
+      var s = clean[k], st = s.trim();
+      if (!st) { body.push(''); continue; }
+      var lab = siLabel(st);
+      if (lab) { body.push('\u0001' + lab); continue; }
+      if (/^\(.*\)$/.test(st) && !/\[/.test(st) && st.length < 40) continue;
+      var toks = (st.indexOf('[') === -1) ? siChordTokens(st) : null;
+      if (toks) {
+        for (var c = 0; c < toks.length; c += 8) body.push(toks.slice(c, c + 8).join(' '));
+        continue;
+      }
+      body.push(st.replace(/\s{2,}/g, ' ').replace(/\.{4,}/g, '...'));
+    }
+    // Labels: blank line before, none empty.
+    var out = [];
+    for (var m2 = 0; m2 < body.length; m2++) {
+      var b = body[m2];
+      if (b.charAt(0) === '\u0001') {
+        var nx = m2 + 1;
+        while (nx < body.length && body[nx] === '') nx++;
+        if (nx >= body.length || body[nx].charAt(0) === '\u0001') continue;
+        if (out.length && out[out.length - 1] !== '') out.push('');
+        out.push(b.slice(1));
+      } else if (b === '' && (!out.length || out[out.length - 1] === '')) {
+        continue;
+      } else out.push(b);
+    }
+    while (out.length && out[out.length - 1] === '') out.pop();
+    if (capo) out.unshift('Capo ' + capo, '');
+    var text = out.join('\n');
+    var realLines = out.filter(function (x) { return x.trim(); }).length;
+    if (realLines < 3) return null;
+    return { title: title, artist: artist, key: key || siKeyGuess(text), text: text };
+  }
+
+  function siParseAll(raw) {
+    var lines = String(raw || '').split(/\r?\n/), segs = [], cur = [];
+    function flush() { if (cur.some(function (x) { return x.trim(); })) segs.push(cur.join('\n')); cur = []; }
+    for (var i = 0; i < lines.length; i++) {
+      var t = lines[i].trim();
+      if (/^-{3,}$/.test(t) || /^#{3,}$/.test(t)) { flush(); continue; }
+      if (/^title\s*:/i.test(t) && cur.some(function (x) { return x.trim(); })) flush();
+      cur.push(lines[i]);
+    }
+    flush();
+    var items = [];
+    segs.forEach(function (sg) { var r = siParseOne(sg); if (r) items.push(r); });
+    return items;
+  }
+
+  function siDupKey(title, artist) { return songTitleKey({ title: title }) + '|' + songTitleKey({ title: artist }); }
+
+  var siItems = [];
+  function importSongsModalHtml() {
+    return (
+      '<div class="modal-backdrop" id="songs-import-modal" hidden>' +
+        '<div class="modal-card import-review-card songs-import-card">' +
+          '<h2>Import songs</h2>' +
+          '<div id="si-step1">' +
+            '<p>Paste your song sheets below, or pick a text file (from your phone or Drive). Each paste is added as a new song. Everything stays on this phone.</p>' +
+            '<span class="btn btn-ghost file-pick">Choose a text file' +
+              '<input type="file" id="songs-import-file-input" class="file-pick-input" accept=".txt,.text,.md,text/plain" aria-label="Choose a text file" /></span>' +
+            '<textarea id="si-text" rows="7" placeholder="Paste song sheets here"></textarea>' +
+            '<p id="si-count" class="si-dup"></p>' +
+            '<label class="field"><span class="field-label">Put these songs in</span><select id="si-cat"></select></label>' +
+            '<div class="modal-actions">' +
+              '<button class="btn btn-ghost" data-action="songs-import-cancel">Cancel</button>' +
+              '<button class="btn btn-primary" data-action="songs-import-read">Read songs</button>' +
+            '</div>' +
+          '</div>' +
+          '<div id="si-step2" hidden>' +
+            '<p id="si-summary"></p>' +
+            '<div id="si-list" class="songs-import-list"></div>' +
+            '<div class="modal-actions">' +
+              '<button class="btn btn-ghost" data-action="songs-import-back">Back</button>' +
+              '<button class="btn btn-primary" data-action="songs-import-confirm" id="si-confirm">Import</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>'
+    );
+  }
+
+  function openSongsImport() {
+    var sel = byId('si-cat');
+    if (sel) {
+      var cur = (state.settings.libraryFilter && isKnownCategory(state.settings.libraryFilter)) ? state.settings.libraryFilter : 'covers';
+      sel.innerHTML = allCategories().map(function (c) {
+        return '<option value="' + escapeHtml(c.id) + '"' + (c.id === cur ? ' selected' : '') + '>' + escapeHtml(c.label) + '</option>';
+      }).join('') + '<option value="">No category</option>';
+    }
+    var s1 = byId('si-step1'), s2 = byId('si-step2');
+    if (s1) s1.hidden = false;
+    if (s2) s2.hidden = true;
+    setModal('songs-import-modal', true);
+  }
+
+  function siRead() {
+    var ta = byId('si-text');
+    var raw = ta ? ta.value : '';
+    if (!raw.trim()) { toast('Paste some song sheets first.'); return; }
+    siItems = siParseAll(raw);
+    if (!siItems.length) { toast('No songs found. Separate songs with a --- line.'); return; }
+    var have = {};
+    state.songs.forEach(function (s) { have[siDupKey(s.title, s.artist)] = true; });
+    var list = byId('si-list');
+    list.innerHTML = siItems.map(function (it, i) {
+      var dup = !!have[siDupKey(it.title, it.artist)] && !!it.title;
+      var n = it.text.split('\n').filter(function (x) { return x.trim(); }).length;
+      return '<div class="si-item" data-idx="' + i + '">' +
+        '<label class="si-inc"><input type="checkbox" class="si-on"' + (dup ? '' : ' checked') + ' /> Import</label>' +
+        (dup ? '<span class="si-dup">Already in your songbook</span>' : '') +
+        '<input type="text" class="si-title' + (it.title ? '' : ' si-need') + '" placeholder="Title" value="' + escapeHtml(it.title) + '" />' +
+        '<input type="text" class="si-artist" placeholder="Artist" value="' + escapeHtml(it.artist) + '" />' +
+        '<input type="text" class="si-key" placeholder="Key" value="' + escapeHtml(it.key) + '" />' +
+        '<button type="button" class="btn btn-ghost si-swap" data-action="songs-import-swap">Swap title and artist</button>' +
+        '<details><summary>Preview and edit (' + n + ' lines)</summary>' +
+        '<textarea class="si-body" rows="10">' + escapeHtml(it.text) + '</textarea></details>' +
+      '</div>';
+    }).join('');
+    byId('si-summary').textContent = 'Found ' + siItems.length + ' song' + (siItems.length === 1 ? '' : 's') + '. Check each title and artist, then import.';
+    byId('si-step1').hidden = true;
+    byId('si-step2').hidden = false;
+  }
+
+  function siConfirm() {
+    var rows = document.querySelectorAll('#si-list .si-item');
+    var cat = (byId('si-cat') || {}).value || null;
+    var picked = [], bad = false;
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      if (!r.querySelector('.si-on').checked) continue;
+      var title = r.querySelector('.si-title').value.trim();
+      if (!title) { bad = true; r.querySelector('.si-title').classList.add('si-need'); continue; }
+      picked.push({
+        title: title,
+        artist: r.querySelector('.si-artist').value.trim(),
+        key: r.querySelector('.si-key').value.trim(),
+        text: r.querySelector('.si-body').value
+      });
+    }
+    if (bad) { toast('Give each checked song a title.'); return; }
+    if (!picked.length) { toast('No songs selected.'); return; }
+    var now = Date.now();
+    picked.forEach(function (p) {
+      state.songs.push({
+        id: uid(), title: p.title, artist: p.artist, key: p.key, bpm: '',
+        category: cat || null, lyrics: prepareLyricsForLayout(p.text), image: null,
+        createdAt: now, updatedAt: now
+      });
+    });
+    persist();
+    setModal('songs-import-modal', false);
+    var ta = byId('si-text'); if (ta) ta.value = '';
+    siItems = [];
+    toast('Imported ' + picked.length + ' song' + (picked.length === 1 ? '' : 's') + '.');
+    render();
+  }
+
+  // Each paste into the import box becomes its own song: a --- line is added between pastes.
+  document.addEventListener('paste', function (e) {
+    var t = e.target;
+    if (!t || t.id !== 'si-text') return;
+    var txt = (e.clipboardData && e.clipboardData.getData('text')) || '';
+    if (!txt.trim()) return;
+    var cur = t.value;
+    if (!cur.trim()) return;
+    e.preventDefault();
+    t.value = cur.replace(/\s+$/, '') + '\n---\n' + txt.replace(/^\s+/, '');
+    t.scrollTop = t.scrollHeight;
+    var c = byId('si-count');
+    if (c) c.textContent = (t.value.split(/\n-{3,}\n/).length) + ' pasted so far';
+  });
+
+  document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (!t || t.id !== 'songs-import-file-input') return;
+    var f = t.files && t.files[0];
+    t.value = '';
+    if (!f) return;
+    var reader = new FileReader();
+    reader.onload = function () { var ta = byId('si-text'); if (ta) ta.value = String(reader.result || ''); siRead(); };
+    reader.onerror = function () { toast('Could not read that file.'); };
+    reader.readAsText(f);
+  });
+
   function moreMenuModalHtml() {
     return (
       '<div class="modal-backdrop" id="more-menu-modal" hidden>' +
@@ -4453,6 +4824,8 @@ html, body { overscroll-behavior: none; }
             '<button type="button" class="move-cat-btn" data-action="open-howto" data-tab="how"><span>How to use</span></button>' +
             '<button type="button" class="move-cat-btn" data-action="open-howto" data-tab="about"><span>About</span></button>' +
             '<button type="button" class="move-cat-btn" data-action="more-backup"><span>Back up library</span></button>' +
+            '<button type="button" class="move-cat-btn" data-action="more-import"><span>Import songs</span></button>' +
+            '<button type="button" class="move-cat-btn" data-action="more-share-backup"><span>Share backup (to Drive)</span></button>' +
             '<button type="button" class="move-cat-btn" data-action="more-restore"><span>Restore from backup</span></button>' +
             '<button type="button" class="move-cat-btn" data-action="more-arrange"><span>Arrange categories</span></button>' +
           '</div>' +
@@ -4485,11 +4858,14 @@ html, body { overscroll-behavior: none; }
       ['Paint', 'Play guitar into the mic and watch it paint a picture live. Save it as an image or a time-lapse video.'],
       ['Tuner', 'Chromatic and alternate-tuning guitar tuner with a neon needle.'],
       ['Song lists', 'Build set lists and open them in order for a gig.'],
-      ['⋮ menu', 'Back up your library, restore a backup, or rearrange categories.']
+      ['⋮ menu', 'Back up your library, share the backup to Google Drive, restore a backup, import songs, or rearrange categories.'],
+      ['Share backup (to Drive)', 'Open the ⋮ menu and tap Share backup (to Drive). Your phone opens its share menu: pick Drive and save. Do this after each batch of imported songs. If your phone cannot share files, it falls back to the normal backup.'],
+      ['Import songs', 'Open the ⋮ menu and tap Import songs. Paste song sheets one after another (each paste becomes its own song), or pick a text file from your phone or Drive. The app strips web links, credits, tab lines and chord diagrams, finds the title, artist and key, lines the chords up, and shows a review list. Fix any title or artist, untick songs you do not want, pick a category, and tap Import. Songs already in your songbook are unticked. Everything stays on this device; keep your own master file as a backup.']
     ]},
     { h: 'Song cards', items: [
       ['Tap a card', 'Opens the song in the stage player.'],
       ['Heart', 'Tap the heart on a song card (or in the player, beside Magic Glass) to make it a favorite and choose its favorites folder. Tap a filled heart to remove it.'],
+      ['Covers by artist', 'Inside Covers, songs are grouped under their artist (A to Z). Tap an artist heading to fold or open that group. The artist comes from the Artist box on each song, so fill it in when you add a cover. Songs with no artist sit last under No artist.'],
       ['Palette / folder / pencil / trash', 'Color the card, move it to a category, edit it, or delete it.']
     ]},
     { h: 'Stage player', items: [
@@ -4537,7 +4913,7 @@ html, body { overscroll-behavior: none; }
   ];
   var ABOUT_TEXT = [
     'Sour Paint Studios Songbook is a stage-ready lyrics and chord reader for working musicians: auto-scroll with tap tempo, chord layouts, set lists, a tuner, and a guitar painter.',
-    'Version 96.',
+    'Songbook Starter 96.',
     'Built by Daniel Lee Ruggeberg for Sour Paint Studios, Phoenix, AZ.',
     'Songs in this starter library are traditional or public-domain works. Lyrics and chords are provided for reference and practice and may differ from other versions. Please verify accuracy before public or commercial performance where it matters.',
     'sourpaintstudios.com'
@@ -4767,10 +5143,42 @@ html, body { overscroll-behavior: none; }
         howToModalHtml() +
         editCategoryModalHtml() +
         restoreModalHtml() +
+        importSongsModalHtml() +
         backupTextModalHtml() +
         shopModalHtml() +
         namePromptModalHtml() +
       '</div>';
+  }
+
+  /* Covers are grouped under their artist: one heading per artist (A to Z,
+     songs with no artist last), tap a heading to fold it. Grouping reads the
+     artist field, so it needs nothing extra from the user. No slot numbers
+     here, since the order is by artist. */
+  function coversByArtistHtml(songs) {
+    var groups = {}, order = [];
+    songs.forEach(function (x) {
+      var label = String(x.artist || '').trim();
+      var key = label.toLowerCase();
+      if (!groups[key]) { groups[key] = { key: key, label: label || 'No artist', songs: [] }; order.push(key); }
+      groups[key].songs.push(x);
+    });
+    order.sort(function (a, b) {
+      if (a === '') return 1;
+      if (b === '') return -1;
+      return a < b ? -1 : (a > b ? 1 : 0);
+    });
+    var folded = state.settings.coverCollapsed || {};
+    return order.map(function (k) {
+      var g = groups[k], shut = !!folded[k];
+      return '<div class="artist-group">' +
+        '<button type="button" class="artist-head' + (shut ? ' is-shut' : '') + '" data-action="toggle-artist" data-artist="' + escapeHtml(k) + '" aria-expanded="' + (shut ? 'false' : 'true') + '">' +
+          '<span class="artist-name">' + escapeHtml(g.label) + '</span>' +
+          '<span class="artist-count">' + g.songs.length + '</span>' +
+          '<span class="artist-caret" aria-hidden="true">&#9662;</span>' +
+        '</button>' +
+        (shut ? '' : '<div class="song-grid">' + g.songs.map(function (x) { return songCardHtml(x); }).join('') + '</div>') +
+      '</div>';
+    }).join('');
   }
 
   function renderLibrary() {
@@ -4801,7 +5209,8 @@ html, body { overscroll-behavior: none; }
         '<div class="empty-state"><p>No songs in ' + escapeHtml(filterTitle) + ' yet.</p>' +
         '<button class="btn btn-primary" data-action="new-song">' + plusSvg() + ' Add song</button></div>';
     } else {
-      listHtml = '<div class="song-grid">' + songs.map(function (x, i) { return songCardHtml(x, i + 1); }).join('') + '</div>';
+      listHtml = filter === 'covers' ? coversByArtistHtml(songs) :
+        '<div class="song-grid">' + songs.map(function (x, i) { return songCardHtml(x, i + 1); }).join('') + '</div>';
     }
 
     root.innerHTML =
@@ -9412,6 +9821,14 @@ html, body { overscroll-behavior: none; }
     var id = el.getAttribute('data-id');
 
     if (action === 'toggle-favorite') { toggleFavorite(id); return; }
+    if (action === 'toggle-artist') {
+      var ak = el.getAttribute('data-artist') || '';
+      if (!state.settings.coverCollapsed) state.settings.coverCollapsed = {};
+      if (state.settings.coverCollapsed[ak]) delete state.settings.coverCollapsed[ak]; else state.settings.coverCollapsed[ak] = true;
+      persist();
+      renderLibrary();
+      return;
+    }
     if (action === 'slot-move') { openSlotModal(el.getAttribute('data-id')); return; }
     if (action === 'slot-cancel') { closeSlotModal(); return; }
     if (action === 'slot-go') { slotGo(); return; }
@@ -9457,6 +9874,13 @@ html, body { overscroll-behavior: none; }
     else if (action === 'howto-tab') { showHowToTab(el.getAttribute('data-tab')); }
     else if (action === 'howto-close') { setModal('howto-modal', false); }
     else if (action === 'more-backup') { setModal('more-menu-modal', false); backupLibrary(); }
+    else if (action === 'more-share-backup') { setModal('more-menu-modal', false); shareBackup(); }
+    else if (action === 'more-import') { setModal('more-menu-modal', false); openSongsImport(); }
+    else if (action === 'songs-import-cancel') { setModal('songs-import-modal', false); }
+    else if (action === 'songs-import-read') { siRead(); }
+    else if (action === 'songs-import-back') { byId('si-step1').hidden = false; byId('si-step2').hidden = true; }
+    else if (action === 'songs-import-swap') { var row = el.closest('.si-item'), ti = row.querySelector('.si-title'), ar = row.querySelector('.si-artist'), tv = ti.value; ti.value = ar.value; ar.value = tv; ti.classList.toggle('si-need', !ti.value.trim()); }
+    else if (action === 'songs-import-confirm') { siConfirm(); }
     else if (action === 'more-restore') { setModal('more-menu-modal', false); setModal('restore-modal', true); }
     else if (action === 'more-arrange') { setModal('more-menu-modal', false); arrangeMode = true; renderHome(); }
     else if (action === 'arrange-move') { moveCategoryInOrder(el.getAttribute('data-filter'), Number(el.getAttribute('data-dir')) || 0); }
@@ -9617,7 +10041,7 @@ html, body { overscroll-behavior: none; }
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Songbook Starter 98';
+  var APP_VERSION_LABEL = 'Songbook Starter 106';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
