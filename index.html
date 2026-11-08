@@ -4963,10 +4963,11 @@ html, body { overscroll-behavior: none; }
         '<div class="modal-card import-review-card songs-import-card">' +
           '<h2>Import songs</h2>' +
           '<div id="si-step1">' +
-            '<p>Paste your song sheets below, or pick a text file (from your phone or Drive). Separate songs with a line of three dashes (---). Everything stays on this phone.</p>' +
+            '<p>Paste your song sheets below, or pick a text file (from your phone or Drive). Each paste is added as a new song. Everything stays on this phone.</p>' +
             '<span class="btn btn-ghost file-pick">Choose a text file' +
               '<input type="file" id="songs-import-file-input" class="file-pick-input" accept=".txt,.text,.md,text/plain" aria-label="Choose a text file" /></span>' +
             '<textarea id="si-text" rows="7" placeholder="Paste song sheets here"></textarea>' +
+            '<p id="si-count" class="si-dup"></p>' +
             '<label class="field"><span class="field-label">Put these songs in</span><select id="si-cat"></select></label>' +
             '<div class="modal-actions">' +
               '<button class="btn btn-ghost" data-action="songs-import-cancel">Cancel</button>' +
@@ -5062,6 +5063,21 @@ html, body { overscroll-behavior: none; }
     render();
   }
 
+  // Each paste into the import box becomes its own song: a --- line is added between pastes.
+  document.addEventListener('paste', function (e) {
+    var t = e.target;
+    if (!t || t.id !== 'si-text') return;
+    var txt = (e.clipboardData && e.clipboardData.getData('text')) || '';
+    if (!txt.trim()) return;
+    var cur = t.value;
+    if (!cur.trim()) return;
+    e.preventDefault();
+    t.value = cur.replace(/\s+$/, '') + '\n---\n' + txt.replace(/^\s+/, '');
+    t.scrollTop = t.scrollHeight;
+    var c = byId('si-count');
+    if (c) c.textContent = (t.value.split(/\n-{3,}\n/).length) + ' pasted so far';
+  });
+
   document.addEventListener('change', function (e) {
     var t = e.target;
     if (!t || t.id !== 'songs-import-file-input') return;
@@ -5113,7 +5129,7 @@ html, body { overscroll-behavior: none; }
       ['Tuner', 'Chromatic and alternate-tuning guitar tuner with a neon needle.'],
       ['Song lists', 'Build set lists and open them in order for a gig.'],
       ['⋮ menu', 'Back up your library, restore a backup, import songs, or rearrange categories.'],
-      ['Import songs', 'Open the ⋮ menu and tap Import songs. Paste many song sheets at once (or pick a text file from your phone or Drive), with a line of three dashes (---) between songs. The app strips web links, credits, tab lines and chord diagrams, finds the title, artist and key, lines the chords up, and shows a review list. Fix any title or artist, untick songs you do not want, pick a category, and tap Import. Songs already in your songbook are unticked. Everything stays on this device; keep your own master file as a backup.']
+      ['Import songs', 'Open the ⋮ menu and tap Import songs. Paste song sheets one after another (each paste becomes its own song), or pick a text file from your phone or Drive. The app strips web links, credits, tab lines and chord diagrams, finds the title, artist and key, lines the chords up, and shows a review list. Fix any title or artist, untick songs you do not want, pick a category, and tap Import. Songs already in your songbook are unticked. Everything stays on this device; keep your own master file as a backup.']
     ]},
     { h: 'Song cards', items: [
       ['Tap a card', 'Opens the song in the stage player.'],
@@ -10277,7 +10293,7 @@ html, body { overscroll-behavior: none; }
      sound" to restart it with audio and "Tap to skip" anywhere else. If
      the video can't play within a couple of seconds, the still title card
      shows briefly instead, so the app never hangs on a black screen. */
-  var APP_VERSION_LABEL = 'Version 104';
+  var APP_VERSION_LABEL = 'Version 105';
   function runIntro() {
     var splash = document.getElementById('splash');
     if (!splash) return;
